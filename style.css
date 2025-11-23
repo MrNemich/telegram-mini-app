@@ -1220,7 +1220,7 @@ p {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(calc(-33.333% * 50)); /* Много прокруток */
+        transform: translateX(calc(-33.333% * 50));
     }
 }
 
