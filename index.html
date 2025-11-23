@@ -36,41 +36,60 @@
         <!-- Контент для других страниц (скрыт) -->
         <div class="content" id="other-content" style="display: none;">
             <h1 id="pageTitle">🎰 Рулетка</h1>
-            <p id="pageDescription">Испытайте удачу в рулетке</p>
+            <p id="pageDescription">Откройте кейсы и получите награды</p>
             
             <div class="roulette-container">
-                <div class="roulette-wheel">
-                    <div class="roulette-items" id="rouletteItems">
-                        <!-- Элементы рулетки будут добавлены через JS -->
-                    </div>
-                    <div class="roulette-pointer"></div>
+                <div class="case-buttons-grid">
+                    <button class="case-button" onclick="openCase(100)">
+                        <div class="case-button-content">
+                            <span class="case-name">Обычный кейс</span>
+                            <span class="case-price">
+                                <span class="star-icon">⭐</span>
+                                100
+                            </span>
+                        </div>
+                    </button>
+                    
+                    <button class="case-button premium" onclick="openCase(200)">
+                        <div class="case-button-content">
+                            <span class="case-name">Премиум кейс</span>
+                            <span class="case-price">
+                                <span class="star-icon">⭐</span>
+                                200
+                            </span>
+                        </div>
+                    </button>
+                    
+                    <button class="case-button epic" onclick="openCase(500)">
+                        <div class="case-button-content">
+                            <span class="case-name">Эпический кейс</span>
+                            <span class="case-price">
+                                <span class="star-icon">⭐</span>
+                                500
+                            </span>
+                        </div>
+                    </button>
+                    
+                    <button class="case-button legendary" onclick="openCase(1000)">
+                        <div class="case-button-content">
+                            <span class="case-name">Легендарный кейс</span>
+                            <span class="case-price">
+                                <span class="star-icon">⭐</span>
+                                1000
+                            </span>
+                        </div>
+                    </button>
+                    
+                    <button class="case-button mythic" onclick="openCase(1500)">
+                        <div class="case-button-content">
+                            <span class="case-name">Мифический кейс</span>
+                            <span class="case-price">
+                                <span class="star-icon">⭐</span>
+                                1500
+                            </span>
+                        </div>
+                    </button>
                 </div>
-                
-                <div class="selected-roulette" id="selectedRoulette">
-                    Выберите ставку
-                </div>
-                
-                <div class="roulette-buttons">
-                    <button class="roulette-btn roulette-btn-100" onclick="selectRoulette(100)">
-                        <span class="stars-icon">⭐</span> Рулетка за 100 звёзд
-                    </button>
-                    <button class="roulette-btn roulette-btn-200" onclick="selectRoulette(200)">
-                        <span class="stars-icon">⭐</span> Рулетка за 200 звёзд
-                    </button>
-                    <button class="roulette-btn roulette-btn-500" onclick="selectRoulette(500)">
-                        <span class="stars-icon">⭐</span> Рулетка за 500 звёзд
-                    </button>
-                    <button class="roulette-btn roulette-btn-1000" onclick="selectRoulette(1000)">
-                        <span class="stars-icon">⭐</span> Рулетка за 1000 звёзд
-                    </button>
-                    <button class="roulette-btn roulette-btn-1500" onclick="selectRoulette(1500)">
-                        <span class="stars-icon">⭐</span> Рулетка за 1500 звёзд
-                    </button>
-                </div>
-                
-                <button class="spin-btn" id="spinBtn" onclick="spinRoulette()" disabled>
-                    Крутить рулетку
-                </button>
             </div>
         </div>
     </div>
@@ -102,16 +121,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно результата рулетки -->
-    <div class="result-modal" id="resultModal">
-        <div class="result-content">
-            <div class="result-icon" id="resultIcon">🎁</div>
-            <h2 class="result-title" id="resultTitle">Поздравляем!</h2>
-            <p class="result-text" id="resultText">Вы выиграли 50 звёзд!</p>
-            <button class="close-result" onclick="closeResultModal()">Отлично!</button>
         </div>
     </div>
 
