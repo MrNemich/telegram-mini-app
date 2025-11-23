@@ -159,6 +159,19 @@ class UserDatabase {
         }
         return false;
     }
+
+    addAchievement(achievement) {
+        if (!this.userData.achievements.includes(achievement)) {
+            this.userData.achievements.push(achievement);
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    getAchievements() {
+        return this.userData.achievements;
+    }
 }
 
 // Инициализируем приложение
@@ -197,10 +210,12 @@ const elements = {
     // Элементы профиля
     profileName: document.getElementById('profileName'),
     profileLevel: document.getElementById('profileLevel'),
+    profileAvatar: document.getElementById('profileAvatar'),
     statBalance: document.getElementById('statBalance'),
     statCases: document.getElementById('statCases'),
     statExperience: document.getElementById('statExperience'),
-    statItems: document.getElementById('statItems')
+    statItems: document.getElementById('statItems'),
+    achievementsGrid: document.getElementById('achievementsGrid')
 };
 
 // Данные кейсов
@@ -273,50 +288,14 @@ const casesData = {
     }
 };
 
-// Данные заданий
-const tasksData = [
-    {
-        id: 'first_steps',
-        title: '🎯 Первые шаги',
-        description: 'Откройте свой первый кейс в игре',
-        reward: 50,
-        progress: 30
-    },
-    {
-        id: 'saver',
-        title: '💰 Накопитель',
-        description: 'Накопите 500 звёзд на балансе',
-        reward: 100,
-        progress: 10
-    },
-    {
-        id: 'collector',
-        title: '🏆 Коллекционер',
-        description: 'Соберите 10 различных предметов',
-        reward: 200,
-        progress: 60
-    },
-    {
-        id: 'fast_start',
-        title: '🚀 Быстрый старт',
-        description: 'Откройте 5 кейсов за один день',
-        reward: 150,
-        progress: 40
-    },
-    {
-        id: 'rare_hunter',
-        title: '💎 Редкий охотник',
-        description: 'Получите 3 редких предмета',
-        reward: 300,
-        progress: 20
-    },
-    {
-        id: 'legend',
-        title: '🌟 Легенда',
-        description: 'Достигните 10 уровня',
-        reward: 500,
-        progress: 5
-    }
+// Данные достижений
+const achievementsData = [
+    { name: "Новичок", icon: "🎯", description: "Начните играть" },
+    { name: "Первые шаги", icon: "🚶", description: "Откройте первый кейс" },
+    { name: "Коллекционер", icon: "🏆", description: "Соберите 5 предметов" },
+    { name: "Богач", icon: "💰", description: "Накопите 1000 звезд" },
+    { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
+    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" }
 ];
 
 // Функция смены страницы
@@ -374,7 +353,6 @@ function switchContent(page) {
             break;
         case 'tasks':
             elements.tasksContent.style.display = 'block';
-            loadTasks();
             break;
         case 'profile':
             elements.profileContent.style.display = 'block';
@@ -394,6 +372,7 @@ function addBalance() {
     const amount = 500; // Количество звёзд для пополнения
     userDB.updateBalance(amount);
     updateBalanceDisplay();
+    updateProfile();
     
     tg.showPopup({
         title: '💰 Баланс пополнен!',
@@ -463,44 +442,12 @@ function loadInventory() {
     }
 }
 
-// Загрузка заданий
-function loadTasks() {
-    const tasksContainer = document.querySelector('.tasks-container');
-    const userTasks = userDB.getTasks();
-    
-    tasksContainer.innerHTML = '';
-    
-    tasksData.forEach(task => {
-        const userTask = userTasks[task.id] || { completed: false, progress: task.progress };
-        const taskElement = document.createElement('div');
-        taskElement.className = 'task-item';
-        
-        taskElement.innerHTML = `
-            <div class="task-header">
-                <div class="task-title">${task.title}</div>
-                <div class="task-reward">⭐ +${task.reward}</div>
-            </div>
-            <div class="task-description">${task.description}</div>
-            <div class="task-progress">
-                <div class="task-progress-bar" style="width: ${userTask.progress}%"></div>
-            </div>
-            <button class="task-button ${userTask.completed ? 'completed' : ''}" 
-                    onclick="completeTask('${task.id}', ${task.reward})"
-                    ${userTask.completed ? 'disabled' : ''}>
-                ${userTask.completed ? '✅ Выполнено' : 'Выполнить'}
-            </button>
-        `;
-        
-        tasksContainer.appendChild(taskElement);
-    });
-}
-
 // Выполнение задания
 function completeTask(taskId, reward) {
     if (userDB.completeTask(taskId)) {
         userDB.updateBalance(reward);
         updateBalanceDisplay();
-        loadTasks();
+        updateProfile();
         
         tg.showPopup({
             title: '🎉 Задание выполнено!',
@@ -512,6 +459,12 @@ function completeTask(taskId, reward) {
         if (navigator.vibrate) {
             navigator.vibrate([100, 50, 100]);
         }
+    } else {
+        tg.showPopup({
+            title: '❌ Задание не выполнено',
+            message: 'Выполните условия задания',
+            buttons: [{ type: 'ok' }]
+        });
     }
 }
 
@@ -547,14 +500,62 @@ function getCaseIcon(price) {
 function updateProfile() {
     const stats = userDB.getStats();
     const userData = userDB.userData;
+    const achievements = userDB.getAchievements();
     
     // Обновляем данные профиля
     elements.profileName.textContent = stats.firstName;
     elements.profileLevel.textContent = stats.level;
-    elements.statBalance.textContent = userData.balance;
+    elements.statBalance.textContent = userData.balance.toLocaleString();
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
     elements.statItems.textContent = stats.inventoryCount;
+    
+    // Обновляем аватар
+    updateProfileAvatar(stats.level);
+    
+    // Загружаем достижения
+    loadAchievements(achievements);
+}
+
+// Обновление аватара профиля
+function updateProfileAvatar(level) {
+    const avatars = ['👤', '🦊', '🐯', '🐉', '🦄', '👑'];
+    let avatarIndex = 0;
+    
+    if (level >= 10) avatarIndex = 5;
+    else if (level >= 8) avatarIndex = 4;
+    else if (level >= 6) avatarIndex = 3;
+    else if (level >= 4) avatarIndex = 2;
+    else if (level >= 2) avatarIndex = 1;
+    
+    elements.profileAvatar.textContent = avatars[avatarIndex];
+}
+
+// Загрузка достижений
+function loadAchievements(userAchievements) {
+    elements.achievementsGrid.innerHTML = '';
+    
+    achievementsData.forEach(achievement => {
+        const isUnlocked = userAchievements.includes(achievement.name);
+        const achievementElement = document.createElement('div');
+        achievementElement.className = 'achievement-item';
+        achievementElement.style.cssText = `
+            background: ${isUnlocked ? 'rgba(138, 43, 226, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+            border: 1px solid ${isUnlocked ? 'rgba(138, 43, 226, 0.5)' : 'rgba(255, 255, 255, 0.1)'};
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            opacity: ${isUnlocked ? '1' : '0.5'};
+        `;
+        
+        achievementElement.innerHTML = `
+            <div style="font-size: 2rem; margin-bottom: 8px;">${achievement.icon}</div>
+            <div style="font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 4px;">${achievement.name}</div>
+            <div style="font-size: 0.7rem; color: ${isUnlocked ? '#8A2BE2' : '#888'};">${achievement.description}</div>
+        `;
+        
+        elements.achievementsGrid.appendChild(achievementElement);
+    });
 }
 
 // Открытие модального окна кейса
@@ -633,10 +634,11 @@ function buyCase(price) {
     userDB.updateBalance(-price);
     
     // Добавляем кейс в инвентарь
-    userDB.addCase(price);
+    userDB.addCase(price, 1);
     
     // Обновляем отображение
     updateBalanceDisplay();
+    updateProfile();
     
     tg.showPopup({
         title: '🎉 Успех!',
@@ -667,9 +669,10 @@ function sellCase(price) {
         ]
     }).then(function(buttonId) {
         if (buttonId === 'sell') {
-            if (userDB.removeCase(price)) {
+            if (userDB.removeCase(price, 1)) {
                 userDB.updateBalance(sellPrice);
                 updateBalanceDisplay();
+                updateProfile();
                 loadInventory();
                 
                 tg.showPopup({
@@ -705,16 +708,41 @@ function openCase(price) {
         userDB.addToInventory(reward.item, reward.quantity);
         
         // Убираем кейс из инвентаря
-        userDB.removeCase(price);
+        userDB.removeCase(price, 1);
         
         // Увеличиваем счетчик открытых кейсов
         userDB.userData.casesOpened++;
+        
+        // Добавляем опыт
+        userDB.userData.experience += 10;
+        
+        // Проверяем уровень
+        checkLevelUp();
+        
         userDB.saveUserData();
         
         // Показываем результат
         showOpenResult(reward);
         
     }, 8000);
+}
+
+// Проверка повышения уровня
+function checkLevelUp() {
+    const userData = userDB.userData;
+    const expNeeded = userData.level * 100;
+    
+    if (userData.experience >= expNeeded) {
+        userData.level++;
+        userData.experience = 0;
+        userDB.addAchievement(achievementsData[userData.level]?.name || 'Новый уровень');
+        
+        tg.showPopup({
+            title: '🎉 Уровень повышен!',
+            message: `Поздравляем! Вы достигли ${userData.level} уровня!`,
+            buttons: [{ type: 'ok' }]
+        });
+    }
 }
 
 // Выбор случайной награды на основе шансов
@@ -820,6 +848,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загружаем начальные данные
     updateBalanceDisplay();
     updateProfile();
+    
+    // Добавляем стили для сетки достижений
+    const style = document.createElement('style');
+    style.textContent = `
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .achievement-item {
+            transition: all 0.3s ease;
+        }
+        .achievement-item:hover {
+            transform: translateY(-2px);
+        }
+    `;
+    document.head.appendChild(style);
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
