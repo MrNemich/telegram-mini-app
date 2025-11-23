@@ -40,12 +40,14 @@
                 <div class="balance-container">
                     <div class="balance-title">
                         <div class="balance-text">Ваш баланс</div>
+                    </div>
+                    <div class="balance-amount-container">
                         <div class="balance-amount">
                             <span class="balance-stars">⭐</span>
                             <span id="starsBalance">0</span>
                         </div>
+                        <button class="add-balance-btn" onclick="addBalance()">+</button>
                     </div>
-                    <button class="add-balance-btn" onclick="addBalance()">+</button>
                 </div>
                 
                 <!-- Кейсы с скроллом -->
@@ -178,7 +180,7 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 30%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('first_steps', 50)">Выполнить</button>
                 </div>
                 
                 <div class="task-item">
@@ -192,7 +194,7 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 10%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('saver', 100)">Выполнить</button>
                 </div>
                 
                 <div class="task-item">
@@ -206,7 +208,7 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 60%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('collector', 200)">Выполнить</button>
                 </div>
                 
                 <div class="task-item">
@@ -220,7 +222,7 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 40%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('fast_start', 150)">Выполнить</button>
                 </div>
                 
                 <div class="task-item">
@@ -234,7 +236,7 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 20%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
                 </div>
                 
                 <div class="task-item">
@@ -248,20 +250,20 @@
                     <div class="task-progress">
                         <div class="task-progress-bar" style="width: 5%"></div>
                     </div>
-                    <button class="task-button">Выполнить</button>
+                    <button class="task-button" onclick="completeTask('legend', 500)">Выполнить</button>
                 </div>
             </div>
         </div>
 
         <!-- Контент для Профиля -->
         <div class="content" id="profile-content" style="display: none;">
-            <h1>👤 Профиль</h1>
+            <h1>👤 Мой профиль</h1>
             <p>Ваша статистика и достижения</p>
             
             <div class="profile-container">
                 <div class="profile-card">
                     <div class="profile-header">
-                        <div class="profile-avatar">👤</div>
+                        <div class="profile-avatar" id="profileAvatar">👤</div>
                         <div class="profile-info">
                             <h3 id="profileName">Игрок</h3>
                             <p>Уровень: <span id="profileLevel">1</span></p>
@@ -284,6 +286,13 @@
                         <div class="stat-item">
                             <div class="stat-value" id="statItems">0</div>
                             <div class="stat-label">Предметы</div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-achievements">
+                        <h4 style="color: white; margin-bottom: 15px; text-align: center;">🏆 Достижения</h4>
+                        <div class="achievements-grid" id="achievementsGrid">
+                            <!-- Достижения будут загружены через JavaScript -->
                         </div>
                     </div>
                 </div>
@@ -325,7 +334,11 @@
                 <div class="case-items-track" id="caseItemsTrack">
                     <!-- Предметы будут добавлены через JavaScript -->
                 </div>
-                <div class="selection-arrow"></div>
+                <div class="selection-arrow">
+                    <div class="arrow-glow"></div>
+                    <div class="arrow-top"></div>
+                    <div class="arrow-line"></div>
+                </div>
             </div>
             
             <div class="case-modal-actions" id="caseModalActions">
