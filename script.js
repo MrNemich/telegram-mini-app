@@ -14,24 +14,22 @@ class UserDatabase {
         if (savedData) {
             this.userData = JSON.parse(savedData);
         } else {
-            // Начальные данные для нового пользователя
+            // Начальные данные для нового пользователя - баланс 0
             this.userData = {
-                balance: 850,
+                balance: 0,
                 inventory: {
-                    '💰 Игровая валюта': 2580,
-                    '💎 Редкие кристаллы': 8,
-                    '🔑 Ключи': 2,
-                    '🏆 Трофеи': 3,
-                    '⚡ Бустеры': 5,
-                    '🛡️ Защита': 1,
-                    '🎨 Краски': 12,
-                    '🔧 Инструменты': 4
+                    '💰 Игровая валюта': 0,
+                    '💎 Редкие кристаллы': 0,
+                    '🔑 Ключи': 0,
+                    '🏆 Трофеи': 0,
+                    '⚡ Бустеры': 0,
+                    '🛡️ Защита': 0
                 },
                 casesOpened: 0,
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
-                level: 5,
-                experience: 1250
+                level: 1,
+                experience: 0
             };
             this.saveUserData();
         }
@@ -156,8 +154,7 @@ const casesData = {
         rewards: [
             { item: "💰 Игровая валюта", quantity: 50, chance: 100 },
             { item: "⚡ Бустеры", quantity: 1, chance: 70 },
-            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30 },
-            { item: "🔑 Ключи", quantity: 1, chance: 15 }
+            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30 }
         ]
     },
     100: {
@@ -167,8 +164,7 @@ const casesData = {
             { item: "💰 Игровая валюта", quantity: 150, chance: 100 },
             { item: "⚡ Бустеры", quantity: 2, chance: 80 },
             { item: "💎 Редкие кристаллы", quantity: 2, chance: 50 },
-            { item: "🔑 Ключи", quantity: 1, chance: 30 },
-            { item: "🎨 Краски", quantity: 3, chance: 40 }
+            { item: "🔑 Ключи", quantity: 1, chance: 30 }
         ]
     },
     200: {
@@ -178,8 +174,7 @@ const casesData = {
             { item: "💰 Игровая валюта", quantity: 300, chance: 100 },
             { item: "💎 Редкие кристаллы", quantity: 3, chance: 70 },
             { item: "🔑 Ключи", quantity: 2, chance: 50 },
-            { item: "🏆 Трофеи", quantity: 1, chance: 30 },
-            { item: "🔧 Инструменты", quantity: 2, chance: 40 }
+            { item: "🏆 Трофеи", quantity: 1, chance: 30 }
         ]
     },
     500: {
@@ -303,16 +298,29 @@ function loadInventory() {
     elements.inventoryGrid.innerHTML = '';
     
     Object.entries(inventory).forEach(([itemName, quantity]) => {
-        const icon = getItemIcon(itemName);
-        const inventoryItem = document.createElement('div');
-        inventoryItem.className = 'inventory-item';
-        inventoryItem.innerHTML = `
-            <div class="inventory-icon">${icon}</div>
-            <div class="inventory-name">${itemName}</div>
-            <div class="inventory-count">${quantity}</div>
-        `;
-        elements.inventoryGrid.appendChild(inventoryItem);
+        if (quantity > 0) {
+            const icon = getItemIcon(itemName);
+            const inventoryItem = document.createElement('div');
+            inventoryItem.className = 'inventory-item';
+            inventoryItem.innerHTML = `
+                <div class="inventory-icon">${icon}</div>
+                <div class="inventory-name">${itemName}</div>
+                <div class="inventory-count">${quantity}</div>
+            `;
+            elements.inventoryGrid.appendChild(inventoryItem);
+        }
     });
+    
+    // Если инвентарь пустой
+    if (elements.inventoryGrid.children.length === 0) {
+        elements.inventoryGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
+                <div>Инвентарь пуст</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">Откройте кейсы чтобы получить предметы</div>
+            </div>
+        `;
+    }
 }
 
 // Получение иконки для предмета
@@ -323,9 +331,7 @@ function getItemIcon(itemName) {
         '🔑 Ключи': '🔑',
         '🏆 Трофеи': '🏆',
         '⚡ Бустеры': '⚡',
-        '🛡️ Защита': '🛡️',
-        '🎨 Краски': '🎨',
-        '🔧 Инструменты': '🔧'
+        '🛡️ Защита': '🛡️'
     };
     return iconMap[itemName] || '📦';
 }
@@ -432,6 +438,11 @@ function simulateCaseOpening(price, caseInfo) {
         userDB.userData.level++;
         userDB.userData.experience = 0;
         rewardsMessage += `\n🎊 Уровень повышен! Теперь у вас ${userDB.userData.level} уровень!`;
+        
+        // Награда за уровень
+        userDB.updateBalance(50);
+        userDB.addToInventory('💰 Игровая валюта', 100);
+        rewardsMessage += `\n🎁 Награда за уровень: +50 ⭐ и +100 💰`;
     }
     
     userDB.saveUserData();
@@ -512,16 +523,6 @@ if (tg.initDataUnsafe.user) {
     }
 }
 
-// Простая интерактивность фона
-let touchEnabled = 'ontouchstart' in window;
-if (touchEnabled) {
-    document.addEventListener('touchmove', function(e) {
-        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content')) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-}
-
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Приложение полностью загружено и готово!');
@@ -533,18 +534,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загружаем начальные данные
     updateBalanceDisplay();
     loadInventory();
-    
-    // Добавляем обработчики скролла для табов
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => {
-        tab.addEventListener('touchmove', function(e) {
-            // Разрешаем скролл внутри табов
-        }, { passive: true });
-        
-        tab.addEventListener('wheel', function(e) {
-            // Разрешаем скролл колесиком мыши
-        }, { passive: true });
-    });
 });
 
 console.log('✅ Новостной Mini App запущен!');
