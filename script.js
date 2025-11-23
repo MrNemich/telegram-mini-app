@@ -435,10 +435,46 @@ function loadInventory() {
         elements.inventoryGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888;">
                 <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
-                <div>Инвентарь пуст</div>
-                <div style="font-size: 0.8rem; margin-top: 5px;">Купите кейсы в разделе Рулетка</div>
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
+                <div style="font-size: 0.9rem; color: #8A2BE2;">Купите кейсы в разделе Рулетка</div>
             </div>
         `;
+    }
+}
+
+// Прямая покупка кейса
+function buyCaseDirectly(price) {
+    const balance = userDB.getBalance();
+    const caseData = casesData[price];
+    
+    if (balance < price) {
+        tg.showPopup({
+            title: '❌ Недостаточно звёзд',
+            message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
+        return;
+    }
+    
+    // Списываем звёзды
+    userDB.updateBalance(-price);
+    
+    // Добавляем кейс в инвентарь
+    userDB.addCase(price, 1);
+    
+    // Обновляем отображение
+    updateBalanceDisplay();
+    updateProfile();
+    
+    tg.showPopup({
+        title: '🎉 Успех!',
+        message: `Кейс "${caseData.name}" добавлен в ваш инвентарь!`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
     }
 }
 
@@ -538,20 +574,12 @@ function loadAchievements(userAchievements) {
     achievementsData.forEach(achievement => {
         const isUnlocked = userAchievements.includes(achievement.name);
         const achievementElement = document.createElement('div');
-        achievementElement.className = 'achievement-item';
-        achievementElement.style.cssText = `
-            background: ${isUnlocked ? 'rgba(138, 43, 226, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
-            border: 1px solid ${isUnlocked ? 'rgba(138, 43, 226, 0.5)' : 'rgba(255, 255, 255, 0.1)'};
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            opacity: ${isUnlocked ? '1' : '0.5'};
-        `;
+        achievementElement.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
         
         achievementElement.innerHTML = `
-            <div style="font-size: 2rem; margin-bottom: 8px;">${achievement.icon}</div>
-            <div style="font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 4px;">${achievement.name}</div>
-            <div style="font-size: 0.7rem; color: ${isUnlocked ? '#8A2BE2' : '#888'};">${achievement.description}</div>
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-name">${achievement.name}</div>
+            <div class="achievement-desc">${achievement.description}</div>
         `;
         
         elements.achievementsGrid.appendChild(achievementElement);
@@ -617,9 +645,10 @@ function closeCaseModal() {
     currentCaseModal = null;
 }
 
-// Покупка кейса
+// Покупка кейса (через модальное окно)
 function buyCase(price) {
     const balance = userDB.getBalance();
+    const caseData = casesData[price];
     
     if (balance < price) {
         tg.showPopup({
@@ -642,7 +671,7 @@ function buyCase(price) {
     
     tg.showPopup({
         title: '🎉 Успех!',
-        message: `Кейс "${casesData[price].name}" добавлен в ваш инвентарь!`,
+        message: `Кейс "${caseData.name}" добавлен в ваш инвентарь!`,
         buttons: [{ type: 'ok' }]
     });
     
@@ -848,24 +877,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загружаем начальные данные
     updateBalanceDisplay();
     updateProfile();
-    
-    // Добавляем стили для сетки достижений
-    const style = document.createElement('style');
-    style.textContent = `
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .achievement-item {
-            transition: all 0.3s ease;
-        }
-        .achievement-item:hover {
-            transform: translateY(-2px);
-        }
-    `;
-    document.head.appendChild(style);
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
