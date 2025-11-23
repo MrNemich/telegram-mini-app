@@ -7,16 +7,42 @@
     <title>Темные разводы</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Иконочный шрифт -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="background-effect"></div>
         <div class="content">
-            <h1>🌙 Темные разводы</h1>
-            <p>Глубокий фиолетовый на черном</p>
+            <h1 id="pageTitle">🌙 Главная</h1>
+            <p id="pageDescription">Добро пожаловать в темное царство</p>
             <button class="tg-button" onclick="showAlert()">Исследовать тьму</button>
         </div>
     </div>
+
+    <!-- Нижняя панель навигации -->
+    <div class="bottom-nav">
+        <button class="nav-button active" onclick="changePage('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Главная</div>
+        </button>
+        
+        <button class="nav-button" onclick="changePage('tasks')">
+            <div class="nav-icon">✅</div>
+            <div class="nav-text">Задания</div>
+        </button>
+        
+        <button class="nav-button" onclick="changePage('shop')">
+            <div class="nav-icon">🛒</div>
+            <div class="nav-text">Магазин</div>
+        </button>
+        
+        <button class="nav-button" onclick="changePage('stories')">
+            <div class="nav-icon">📖</div>
+            <div class="nav-text">Истории</div>
+        </button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
