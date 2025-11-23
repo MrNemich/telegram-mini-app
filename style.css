@@ -393,270 +393,148 @@ p {
     transform: translateY(5px);
 }
 
-/* Стили для рулетки */
+/* Стили для страницы рулетки */
 .roulette-container {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
-    text-align: center;
 }
 
-.roulette-wheel {
-    position: relative;
-    width: 280px;
-    height: 280px;
-    margin: 0 auto 30px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: rgba(30, 30, 30, 0.8);
-    border: 3px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transform: translateZ(0);
-}
-
-.roulette-items {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    transition: transform 8s cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-
-.roulette-item {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 50%;
-    height: 50%;
-    transform-origin: bottom left;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-left: 20px;
-    box-sizing: border-box;
-}
-
-.roulette-item-content {
-    transform: rotate(90deg);
-    font-weight: bold;
-    font-size: 14px;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-    white-space: nowrap;
-}
-
-.roulette-pointer {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 30px;
-    z-index: 10;
-    filter: drop-shadow(0 0 5px rgba(138, 43, 226, 0.8));
-}
-
-.roulette-pointer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 20px solid #8A2BE2;
-}
-
-.roulette-buttons {
+.case-buttons-grid {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
-.roulette-btn {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+.case-button {
+    background: linear-gradient(135deg, rgba(106, 13, 173, 0.9), rgba(138, 43, 226, 0.8));
     border: none;
-    padding: 16px 24px;
+    padding: 18px 20px;
     border-radius: 20px;
     color: white;
     font-size: 1rem;
-    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 6px 20px rgba(106, 13, 173, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    transform: translateZ(0);
-}
-
-.roulette-btn:active {
-    transform: scale(0.97);
-    box-shadow: 0 3px 10px rgba(106, 13, 173, 0.6);
-}
-
-.roulette-btn-100 {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-}
-
-.roulette-btn-200 {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-}
-
-.roulette-btn-500 {
-    background: linear-gradient(45deg, #DA70D6, #FF69B4);
-}
-
-.roulette-btn-1000 {
-    background: linear-gradient(45deg, #FF69B4, #FF1493);
-}
-
-.roulette-btn-1500 {
-    background: linear-gradient(45deg, #FF1493, #C71585);
-}
-
-.spin-btn {
-    background: linear-gradient(45deg, #32CD32, #00FF00);
-    border: none;
-    padding: 18px 32px;
-    border-radius: 30px;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(50, 205, 50, 0.5);
     width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
-    border: 1px solid rgba(50, 205, 50, 0.4);
-    transform: translateZ(0);
-}
-
-.spin-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 4px 15px rgba(50, 205, 50, 0.7);
-}
-
-.spin-btn:disabled {
-    background: linear-gradient(45deg, #666, #888);
-    cursor: not-allowed;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.stars-icon {
-    font-size: 1.2rem;
-}
-
-.selected-roulette {
-    margin-top: 15px;
-    padding: 12px 20px;
-    background: rgba(138, 43, 226, 0.1);
-    border-radius: 15px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    color: #DA70D6;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.result-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
 }
 
-.result-content {
+.case-button::before {
+    content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 350px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    overflow: hidden;
-    text-align: center;
-    padding: 30px 20px;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
 }
 
-.result-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    animation: bounce 0.5s ease infinite alternate;
+.case-button:hover::before {
+    left: 100%;
 }
 
-.result-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 15px;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.case-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 15px rgba(106, 13, 173, 0.6);
 }
 
-.result-text {
-    color: #e6e6e6;
-    line-height: 1.5;
-    margin-bottom: 25px;
-    font-size: 1.1rem;
+.case-button-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
-.close-result {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 20px;
-    font-size: 1rem;
+.case-name {
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
+    font-size: 1.1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.close-result:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
+.case-price {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
 }
 
-@keyframes bounce {
+.star-icon {
+    color: #FFD700;
+    font-size: 1.2rem;
+    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+/* Градиенты для разных кейсов */
+.case-button.premium {
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.9), rgba(255, 215, 0, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4);
+}
+
+.case-button.premium:active {
+    box-shadow: 0 3px 15px rgba(255, 165, 0, 0.6);
+}
+
+.case-button.epic {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(192, 132, 252, 0.8));
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+}
+
+.case-button.epic:active {
+    box-shadow: 0 3px 15px rgba(147, 51, 234, 0.6);
+}
+
+.case-button.legendary {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(248, 113, 113, 0.8));
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.case-button.legendary:active {
+    box-shadow: 0 3px 15px rgba(239, 68, 68, 0.6);
+}
+
+.case-button.mythic {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(167, 139, 250, 0.8));
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.case-button.mythic:active {
+    box-shadow: 0 3px 15px rgba(139, 92, 246, 0.6);
+}
+
+/* Анимация появления кнопок */
+@keyframes caseButtonAppear {
     from {
-        transform: translateY(0);
+        opacity: 0;
+        transform: translateY(20px);
     }
     to {
-        transform: translateY(-10px);
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+.case-button {
+    animation: caseButtonAppear 0.5s ease forwards;
 }
 
-.spinning {
-    animation: spin 0.5s linear infinite;
-}
+.case-button:nth-child(1) { animation-delay: 0.1s; }
+.case-button:nth-child(2) { animation-delay: 0.2s; }
+.case-button:nth-child(3) { animation-delay: 0.3s; }
+.case-button:nth-child(4) { animation-delay: 0.4s; }
+.case-button:nth-child(5) { animation-delay: 0.5s; }
 
 /* Адаптация для очень маленьких экранов */
 @media (max-width: 360px) {
@@ -714,23 +592,21 @@ p {
         font-size: 1.2rem;
     }
     
-    /* Адаптация рулетки для маленьких экранов */
-    .roulette-wheel {
-        width: 240px;
-        height: 240px;
+    .case-button {
+        padding: 16px 18px;
+        font-size: 0.95rem;
     }
     
-    .roulette-item-content {
-        font-size: 12px;
+    .case-name {
+        font-size: 1rem;
     }
     
-    .roulette-btn {
-        padding: 14px 20px;
-        font-size: 0.9rem;
+    .case-price {
+        font-size: 1rem;
+        padding: 5px 10px;
     }
     
-    .spin-btn {
-        padding: 16px 28px;
+    .star-icon {
         font-size: 1.1rem;
     }
 }
@@ -770,6 +646,15 @@ p {
     .nav-text {
         font-size: 0.6rem;
     }
+    
+    .case-buttons-grid {
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    .case-button {
+        padding: 14px 16px;
+    }
 }
 
 /* Скроллбар для модального окна */
@@ -796,10 +681,6 @@ p {
     }
     
     .background-effect {
-        animation: none;
-    }
-    
-    .result-icon {
         animation: none;
     }
 }
