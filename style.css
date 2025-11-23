@@ -470,9 +470,6 @@ p {
 
 .tab-content {
     display: none;
-    max-height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden;
 }
 
 .tab-content.active {
@@ -529,13 +526,12 @@ p {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-bottom: 10px;
 }
 
 .case-button {
     background: linear-gradient(135deg, rgba(106, 13, 173, 0.9), rgba(138, 43, 226, 0.8));
     border: none;
-    padding: 20px;
+    padding: 18px 16px;
     border-radius: 20px;
     color: white;
     font-size: 1rem;
@@ -585,7 +581,7 @@ p {
 }
 
 .case-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
 }
 
@@ -595,13 +591,13 @@ p {
 
 .case-name {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     margin-bottom: 4px;
 }
 
 .case-description {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     opacity: 0.8;
     color: #e6e6e6;
 }
@@ -611,16 +607,16 @@ p {
     align-items: center;
     gap: 6px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     background: rgba(255, 255, 255, 0.15);
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-radius: 15px;
     backdrop-filter: blur(5px);
 }
 
 .star-icon {
     color: #FFD700;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
 }
 
@@ -702,25 +698,6 @@ p {
 .inventory-item:nth-child(3) { animation-delay: 0.3s; }
 .inventory-item:nth-child(4) { animation-delay: 0.4s; }
 
-/* Скроллбар */
-.tab-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.tab-content::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.tab-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
-}
-
-.tab-content::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-}
-
 /* Адаптация для очень маленьких экранов */
 @media (max-width: 360px) {
     h1 {
@@ -791,7 +768,7 @@ p {
     }
     
     .case-button {
-        padding: 16px;
+        padding: 16px 14px;
     }
     
     .case-icon {
@@ -799,16 +776,16 @@ p {
     }
     
     .case-name {
-        font-size: 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .case-description {
+        font-size: 0.7rem;
     }
     
     .inventory-grid {
         grid-template-columns: 1fr;
         gap: 10px;
-    }
-    
-    .tab-content {
-        max-height: 350px;
     }
 }
 
@@ -853,16 +830,12 @@ p {
     }
     
     .case-button {
-        padding: 14px;
+        padding: 14px 12px;
     }
     
     .inventory-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 8px;
-    }
-    
-    .tab-content {
-        max-height: 250px;
     }
 }
 
