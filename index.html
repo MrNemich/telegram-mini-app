@@ -42,7 +42,7 @@
                         <div class="balance-text">Ваш баланс</div>
                         <div class="balance-amount">
                             <span class="balance-stars">⭐</span>
-                            <span id="starsBalance">1,250</span>
+                            <span id="starsBalance">850</span>
                         </div>
                     </div>
                 </div>
@@ -59,33 +59,30 @@
                 
                 <!-- Контент инвентаря -->
                 <div class="tab-content active" id="inventory-tab">
-                    <div class="inventory-grid">
-                        <div class="inventory-item">
-                            <div class="inventory-icon">🎮</div>
-                            <div class="inventory-name">Игровая валюта</div>
-                            <div class="inventory-count">5,280</div>
-                        </div>
-                        <div class="inventory-item">
-                            <div class="inventory-icon">💎</div>
-                            <div class="inventory-name">Редкие кристаллы</div>
-                            <div class="inventory-count">12</div>
-                        </div>
-                        <div class="inventory-item">
-                            <div class="inventory-icon">🔑</div>
-                            <div class="inventory-name">Ключи</div>
-                            <div class="inventory-count">3</div>
-                        </div>
-                        <div class="inventory-item">
-                            <div class="inventory-icon">🏆</div>
-                            <div class="inventory-name">Трофеи</div>
-                            <div class="inventory-count">7</div>
-                        </div>
+                    <div class="inventory-grid" id="inventoryGrid">
+                        <!-- Инвентарь будет загружен через JavaScript -->
                     </div>
                 </div>
                 
                 <!-- Контент кейсов -->
                 <div class="tab-content" id="cases-tab">
                     <div class="case-buttons-grid">
+                        <button class="case-button free" onclick="openCase(0)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">🎁</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Бесплатный кейс</div>
+                                        <div class="case-description">Открывается каждые 24 часа</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">🆓</span>
+                                    Бесплатно
+                                </div>
+                            </div>
+                        </button>
+                        
                         <button class="case-button" onclick="openCase(100)">
                             <div class="case-button-content">
                                 <div class="case-info">
