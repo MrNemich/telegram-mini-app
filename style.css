@@ -186,8 +186,322 @@ p {
     box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
 }
 
-/* Модальное окно новости */
-.news-modal {
+/* Стили для стикеров */
+.sticker-container {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 20px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.sticker-slider {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 10px 5px;
+    scrollbar-width: none;
+}
+
+.sticker-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.sticker-item {
+    flex: 0 0 auto;
+    width: 80px;
+    height: 80px;
+    background: rgba(138, 43, 226, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.sticker-item:hover {
+    transform: scale(1.05);
+    border-color: #8A2BE2;
+    background: rgba(138, 43, 226, 0.2);
+}
+
+.sticker-item.active {
+    border-color: #DA70D6;
+    background: rgba(218, 112, 214, 0.2);
+    animation: pulse 2s infinite;
+}
+
+.sticker-placeholder {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.sticker-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(218, 112, 214, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(218, 112, 214, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(218, 112, 214, 0); }
+}
+
+/* Стили для рулетки */
+.balance-container {
+    margin: 20px 0;
+}
+
+.balance {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #000;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); }
+    to { box-shadow: 0 4px 25px rgba(255, 215, 0, 0.6); }
+}
+
+.roulette-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.roulette-button {
+    position: relative;
+    background: rgba(30, 30, 30, 0.8);
+    border: none;
+    border-radius: 20px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.roulette-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.roulette-button:hover::before {
+    left: 100%;
+}
+
+.roulette-button:active {
+    transform: scale(0.98);
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    z-index: 2;
+}
+
+.button-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+}
+
+.button-text {
+    flex: 1;
+    text-align: left;
+}
+
+.button-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.button-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    color: #ccc;
+}
+
+.button-cost {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #FFD700;
+}
+
+/* Разные стили для кнопок рулетки */
+.tier-1 {
+    border: 2px solid #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+}
+
+.tier-1 .button-icon {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.tier-2 {
+    border: 2px solid #2196F3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+}
+
+.tier-2 .button-icon {
+    background: linear-gradient(135deg, #2196F3, #0b7dda);
+}
+
+.tier-3 {
+    border: 2px solid #FF9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+}
+
+.tier-3 .button-icon {
+    background: linear-gradient(135deg, #FF9800, #e68900);
+}
+
+.tier-4 {
+    border: 2px solid #9C27B0;
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(156, 39, 176, 0.05));
+}
+
+.tier-4 .button-icon {
+    background: linear-gradient(135deg, #9C27B0, #7b1fa2);
+}
+
+.tier-5 {
+    border: 2px solid #FF5722;
+    background: linear-gradient(135deg, rgba(255, 87, 34, 0.1), rgba(255, 87, 34, 0.05));
+}
+
+.tier-5 .button-icon {
+    background: linear-gradient(135deg, #FF5722, #e64a19);
+}
+
+/* Колесо рулетки */
+.roulette-wheel-container {
+    margin: 30px 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wheel {
+    width: 250px;
+    height: 250px;
+    position: relative;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, 
+        #FFEAA7, #DDA0DD, #98D8C8
+    );
+    animation: spin 3s linear infinite;
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
+}
+
+.wheel-inner {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.wheel-item {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #000;
+    transform-origin: 125px 125px;
+}
+
+.wheel-item:nth-child(1) { transform: rotate(0deg) translate(100px) rotate(0deg); }
+.wheel-item:nth-child(2) { transform: rotate(60deg) translate(100px) rotate(-60deg); }
+.wheel-item:nth-child(3) { transform: rotate(120deg) translate(100px) rotate(-120deg); }
+.wheel-item:nth-child(4) { transform: rotate(180deg) translate(100px) rotate(-180deg); }
+.wheel-item:nth-child(5) { transform: rotate(240deg) translate(100px) rotate(-240deg); }
+.wheel-item:nth-child(6) { transform: rotate(300deg) translate(100px) rotate(-300deg); }
+
+.wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 25px solid #FFD700;
+    z-index: 10;
+}
+
+.spin-button {
+    margin-top: 20px;
+    background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.spin-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Модальные окна */
+.news-modal, .result-modal {
     display: none;
     position: fixed;
     top: 0;
@@ -197,6 +511,11 @@ p {
     background: rgba(0, 0, 0, 0.9);
     z-index: 2000;
     backdrop-filter: blur(10px);
+}
+
+.news-modal.show, .result-modal.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
@@ -212,6 +531,7 @@ p {
     border: 2px solid rgba(138, 43, 226, 0.4);
     box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
     overflow: hidden;
+    animation: slideIn 0.3s ease;
 }
 
 .modal-header {
@@ -239,7 +559,7 @@ p {
 
 .modal-body {
     padding: 20px;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
@@ -247,6 +567,55 @@ p {
     color: #e6e6e6;
     line-height: 1.6;
     font-size: 1rem;
+}
+
+.result-content {
+    padding: 30px;
+    text-align: center;
+}
+
+.result-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.result-title {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.result-text {
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+    color: #e6e6e6;
+}
+
+.result-button {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    border: none;
+    padding: 15px 40px;
+    border-radius: 25px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.result-button:active {
+    transform: scale(0.95);
 }
 
 .close-modal {
@@ -275,34 +644,19 @@ p {
 
 /* Анимации */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translate(-50%, -40%);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, -50%);
     }
-}
-
-.news-modal.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-    animation: slideIn 0.3s ease;
 }
 
 .news-card {
@@ -423,94 +777,9 @@ p {
         padding: 3px 6px;
     }
     
-    .bottom-nav {
-        padding: 8px 4px;
+    .sticker-item {
+        width: 70px;
+        height: 70px;
     }
     
-    .nav-button {
-        min-width: 50px;
-        padding: 5px 6px;
-    }
-    
-    .nav-icon {
-        font-size: 1.2rem;
-        margin-bottom: 2px;
-    }
-    
-    .nav-text {
-        font-size: 0.65rem;
-    }
-    
-    .modal-content {
-        width: 95%;
-    }
-    
-    .modal-title {
-        font-size: 1.2rem;
-    }
-}
-
-/* Ландшафтная ориентация */
-@media (orientation: landscape) and (max-height: 500px) {
-    .container {
-        padding: 10px;
-    }
-    
-    h1 {
-        font-size: 1.4rem;
-        margin-bottom: 0.8rem;
-    }
-    
-    p {
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .content {
-        margin-bottom: 60px;
-    }
-    
-    .bottom-nav {
-        padding: 6px 4px;
-    }
-    
-    .nav-button {
-        min-width: 45px;
-    }
-    
-    .nav-icon {
-        font-size: 1.1rem;
-    }
-    
-    .nav-text {
-        font-size: 0.6rem;
-    }
-}
-
-/* Скроллбар для модального окна */
-.modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
-}
-
-/* Отключение анимаций для пользователей, которые их предпочитают */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-    
-    .background-effect {
-        animation: none;
-    }
-}
+   
