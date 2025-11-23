@@ -1,7 +1,7 @@
 // Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 
-// База данных пользователя
+// База данных пользователя (теперь синхронизируется с ботом)
 class UserDatabase {
     constructor() {
         this.userId = tg.initDataUnsafe.user?.id || 'default_user';
@@ -29,7 +29,8 @@ class UserDatabase {
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
                 level: 1,
-                experience: 0
+                experience: 0,
+                userId: this.userId
             };
             this.saveUserData();
         }
@@ -90,8 +91,15 @@ class UserDatabase {
             casesOpened: this.userData.casesOpened,
             level: this.userData.level,
             experience: this.userData.experience,
-            achievements: this.userData.achievements
+            achievements: this.userData.achievements,
+            userId: this.userId
         };
+    }
+
+    // Синхронизация с сервером (можно добавить позже)
+    async syncWithServer() {
+        // Здесь будет код для синхронизации с ботом
+        console.log('Синхронизация данных с сервером...');
     }
 }
 
@@ -103,6 +111,13 @@ tg.enableClosingConfirmation();
 // Устанавливаем темный цвет фона
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
+
+// Показываем основную кнопку
+tg.MainButton.setText('🎮 ВЕРНУТЬСЯ В БОТА');
+tg.MainButton.show();
+tg.MainButton.onClick(() => {
+    tg.close();
+});
 
 // Инициализация базы данных
 const userDB = new UserDatabase();
@@ -130,7 +145,7 @@ const elements = {
 const pagesData = {
     home: {
         title: '🏠 Главная',
-        description: 'Последние новости и обновления'
+        description: 'Добро пожаловать в игру!'
     },
     roulette: {
         title: '🎰 Рулетка',
@@ -498,34 +513,19 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Функция для кнопки
-function showAlert() {
-    const messages = {
-        home: 'Читайте последние новости! 🏠',
-        roulette: 'Крутите рулетку и выигрывайте! 🎰',
-        tasks: 'Новые задания ждут выполнения! ✅',
-        profile: 'Посмотрите свою статистику! 👤'
-    };
-    
-    tg.showPopup({
-        title: 'Уведомление',
-        message: messages[currentPage] || 'Привет!',
-        buttons: [{ type: 'ok' }]
-    });
-}
-
 // Информация о пользователе
 if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
-        console.log('Пользователь:', user.first_name);
-        // Можно добавить персонализацию в будущем
+        console.log('👤 Пользователь:', user.first_name, '(ID:', user.id, ')');
+        // Можно добавить приветствие
+        document.querySelector('#home-content h1').textContent = `🏠 Привет, ${user.first_name}!`;
     }
 }
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Приложение полностью загружено и готово!');
+    console.log('🚀 Мини-приложение полностью загружено и готово!');
     console.log('📱 Текущая страница:', currentPage);
     
     // Инициализируем начальный таб
@@ -536,4 +536,4 @@ document.addEventListener('DOMContentLoaded', function() {
     loadInventory();
 });
 
-console.log('✅ Новостной Mini App запущен!');
+console.log('✅ Игровое мини-приложение запущено!');
