@@ -53,7 +53,7 @@
                 <!-- Кейсы с скроллом -->
                 <div class="cases-scroll-container">
                     <div class="case-buttons-grid">
-                        <button class="case-button free" onclick="openCaseModal(0, 'buy')">
+                        <button class="case-button free" onclick="buyCaseDirectly(0)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🎁</div>
@@ -69,7 +69,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button" onclick="openCaseModal(100, 'buy')">
+                        <button class="case-button" onclick="buyCaseDirectly(100)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">📦</div>
@@ -85,7 +85,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button premium" onclick="openCaseModal(200, 'buy')">
+                        <button class="case-button premium" onclick="buyCaseDirectly(200)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🎁</div>
@@ -101,7 +101,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button epic" onclick="openCaseModal(500, 'buy')">
+                        <button class="case-button epic" onclick="buyCaseDirectly(500)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">💎</div>
@@ -117,7 +117,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button legendary" onclick="openCaseModal(1000, 'buy')">
+                        <button class="case-button legendary" onclick="buyCaseDirectly(1000)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🔥</div>
@@ -133,7 +133,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button mythic" onclick="openCaseModal(1500, 'buy')">
+                        <button class="case-button mythic" onclick="buyCaseDirectly(1500)">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🌟</div>
@@ -158,8 +158,12 @@
             <h1>📦 Инвентарь</h1>
             <p>Ваши предметы и ресурсы</p>
             
-            <div class="inventory-grid" id="inventoryGrid">
-                <!-- Инвентарь будет загружен через JavaScript -->
+            <div class="inventory-container">
+                <div class="inventory-scroll-container">
+                    <div class="inventory-grid" id="inventoryGrid">
+                        <!-- Инвентарь будет загружен через JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -169,88 +173,90 @@
             <p>Выполняйте задания и получайте награды</p>
             
             <div class="tasks-container">
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🎯 Первые шаги</div>
-                        <div class="task-reward">⭐ +50</div>
+                <div class="tasks-scroll-container">
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🎯 Первые шаги</div>
+                            <div class="task-reward">⭐ +50</div>
+                        </div>
+                        <div class="task-description">
+                            Откройте свой первый кейс в игре
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 30%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('first_steps', 50)">Выполнить</button>
                     </div>
-                    <div class="task-description">
-                        Откройте свой первый кейс в игре
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">💰 Накопитель</div>
+                            <div class="task-reward">⭐ +100</div>
+                        </div>
+                        <div class="task-description">
+                            Накопите 500 звёзд на балансе
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 10%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('saver', 100)">Выполнить</button>
                     </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 30%"></div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🏆 Коллекционер</div>
+                            <div class="task-reward">⭐ +200</div>
+                        </div>
+                        <div class="task-description">
+                            Соберите 10 различных предметов
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 60%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('collector', 200)">Выполнить</button>
                     </div>
-                    <button class="task-button" onclick="completeTask('first_steps', 50)">Выполнить</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">💰 Накопитель</div>
-                        <div class="task-reward">⭐ +100</div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🚀 Быстрый старт</div>
+                            <div class="task-reward">⭐ +150</div>
+                        </div>
+                        <div class="task-description">
+                            Откройте 5 кейсов за один день
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 40%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('fast_start', 150)">Выполнить</button>
                     </div>
-                    <div class="task-description">
-                        Накопите 500 звёзд на балансе
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">💎 Редкий охотник</div>
+                            <div class="task-reward">⭐ +300</div>
+                        </div>
+                        <div class="task-description">
+                            Получите 3 редких предмета
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 20%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
                     </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 10%"></div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🌟 Легенда</div>
+                            <div class="task-reward">⭐ +500</div>
+                        </div>
+                        <div class="task-description">
+                            Достигните 10 уровня
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: 5%"></div>
+                        </div>
+                        <button class="task-button" onclick="completeTask('legend', 500)">Выполнить</button>
                     </div>
-                    <button class="task-button" onclick="completeTask('saver', 100)">Выполнить</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🏆 Коллекционер</div>
-                        <div class="task-reward">⭐ +200</div>
-                    </div>
-                    <div class="task-description">
-                        Соберите 10 различных предметов
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 60%"></div>
-                    </div>
-                    <button class="task-button" onclick="completeTask('collector', 200)">Выполнить</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🚀 Быстрый старт</div>
-                        <div class="task-reward">⭐ +150</div>
-                    </div>
-                    <div class="task-description">
-                        Откройте 5 кейсов за один день
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 40%"></div>
-                    </div>
-                    <button class="task-button" onclick="completeTask('fast_start', 150)">Выполнить</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">💎 Редкий охотник</div>
-                        <div class="task-reward">⭐ +300</div>
-                    </div>
-                    <div class="task-description">
-                        Получите 3 редких предмета
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 20%"></div>
-                    </div>
-                    <button class="task-button" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🌟 Легенда</div>
-                        <div class="task-reward">⭐ +500</div>
-                    </div>
-                    <div class="task-description">
-                        Достигните 10 уровня
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 5%"></div>
-                    </div>
-                    <button class="task-button" onclick="completeTask('legend', 500)">Выполнить</button>
                 </div>
             </div>
         </div>
@@ -261,38 +267,40 @@
             <p>Ваша статистика и достижения</p>
             
             <div class="profile-container">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar" id="profileAvatar">👤</div>
-                        <div class="profile-info">
-                            <h3 id="profileName">Игрок</h3>
-                            <p>Уровень: <span id="profileLevel">1</span></p>
+                <div class="profile-scroll-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar" id="profileAvatar">👤</div>
+                            <div class="profile-info">
+                                <h3 id="profileName">Игрок</h3>
+                                <p>Уровень: <span id="profileLevel">1</span></p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value" id="statBalance">0</div>
-                            <div class="stat-label">Баланс</div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="statBalance">0</div>
+                                <div class="stat-label">Баланс</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="statCases">0</div>
+                                <div class="stat-label">Кейсы</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="statExperience">0</div>
+                                <div class="stat-label">Опыт</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="statItems">0</div>
+                                <div class="stat-label">Предметы</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="statCases">0</div>
-                            <div class="stat-label">Кейсы</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="statExperience">0</div>
-                            <div class="stat-label">Опыт</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="statItems">0</div>
-                            <div class="stat-label">Предметы</div>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-achievements">
-                        <h4 style="color: white; margin-bottom: 15px; text-align: center;">🏆 Достижения</h4>
-                        <div class="achievements-grid" id="achievementsGrid">
-                            <!-- Достижения будут загружены через JavaScript -->
+                        
+                        <div class="profile-achievements">
+                            <h4 style="color: white; margin-bottom: 15px; text-align: center;">🏆 Достижения</h4>
+                            <div class="achievements-grid" id="achievementsGrid">
+                                <!-- Достижения будут загружены через JavaScript -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -334,11 +342,7 @@
                 <div class="case-items-track" id="caseItemsTrack">
                     <!-- Предметы будут добавлены через JavaScript -->
                 </div>
-                <div class="selection-arrow">
-                    <div class="arrow-glow"></div>
-                    <div class="arrow-top"></div>
-                    <div class="arrow-line"></div>
-                </div>
+                <div class="selection-line"></div>
             </div>
             
             <div class="case-modal-actions" id="caseModalActions">
