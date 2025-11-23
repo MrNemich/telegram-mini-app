@@ -16,16 +16,15 @@ class UserDatabase {
         } else {
             // Начальные данные для нового пользователя
             this.userData = {
-                balance: 1000, // Начальный баланс для тестирования
+                balance: 1000,
                 inventory: {
-                    // Пример начальных предметов
                     '💰 Игровая валюта': 100,
                     '💎 Редкие кристаллы': 5,
                     '🔑 Ключи': 2,
                     '⚡ Бустеры': 3,
                     '🎨 Краски': 1
                 },
-                cases: {}, // Купленные кейсы
+                cases: {},
                 casesOpened: 0,
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
@@ -369,7 +368,7 @@ function updateBalanceDisplay() {
 
 // Функция пополнения баланса
 function addBalance() {
-    const amount = 500; // Количество звёзд для пополнения
+    const amount = 500;
     userDB.updateBalance(amount);
     updateBalanceDisplay();
     updateProfile();
@@ -380,7 +379,6 @@ function addBalance() {
         buttons: [{ type: 'ok' }]
     });
     
-    // Виброотклик
     if (navigator.vibrate) {
         navigator.vibrate([100, 50, 100]);
     }
@@ -442,42 +440,6 @@ function loadInventory() {
     }
 }
 
-// Прямая покупка кейса
-function buyCaseDirectly(price) {
-    const balance = userDB.getBalance();
-    const caseData = casesData[price];
-    
-    if (balance < price) {
-        tg.showPopup({
-            title: '❌ Недостаточно звёзд',
-            message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
-    
-    // Списываем звёзды
-    userDB.updateBalance(-price);
-    
-    // Добавляем кейс в инвентарь
-    userDB.addCase(price, 1);
-    
-    // Обновляем отображение
-    updateBalanceDisplay();
-    updateProfile();
-    
-    tg.showPopup({
-        title: '🎉 Успех!',
-        message: `Кейс "${caseData.name}" добавлен в ваш инвентарь!`,
-        buttons: [{ type: 'ok' }]
-    });
-    
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-    }
-}
-
 // Выполнение задания
 function completeTask(taskId, reward) {
     if (userDB.completeTask(taskId)) {
@@ -491,7 +453,6 @@ function completeTask(taskId, reward) {
             buttons: [{ type: 'ok' }]
         });
         
-        // Виброотклик
         if (navigator.vibrate) {
             navigator.vibrate([100, 50, 100]);
         }
@@ -538,7 +499,6 @@ function updateProfile() {
     const userData = userDB.userData;
     const achievements = userDB.getAchievements();
     
-    // Обновляем данные профиля
     elements.profileName.textContent = stats.firstName;
     elements.profileLevel.textContent = stats.level;
     elements.statBalance.textContent = userData.balance.toLocaleString();
@@ -546,10 +506,7 @@ function updateProfile() {
     elements.statExperience.textContent = userData.experience;
     elements.statItems.textContent = stats.inventoryCount;
     
-    // Обновляем аватар
     updateProfileAvatar(stats.level);
-    
-    // Загружаем достижения
     loadAchievements(achievements);
 }
 
@@ -593,13 +550,11 @@ function openCaseModal(price, action) {
     
     currentCaseModal = { price, action };
     
-    // Заполняем заголовок
     elements.caseModalTitle.textContent = caseData.name;
     elements.caseModalPrice.textContent = action === 'buy' ? `Цена: ${price} ⭐` : 'Ваш кейс';
     
-    // Заполняем предметы (повторяем для бесконечной прокрутки)
     elements.caseItemsTrack.innerHTML = '';
-    for (let i = 0; i < 50; i++) { // Много копий для плавной прокрутки
+    for (let i = 0; i < 50; i++) {
         caseData.rewards.forEach(reward => {
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
@@ -612,7 +567,6 @@ function openCaseModal(price, action) {
         });
     }
     
-    // Создаем кнопки действий
     elements.caseModalActions.innerHTML = '';
     
     if (action === 'buy') {
@@ -635,7 +589,6 @@ function openCaseModal(price, action) {
     cancelButton.onclick = closeCaseModal;
     elements.caseModalActions.appendChild(cancelButton);
     
-    // Показываем модальное окно
     elements.caseModal.style.display = 'block';
 }
 
@@ -645,7 +598,7 @@ function closeCaseModal() {
     currentCaseModal = null;
 }
 
-// Покупка кейса (через модальное окно)
+// Покупка кейса
 function buyCase(price) {
     const balance = userDB.getBalance();
     const caseData = casesData[price];
@@ -659,13 +612,9 @@ function buyCase(price) {
         return;
     }
     
-    // Списываем звёзды
     userDB.updateBalance(-price);
-    
-    // Добавляем кейс в инвентарь
     userDB.addCase(price, 1);
     
-    // Обновляем отображение
     updateBalanceDisplay();
     updateProfile();
     
@@ -680,7 +629,7 @@ function buyCase(price) {
 
 // Продажа кейса
 function sellCase(price) {
-    const sellPrice = Math.floor(price * 0.75); // 75% от цены
+    const sellPrice = Math.floor(price * 0.75);
     const caseData = casesData[price];
     
     tg.showPopup({
@@ -718,39 +667,24 @@ function sellCase(price) {
 function openCase(price) {
     const caseData = casesData[price];
     
-    // Начинаем анимацию вращения
     elements.caseItemsTrack.classList.add('fast-spin');
     
-    // Отключаем кнопки
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Ждем 8 секунд анимации
     setTimeout(() => {
-        // Останавливаем анимацию
         elements.caseItemsTrack.classList.remove('fast-spin');
         
-        // Выбираем случайную награду на основе шансов
         const reward = getRandomReward(caseData.rewards);
         
-        // Добавляем награду в инвентарь
         userDB.addToInventory(reward.item, reward.quantity);
-        
-        // Убираем кейс из инвентаря
         userDB.removeCase(price, 1);
-        
-        // Увеличиваем счетчик открытых кейсов
         userDB.userData.casesOpened++;
-        
-        // Добавляем опыт
         userDB.userData.experience += 10;
         
-        // Проверяем уровень
         checkLevelUp();
-        
         userDB.saveUserData();
         
-        // Показываем результат
         showOpenResult(reward);
         
     }, 8000);
@@ -774,7 +708,7 @@ function checkLevelUp() {
     }
 }
 
-// Выбор случайной награды на основе шансов
+// Выбор случайной награды
 function getRandomReward(rewards) {
     const totalChance = rewards.reduce((sum, reward) => sum + reward.chance, 0);
     let random = Math.random() * totalChance;
@@ -786,7 +720,7 @@ function getRandomReward(rewards) {
         random -= reward.chance;
     }
     
-    return rewards[0]; // Fallback
+    return rewards[0];
 }
 
 // Показ результата открытия
@@ -806,12 +740,11 @@ function showOpenResult(reward) {
     closeButton.textContent = 'Закрыть';
     closeButton.onclick = () => {
         closeCaseModal();
-        loadInventory(); // Обновляем инвентарь
-        updateProfile(); // Обновляем профиль
+        loadInventory();
+        updateProfile();
     };
     elements.caseModalActions.appendChild(closeButton);
     
-    // Виброотклик успеха
     if (navigator.vibrate) {
         navigator.vibrate([100, 50, 100]);
     }
@@ -874,7 +807,6 @@ if (tg.initDataUnsafe.user) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Мини-приложение полностью загружено и готово!');
     
-    // Загружаем начальные данные
     updateBalanceDisplay();
     updateProfile();
 });
