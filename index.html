@@ -4,42 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>Темные разводы</title>
+    <title>Telegram App</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Иконочный шрифт -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="background-effect"></div>
-        <div class="content">
-            <h1 id="pageTitle">🌙 Главная</h1>
-            <p id="pageDescription">Добро пожаловать в темное царство</p>
-            <button class="tg-button" onclick="showAlert()">Исследовать тьму</button>
+        <div class="content" id="content">
+            <h1 id="pageTitle">🏠 Главная</h1>
+            <p id="pageDescription">Добро пожаловать в приложение</p>
+            <button class="tg-button" onclick="showAlert()">Действие</button>
         </div>
     </div>
 
     <!-- Нижняя панель навигации -->
     <div class="bottom-nav">
-        <button class="nav-button active" onclick="changePage('home')">
+        <button class="nav-button active" onclick="changePage('home')" data-page="home">
             <div class="nav-icon">🏠</div>
             <div class="nav-text">Главная</div>
         </button>
         
-        <button class="nav-button" onclick="changePage('tasks')">
+        <button class="nav-button" onclick="changePage('roulette')" data-page="roulette">
+            <div class="nav-icon">🎰</div>
+            <div class="nav-text">Рулетка</div>
+        </button>
+        
+        <button class="nav-button" onclick="changePage('tasks')" data-page="tasks">
             <div class="nav-icon">✅</div>
             <div class="nav-text">Задания</div>
         </button>
         
-        <button class="nav-button" onclick="changePage('shop')">
-            <div class="nav-icon">🛒</div>
-            <div class="nav-text">Магазин</div>
-        </button>
-        
-        <button class="nav-button" onclick="changePage('stories')">
-            <div class="nav-icon">📖</div>
-            <div class="nav-text">Истории</div>
+        <button class="nav-button" onclick="changePage('profile')" data-page="profile">
+            <div class="nav-icon">👤</div>
+            <div class="nav-text">Профиль</div>
         </button>
     </div>
 
