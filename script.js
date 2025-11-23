@@ -14,17 +14,16 @@ class UserDatabase {
         if (savedData) {
             this.userData = JSON.parse(savedData);
         } else {
-            // Начальные данные для нового пользователя - баланс 0
+            // Начальные данные для нового пользователя
             this.userData = {
-                balance: 0,
+                balance: 1000, // Начальный баланс для тестирования
                 inventory: {
-                    '💰 Игровая валюта': 0,
-                    '💎 Редкие кристаллы': 0,
-                    '🔑 Ключи': 0,
-                    '🏆 Трофеи': 0,
-                    '⚡ Бустеры': 0,
-                    '🛡️ Защита': 0
+                    // Пример начальных предметов
+                    '💰 Игровая валюта': 100,
+                    '💎 Редкие кристаллы': 5,
+                    '🔑 Ключи': 2
                 },
+                cases: {}, // Купленные кейсы
                 casesOpened: 0,
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
@@ -66,13 +65,40 @@ class UserDatabase {
     }
 
     removeFromInventory(item, quantity = 1) {
-        if (this.userData.inventory[item]) {
+        if (this.userData.inventory[item] && this.userData.inventory[item] >= quantity) {
             this.userData.inventory[item] -= quantity;
             if (this.userData.inventory[item] <= 0) {
                 delete this.userData.inventory[item];
             }
             this.saveUserData();
+            return true;
         }
+        return false;
+    }
+
+    // Управление кейсами
+    addCase(caseType, quantity = 1) {
+        if (!this.userData.cases[caseType]) {
+            this.userData.cases[caseType] = 0;
+        }
+        this.userData.cases[caseType] += quantity;
+        this.saveUserData();
+    }
+
+    removeCase(caseType, quantity = 1) {
+        if (this.userData.cases[caseType] && this.userData.cases[caseType] >= quantity) {
+            this.userData.cases[caseType] -= quantity;
+            if (this.userData.cases[caseType] <= 0) {
+                delete this.userData.cases[caseType];
+            }
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    getCases() {
+        return this.userData.cases;
     }
 
     canOpenFreeCase() {
@@ -111,19 +137,13 @@ tg.enableClosingConfirmation();
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
-// Показываем основную кнопку
-tg.MainButton.setText('🎮 ВЕРНУТЬСЯ В БОТА');
-tg.MainButton.show();
-tg.MainButton.onClick(() => {
-    tg.close();
-});
-
 // Инициализация базы данных
 const userDB = new UserDatabase();
 
 // Текущая активная страница
 let currentPage = 'home';
 let isAnimating = false;
+let currentCaseModal = null;
 
 // Кэшируем элементы для производительности
 const elements = {
@@ -133,8 +153,13 @@ const elements = {
     tasksContent: document.getElementById('tasks-content'),
     profileContent: document.getElementById('profile-content'),
     newsModal: document.getElementById('newsModal'),
+    caseModal: document.getElementById('caseModal'),
     starsBalance: document.getElementById('starsBalance'),
     inventoryGrid: document.getElementById('inventoryGrid'),
+    caseItemsTrack: document.getElementById('caseItemsTrack'),
+    caseModalTitle: document.getElementById('caseModalTitle'),
+    caseModalPrice: document.getElementById('caseModalPrice'),
+    caseModalActions: document.getElementById('caseModalActions'),
     buttons: document.querySelectorAll('.nav-button'),
     // Элементы профиля
     profileName: document.getElementById('profileName'),
@@ -142,97 +167,75 @@ const elements = {
     statBalance: document.getElementById('statBalance'),
     statCases: document.getElementById('statCases'),
     statExperience: document.getElementById('statExperience'),
-    statItems: document.getElementById('statItems'),
-    currentLevel: document.getElementById('currentLevel'),
-    currentExp: document.getElementById('currentExp'),
-    neededExp: document.getElementById('neededExp'),
-    levelProgress: document.getElementById('levelProgress')
+    statItems: document.getElementById('statItems')
 };
 
 // Данные кейсов
 const casesData = {
     0: {
         name: "Бесплатный кейс",
-        description: "Открывается каждые 24 часа",
+        price: 0,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 50, chance: 100 },
-            { item: "⚡ Бустеры", quantity: 1, chance: 70 },
-            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30 }
+            { item: "💰 Игровая валюта", quantity: 50, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 1, chance: 70, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 15, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 1, chance: 5, icon: "🏆" }
         ]
     },
     100: {
         name: "Начальный набор",
-        description: "Идеально для новичков",
+        price: 100,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 150, chance: 100 },
-            { item: "⚡ Бустеры", quantity: 2, chance: 80 },
-            { item: "💎 Редкие кристаллы", quantity: 2, chance: 50 },
-            { item: "🔑 Ключи", quantity: 1, chance: 30 }
+            { item: "💰 Игровая валюта", quantity: 150, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 2, chance: 80, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 2, chance: 50, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 30, icon: "🔑" },
+            { item: "🎨 Краски", quantity: 3, chance: 40, icon: "🎨" }
         ]
     },
     200: {
         name: "Золотой сундук",
-        description: "Шанс на редкие предметы",
+        price: 200,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 300, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 3, chance: 70 },
-            { item: "🔑 Ключи", quantity: 2, chance: 50 },
-            { item: "🏆 Трофеи", quantity: 1, chance: 30 }
+            { item: "💰 Игровая валюта", quantity: 300, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 3, chance: 70, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 2, chance: 50, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 1, chance: 30, icon: "🏆" },
+            { item: "🔧 Инструменты", quantity: 2, chance: 40, icon: "🔧" }
         ]
     },
     500: {
         name: "Эпический ларец",
-        description: "Эксклюзивные награды",
+        price: 500,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 750, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 5, chance: 80 },
-            { item: "🔑 Ключи", quantity: 3, chance: 60 },
-            { item: "🏆 Трофеи", quantity: 2, chance: 40 },
-            { item: "🛡️ Защита", quantity: 1, chance: 25 }
+            { item: "💰 Игровая валюта", quantity: 750, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 5, chance: 80, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 3, chance: 60, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 2, chance: 40, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 1, chance: 25, icon: "🛡️" }
         ]
     },
     1000: {
         name: "Легендарный артефакт",
-        description: "Уникальные предметы",
+        price: 1000,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 1500, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 8, chance: 90 },
-            { item: "🔑 Ключи", quantity: 5, chance: 70 },
-            { item: "🏆 Трофеи", quantity: 3, chance: 50 },
-            { item: "🛡️ Защита", quantity: 2, chance: 35 }
+            { item: "💰 Игровая валюта", quantity: 1500, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 8, chance: 90, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 5, chance: 70, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 3, chance: 50, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 2, chance: 35, icon: "🛡️" }
         ]
     },
     1500: {
         name: "Мифическая шкатулка",
-        description: "Легендарные сокровища",
+        price: 1500,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 2500, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 12, chance: 95 },
-            { item: "🔑 Ключи", quantity: 8, chance: 80 },
-            { item: "🏆 Трофеи", quantity: 5, chance: 60 },
-            { item: "🛡️ Защита", quantity: 3, chance: 45 }
-        ]
-    },
-    2000: {
-        name: "Чемпионский кейс",
-        description: "Для настоящих победителей",
-        rewards: [
-            { item: "💰 Игровая валюта", quantity: 3500, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 15, chance: 95 },
-            { item: "🔑 Ключи", quantity: 10, chance: 85 },
-            { item: "🏆 Трофеи", quantity: 7, chance: 65 },
-            { item: "🛡️ Защита", quantity: 5, chance: 50 }
-        ]
-    },
-    3000: {
-        name: "Королевский кейс",
-        description: "Эксклюзив для королей",
-        rewards: [
-            { item: "💰 Игровая валюта", quantity: 5000, chance: 100 },
-            { item: "💎 Редкие кристаллы", quantity: 20, chance: 98 },
-            { item: "🔑 Ключи", quantity: 15, chance: 90 },
-            { item: "🏆 Трофеи", quantity: 10, chance: 75 },
-            { item: "🛡️ Защита", quantity: 8, chance: 60 }
+            { item: "💰 Игровая валюта", quantity: 2500, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 12, chance: 95, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 8, chance: 80, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 5, chance: 60, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 3, chance: 45, icon: "🛡️" }
         ]
     }
 };
@@ -307,10 +310,12 @@ function updateBalanceDisplay() {
 // Загрузка инвентаря
 function loadInventory() {
     const inventory = userDB.getInventory();
+    const cases = userDB.getCases();
     elements.inventoryGrid.innerHTML = '';
     
     let hasItems = false;
     
+    // Показываем предметы
     Object.entries(inventory).forEach(([itemName, quantity]) => {
         if (quantity > 0) {
             hasItems = true;
@@ -326,16 +331,64 @@ function loadInventory() {
         }
     });
     
+    // Показываем кейсы
+    Object.entries(cases).forEach(([casePrice, quantity]) => {
+        if (quantity > 0) {
+            hasItems = true;
+            const caseData = casesData[casePrice];
+            const inventoryItem = document.createElement('div');
+            inventoryItem.className = 'inventory-item';
+            inventoryItem.innerHTML = `
+                <div class="inventory-icon">${getCaseIcon(casePrice)}</div>
+                <div class="inventory-name">${caseData.name}</div>
+                <div class="inventory-count">${quantity} шт.</div>
+                <div class="inventory-actions">
+                    <button class="inventory-btn open-btn" onclick="openCaseModal(${casePrice}, 'open')">Открыть</button>
+                    <button class="inventory-btn sell-btn" onclick="sellCase(${casePrice})">Продать</button>
+                </div>
+            `;
+            elements.inventoryGrid.appendChild(inventoryItem);
+        }
+    });
+    
     // Если инвентарь пустой
     if (!hasItems) {
         elements.inventoryGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888;">
                 <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
                 <div>Инвентарь пуст</div>
-                <div style="font-size: 0.8rem; margin-top: 5px;">Откройте кейсы чтобы получить предметы</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">Купите кейсы в разделе Рулетка</div>
             </div>
         `;
     }
+}
+
+// Получение иконки для предмета
+function getItemIcon(itemName) {
+    const iconMap = {
+        '💰 Игровая валюта': '💰',
+        '💎 Редкие кристаллы': '💎',
+        '🔑 Ключи': '🔑',
+        '🏆 Трофеи': '🏆',
+        '⚡ Бустеры': '⚡',
+        '🛡️ Защита': '🛡️',
+        '🎨 Краски': '🎨',
+        '🔧 Инструменты': '🔧'
+    };
+    return iconMap[itemName] || '📦';
+}
+
+// Получение иконки для кейса
+function getCaseIcon(price) {
+    const iconMap = {
+        0: '🎁',
+        100: '📦',
+        200: '🎁',
+        500: '💎',
+        1000: '🔥',
+        1500: '🌟'
+    };
+    return iconMap[price] || '🎁';
 }
 
 // Обновление профиля
@@ -350,156 +403,208 @@ function updateProfile() {
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
     elements.statItems.textContent = stats.inventoryCount;
-    
-    // Обновляем прогресс уровня
-    const neededExp = stats.level * 100;
-    const progressPercent = (userData.experience / neededExp) * 100;
-    
-    elements.currentLevel.textContent = stats.level;
-    elements.currentExp.textContent = userData.experience;
-    elements.neededExp.textContent = neededExp;
-    elements.levelProgress.style.width = `${progressPercent}%`;
 }
 
-// Получение иконки для предмета
-function getItemIcon(itemName) {
-    const iconMap = {
-        '💰 Игровая валюта': '💰',
-        '💎 Редкие кристаллы': '💎',
-        '🔑 Ключи': '🔑',
-        '🏆 Трофеи': '🏆',
-        '⚡ Бустеры': '⚡',
-        '🛡️ Защита': '🛡️'
-    };
-    return iconMap[itemName] || '📦';
-}
-
-// Функция для открытия кейса
-function openCase(price) {
-    // Проверка для бесплатного кейса
-    if (price === 0) {
-        if (!userDB.canOpenFreeCase()) {
-            const lastOpen = new Date(userDB.userData.lastFreeCase);
-            const nextOpen = new Date(lastOpen.getTime() + 24 * 60 * 60 * 1000);
-            const timeLeft = nextOpen - Date.now();
-            const hoursLeft = Math.ceil(timeLeft / (60 * 60 * 1000));
-            
-            tg.showPopup({
-                title: '⏰ Ещё не время',
-                message: `Бесплатный кейс будет доступен через ${hoursLeft} часов`,
-                buttons: [{ type: 'ok' }]
-            });
-            return;
-        }
+// Открытие модального окна кейса
+function openCaseModal(price, action) {
+    const caseData = casesData[price];
+    if (!caseData) return;
+    
+    currentCaseModal = { price, action };
+    
+    // Заполняем заголовок
+    elements.caseModalTitle.textContent = caseData.name;
+    elements.caseModalPrice.textContent = action === 'buy' ? `Цена: ${price} ⭐` : 'Ваш кейс';
+    
+    // Заполняем предметы (повторяем для бесконечной прокрутки)
+    elements.caseItemsTrack.innerHTML = '';
+    for (let i = 0; i < 50; i++) { // Много копий для плавной прокрутки
+        caseData.rewards.forEach(reward => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'case-item';
+            itemElement.innerHTML = `
+                <div class="case-item-icon">${reward.icon}</div>
+                <div class="case-item-name">${reward.item}</div>
+                <div class="case-item-quantity">${reward.quantity}</div>
+            `;
+            elements.caseItemsTrack.appendChild(itemElement);
+        });
+    }
+    
+    // Создаем кнопки действий
+    elements.caseModalActions.innerHTML = '';
+    
+    if (action === 'buy') {
+        const buyButton = document.createElement('button');
+        buyButton.className = 'case-action-btn buy-btn';
+        buyButton.textContent = `Купить за ${price} ⭐`;
+        buyButton.onclick = () => buyCase(price);
+        elements.caseModalActions.appendChild(buyButton);
     } else {
-        // Проверяем достаточно ли звёзд для платного кейса
-        const currentBalance = userDB.getBalance();
-        if (currentBalance < price) {
-            tg.showPopup({
-                title: '❌ Недостаточно звёзд',
-                message: `Вам нужно ещё ${price - currentBalance} звёзд для открытия этого кейса`,
-                buttons: [{ type: 'ok' }]
-            });
-            return;
-        }
+        const openButton = document.createElement('button');
+        openButton.className = 'case-action-btn open-btn';
+        openButton.textContent = 'Открыть';
+        openButton.onclick = () => openCase(price);
+        elements.caseModalActions.appendChild(openButton);
     }
     
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate([10, 5, 10]);
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'case-action-btn cancel-btn';
+    cancelButton.textContent = 'Отмена';
+    cancelButton.onclick = closeCaseModal;
+    elements.caseModalActions.appendChild(cancelButton);
+    
+    // Показываем модальное окно
+    elements.caseModal.style.display = 'block';
+}
+
+// Закрытие модального окна кейса
+function closeCaseModal() {
+    elements.caseModal.style.display = 'none';
+    currentCaseModal = null;
+}
+
+// Покупка кейса
+function buyCase(price) {
+    const balance = userDB.getBalance();
+    
+    if (balance < price) {
+        tg.showPopup({
+            title: '❌ Недостаточно звёзд',
+            message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
+        return;
     }
     
-    const caseInfo = casesData[price];
+    // Списываем звёзды
+    userDB.updateBalance(-price);
+    
+    // Добавляем кейс в инвентарь
+    userDB.addCase(price);
+    
+    // Обновляем отображение
+    updateBalanceDisplay();
     
     tg.showPopup({
-        title: '🎁 Открытие кейса',
-        message: `${caseInfo.description}\n\n${caseInfo.name} за ${price === 0 ? 'бесплатно' : price + ' звёзд'}`,
+        title: '🎉 Успех!',
+        message: `Кейс "${casesData[price].name}" добавлен в ваш инвентарь!`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    closeCaseModal();
+}
+
+// Продажа кейса
+function sellCase(price) {
+    const sellPrice = Math.floor(price * 0.75); // 75% от цены
+    const caseData = casesData[price];
+    
+    tg.showPopup({
+        title: '💰 Продажа кейса',
+        message: `Вы уверены, что хотите продать "${caseData.name}" за ${sellPrice} ⭐?`,
         buttons: [
             { 
-                id: 'open', 
+                id: 'sell', 
                 type: 'default', 
-                text: `Открыть ${price === 0 ? '🆓' : 'за ' + price + ' ⭐'}` 
+                text: `Продать за ${sellPrice} ⭐` 
             },
             { 
                 type: 'cancel' 
             }
         ]
     }).then(function(buttonId) {
-        if (buttonId === 'open') {
-            simulateCaseOpening(price, caseInfo);
+        if (buttonId === 'sell') {
+            if (userDB.removeCase(price)) {
+                userDB.updateBalance(sellPrice);
+                updateBalanceDisplay();
+                loadInventory();
+                
+                tg.showPopup({
+                    title: '✅ Кейс продан',
+                    message: `Вы получили ${sellPrice} ⭐`,
+                    buttons: [{ type: 'ok' }]
+                });
+            }
         }
     });
 }
 
-// Симуляция открытия кейса
-function simulateCaseOpening(price, caseInfo) {
-    // Список полученных наград
-    const rewards = [];
+// Открытие кейса
+function openCase(price) {
+    const caseData = casesData[price];
     
-    // Генерируем награды на основе шансов
-    caseInfo.rewards.forEach(reward => {
-        if (Math.random() * 100 <= reward.chance) {
-            rewards.push({
-                item: reward.item,
-                quantity: reward.quantity
-            });
-            // Добавляем в инвентарь
-            userDB.addToInventory(reward.item, reward.quantity);
+    // Начинаем анимацию вращения
+    elements.caseItemsTrack.classList.add('fast-spin');
+    
+    // Отключаем кнопки
+    const buttons = elements.caseModalActions.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    // Ждем 8 секунд анимации
+    setTimeout(() => {
+        // Останавливаем анимацию
+        elements.caseItemsTrack.classList.remove('fast-spin');
+        
+        // Выбираем случайную награду на основе шансов
+        const reward = getRandomReward(caseData.rewards);
+        
+        // Добавляем награду в инвентарь
+        userDB.addToInventory(reward.item, reward.quantity);
+        
+        // Убираем кейс из инвентаря
+        userDB.removeCase(price);
+        
+        // Увеличиваем счетчик открытых кейсов
+        userDB.userData.casesOpened++;
+        userDB.saveUserData();
+        
+        // Показываем результат
+        showOpenResult(reward);
+        
+    }, 8000);
+}
+
+// Выбор случайной награды на основе шансов
+function getRandomReward(rewards) {
+    const totalChance = rewards.reduce((sum, reward) => sum + reward.chance, 0);
+    let random = Math.random() * totalChance;
+    
+    for (const reward of rewards) {
+        if (random < reward.chance) {
+            return reward;
         }
-    });
-    
-    // Обновляем баланс для платных кейсов
-    if (price > 0) {
-        userDB.updateBalance(-price);
-    } else {
-        userDB.openFreeCase();
+        random -= reward.chance;
     }
     
-    // Увеличиваем счетчик открытых кейсов
-    userDB.userData.casesOpened++;
+    return rewards[0]; // Fallback
+}
+
+// Показ результата открытия
+function showOpenResult(reward) {
+    elements.caseModalActions.innerHTML = '';
+    elements.caseItemsTrack.innerHTML = `
+        <div class="open-result">
+            <div class="result-icon">${reward.icon}</div>
+            <div class="result-title">🎉 Поздравляем!</div>
+            <div class="result-item">${reward.item}</div>
+            <div class="result-quantity">${reward.quantity} шт.</div>
+        </div>
+    `;
     
-    // Добавляем опыт
-    const expGained = price === 0 ? 10 : price / 10;
-    userDB.userData.experience += expGained;
-    
-    // Проверяем повышение уровня
-    const neededExp = userDB.userData.level * 100;
-    if (userDB.userData.experience >= neededExp) {
-        userDB.userData.level++;
-        userDB.userData.experience = 0;
-        // Награда за уровень
-        userDB.updateBalance(50);
-        userDB.addToInventory('💰 Игровая валюта', 100);
-    }
-    
-    userDB.saveUserData();
-    
-    // Формируем сообщение о наградах
-    let rewardsMessage = '🎉 Поздравляем! Вы открыли кейс!\n\nПолучены:\n';
-    rewards.forEach(reward => {
-        rewardsMessage += `• ${reward.item}: ${reward.quantity}\n`;
-    });
-    
-    // Добавляем информацию о повышении уровня
-    if (userDB.userData.experience === 0 && userDB.userData.level > 1) {
-        rewardsMessage += `\n🎊 Уровень повышен! Теперь у вас ${userDB.userData.level} уровень!`;
-        rewardsMessage += `\n🎁 Награда за уровень: +50 ⭐ и +100 💰`;
-    }
-    
-    // Показываем попап с наградами
-    tg.showPopup({
-        title: '🎁 Награды получены!',
-        message: rewardsMessage,
-        buttons: [{ type: 'ok' }]
-    });
-    
-    // Обновляем все отображения
-    updateBalanceDisplay();
-    updateProfile();
+    const closeButton = document.createElement('button');
+    closeButton.className = 'case-action-btn cancel-btn';
+    closeButton.textContent = 'Закрыть';
+    closeButton.onclick = () => {
+        closeCaseModal();
+        loadInventory(); // Обновляем инвентарь
+        updateProfile(); // Обновляем профиль
+    };
+    elements.caseModalActions.appendChild(closeButton);
     
     // Виброотклик успеха
     if (navigator.vibrate) {
-        navigator.vibrate([20, 10, 20]);
+        navigator.vibrate([100, 50, 100]);
     }
 }
 
@@ -508,7 +613,6 @@ function openNewsModal() {
     elements.newsModal.classList.add('show');
     document.body.style.overflow = 'hidden';
     
-    // Виброотклик при открытии
     if (navigator.vibrate) {
         navigator.vibrate(10);
     }
@@ -518,23 +622,33 @@ function closeNewsModal() {
     elements.newsModal.classList.remove('show');
     document.body.style.overflow = '';
     
-    // Виброотклик при закрытии
     if (navigator.vibrate) {
         navigator.vibrate(5);
     }
 }
 
-// Закрытие модального окна по клику на фон
+// Закрытие модальных окон по клику на фон
 elements.newsModal.addEventListener('click', function(e) {
     if (e.target === elements.newsModal) {
         closeNewsModal();
     }
 });
 
-// Закрытие модального окна по ESC
+elements.caseModal.addEventListener('click', function(e) {
+    if (e.target === elements.caseModal) {
+        closeCaseModal();
+    }
+});
+
+// Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && elements.newsModal.classList.contains('show')) {
-        closeNewsModal();
+    if (e.key === 'Escape') {
+        if (elements.newsModal.classList.contains('show')) {
+            closeNewsModal();
+        }
+        if (elements.caseModal.style.display === 'block') {
+            closeCaseModal();
+        }
     }
 });
 
@@ -543,7 +657,6 @@ if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
         console.log('👤 Пользователь:', user.first_name, '(ID:', user.id, ')');
-        // Обновляем приветствие на главной
         document.querySelector('#home-content h1').textContent = `🏠 Привет, ${user.first_name}!`;
     }
 }
@@ -551,7 +664,6 @@ if (tg.initDataUnsafe.user) {
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Мини-приложение полностью загружено и готово!');
-    console.log('📱 Текущая страница:', currentPage);
     
     // Загружаем начальные данные
     updateBalanceDisplay();
