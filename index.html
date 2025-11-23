@@ -35,60 +35,137 @@
 
         <!-- Контент для других страниц (скрыт) -->
         <div class="content" id="other-content" style="display: none;">
-            <h1 id="pageTitle">🎰 Рулетка</h1>
-            <p id="pageDescription">Откройте кейсы и получите награды</p>
-            
             <div class="roulette-container">
-                <div class="case-buttons-grid">
-                    <button class="case-button" onclick="openCase(100)">
-                        <div class="case-button-content">
-                            <span class="case-name">Обычный кейс</span>
-                            <span class="case-price">
-                                <span class="star-icon">⭐</span>
-                                100
-                            </span>
+                <!-- Баланс звёзд -->
+                <div class="balance-container">
+                    <div class="balance-title">
+                        <div class="balance-text">Ваш баланс</div>
+                        <div class="balance-amount">
+                            <span class="balance-stars">⭐</span>
+                            <span id="starsBalance">1,250</span>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Табы -->
+                <div class="roulette-tabs">
+                    <button class="tab-button active" onclick="switchTab('inventory')" data-tab="inventory">
+                        📦 Инвентарь
                     </button>
-                    
-                    <button class="case-button premium" onclick="openCase(200)">
-                        <div class="case-button-content">
-                            <span class="case-name">Премиум кейс</span>
-                            <span class="case-price">
-                                <span class="star-icon">⭐</span>
-                                200
-                            </span>
+                    <button class="tab-button" onclick="switchTab('cases')" data-tab="cases">
+                        🎁 Кейсы
+                    </button>
+                </div>
+                
+                <!-- Контент инвентаря -->
+                <div class="tab-content active" id="inventory-tab">
+                    <div class="inventory-grid">
+                        <div class="inventory-item">
+                            <div class="inventory-icon">🎮</div>
+                            <div class="inventory-name">Игровая валюта</div>
+                            <div class="inventory-count">5,280</div>
                         </div>
-                    </button>
-                    
-                    <button class="case-button epic" onclick="openCase(500)">
-                        <div class="case-button-content">
-                            <span class="case-name">Эпический кейс</span>
-                            <span class="case-price">
-                                <span class="star-icon">⭐</span>
-                                500
-                            </span>
+                        <div class="inventory-item">
+                            <div class="inventory-icon">💎</div>
+                            <div class="inventory-name">Редкие кристаллы</div>
+                            <div class="inventory-count">12</div>
                         </div>
-                    </button>
-                    
-                    <button class="case-button legendary" onclick="openCase(1000)">
-                        <div class="case-button-content">
-                            <span class="case-name">Легендарный кейс</span>
-                            <span class="case-price">
-                                <span class="star-icon">⭐</span>
-                                1000
-                            </span>
+                        <div class="inventory-item">
+                            <div class="inventory-icon">🔑</div>
+                            <div class="inventory-name">Ключи</div>
+                            <div class="inventory-count">3</div>
                         </div>
-                    </button>
-                    
-                    <button class="case-button mythic" onclick="openCase(1500)">
-                        <div class="case-button-content">
-                            <span class="case-name">Мифический кейс</span>
-                            <span class="case-price">
-                                <span class="star-icon">⭐</span>
-                                1500
-                            </span>
+                        <div class="inventory-item">
+                            <div class="inventory-icon">🏆</div>
+                            <div class="inventory-name">Трофеи</div>
+                            <div class="inventory-count">7</div>
                         </div>
-                    </button>
+                    </div>
+                </div>
+                
+                <!-- Контент кейсов -->
+                <div class="tab-content" id="cases-tab">
+                    <div class="case-buttons-grid">
+                        <button class="case-button" onclick="openCase(100)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">📦</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Начальный набор</div>
+                                        <div class="case-description">Идеально для новичков</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">⭐</span>
+                                    100
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="case-button premium" onclick="openCase(200)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">🎁</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Золотой сундук</div>
+                                        <div class="case-description">Шанс на редкие предметы</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">⭐</span>
+                                    200
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="case-button epic" onclick="openCase(500)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">💎</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Эпический ларец</div>
+                                        <div class="case-description">Эксклюзивные награды</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">⭐</span>
+                                    500
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="case-button legendary" onclick="openCase(1000)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">🔥</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Легендарный артефакт</div>
+                                        <div class="case-description">Уникальные предметы</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">⭐</span>
+                                    1000
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="case-button mythic" onclick="openCase(1500)">
+                            <div class="case-button-content">
+                                <div class="case-info">
+                                    <div class="case-icon">🌟</div>
+                                    <div class="case-details">
+                                        <div class="case-name">Мифическая шкатулка</div>
+                                        <div class="case-description">Легендарные сокровища</div>
+                                    </div>
+                                </div>
+                                <div class="case-price">
+                                    <span class="star-icon">⭐</span>
+                                    1500
+                                </div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
