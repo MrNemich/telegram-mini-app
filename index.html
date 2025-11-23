@@ -50,7 +50,7 @@
                 <!-- Кейсы с скроллом -->
                 <div class="cases-scroll-container">
                     <div class="case-buttons-grid">
-                        <button class="case-button free" onclick="openCase(0)">
+                        <button class="case-button free" onclick="openCaseModal(0, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🎁</div>
@@ -66,7 +66,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button" onclick="openCase(100)">
+                        <button class="case-button" onclick="openCaseModal(100, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">📦</div>
@@ -82,7 +82,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button premium" onclick="openCase(200)">
+                        <button class="case-button premium" onclick="openCaseModal(200, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🎁</div>
@@ -98,7 +98,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button epic" onclick="openCase(500)">
+                        <button class="case-button epic" onclick="openCaseModal(500, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">💎</div>
@@ -114,7 +114,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button legendary" onclick="openCase(1000)">
+                        <button class="case-button legendary" onclick="openCaseModal(1000, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🔥</div>
@@ -130,7 +130,7 @@
                             </div>
                         </button>
                         
-                        <button class="case-button mythic" onclick="openCase(1500)">
+                        <button class="case-button mythic" onclick="openCaseModal(1500, 'buy')">
                             <div class="case-button-content">
                                 <div class="case-info">
                                     <div class="case-icon">🌟</div>
@@ -142,39 +142,6 @@
                                 <div class="case-price">
                                     <span class="star-icon">⭐</span>
                                     1500
-                                </div>
-                            </div>
-                        </button>
-
-                        <!-- Дополнительные кейсы для демонстрации скролла -->
-                        <button class="case-button premium" onclick="openCase(2000)">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">🏅</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Чемпионский кейс</div>
-                                        <div class="case-description">Для настоящих победителей</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    2000
-                                </div>
-                            </div>
-                        </button>
-
-                        <button class="case-button mythic" onclick="openCase(3000)">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">👑</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Королевский кейс</div>
-                                        <div class="case-description">Эксклюзив для королей</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    3000
                                 </div>
                             </div>
                         </button>
@@ -226,48 +193,6 @@
                     </div>
                     <button class="task-button">Выполнить</button>
                 </div>
-                
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🎁 Коллекционер</div>
-                        <div class="task-reward">+200 ⭐</div>
-                    </div>
-                    <div class="task-description">
-                        Откройте 10 любых кейсов
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 0%"></div>
-                    </div>
-                    <button class="task-button">Выполнить</button>
-                </div>
-
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">⚡ Быстрый старт</div>
-                        <div class="task-reward">+75 ⭐</div>
-                    </div>
-                    <div class="task-description">
-                        Откройте 3 кейса за один день
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 0%"></div>
-                    </div>
-                    <button class="task-button">Выполнить</button>
-                </div>
-
-                <div class="task-item">
-                    <div class="task-header">
-                        <div class="task-title">🏆 Мастер кейсов</div>
-                        <div class="task-reward">+300 ⭐</div>
-                    </div>
-                    <div class="task-description">
-                        Откройте все типы кейсов хотя бы по одному разу
-                    </div>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: 20%"></div>
-                    </div>
-                    <button class="task-button">Выполнить</button>
-                </div>
             </div>
         </div>
 
@@ -305,35 +230,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="profile-card">
-                    <h3 style="margin: 0 0 12px 0; color: white;">🏆 Достижения</h3>
-                    <div style="color: #ccc; font-size: 0.9rem;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: #FFD700;">⭐</span>
-                            <span>Новичок - Откройте первый кейс</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: #888;">🔒</span>
-                            <span style="opacity: 0.6;">Коллекционер - Соберите 10 предметов</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #888;">🔒</span>
-                            <span style="opacity: 0.6;">Богач - Накопите 1000 звёзд</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="profile-card">
-                    <h3 style="margin: 0 0 12px 0; color: white;">📊 Прогресс уровня</h3>
-                    <div style="background: rgba(255,255,255,0.1); border-radius: 6px; height: 8px; margin-bottom: 8px; overflow: hidden;">
-                        <div id="levelProgress" style="background: linear-gradient(45deg, #8A2BE2, #DA70D6); height: 100%; border-radius: 6px; width: 10%;"></div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #888;">
-                        <span>Уровень <span id="currentLevel">1</span></span>
-                        <span><span id="currentExp">0</span>/<span id="neededExp">100</span></span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -355,15 +251,28 @@
                     <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
                         🚀 Следите за обновлениями! 🚀
                     </p>
-                    
-                    <div style="margin-top: 25px; padding: 15px; background: rgba(138, 43, 226, 0.1); border-radius: 12px; border-left: 4px solid #8A2BE2;">
-                        <p style="margin: 0; color: #DA70D6; font-size: 0.9rem;">
-                            <strong>Версия:</strong> V1.0<br>
-                            <strong>Дата выпуска:</strong> 23.11.2025<br>
-                            <strong>Статус:</strong> В разработке
-                        </p>
-                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно открытия кейса -->
+    <div class="case-modal" id="caseModal">
+        <div class="case-modal-content">
+            <div class="case-modal-header">
+                <h2 class="case-modal-title" id="caseModalTitle">Открытие кейса</h2>
+                <div class="case-modal-price" id="caseModalPrice">Цена: 100 ⭐</div>
+            </div>
+            
+            <div class="case-items-container">
+                <div class="case-items-track" id="caseItemsTrack">
+                    <!-- Предметы будут добавлены через JavaScript -->
+                </div>
+                <div class="selection-arrow"></div>
+            </div>
+            
+            <div class="case-modal-actions" id="caseModalActions">
+                <!-- Кнопки будут добавлены через JavaScript -->
             </div>
         </div>
     </div>
