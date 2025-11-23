@@ -16,17 +16,19 @@ let isAnimating = false;
 
 // Кэшируем элементы для производительности
 const elements = {
-    content: document.getElementById('content'),
-    title: document.getElementById('pageTitle'),
-    description: document.getElementById('pageDescription'),
+    homeContent: document.getElementById('home-content'),
+    otherContent: document.getElementById('other-content'),
+    newsModal: document.getElementById('newsModal'),
+    pageTitle: document.getElementById('pageTitle'),
+    pageDescription: document.getElementById('pageDescription'),
     buttons: document.querySelectorAll('.nav-button')
 };
 
-// Данные страниц (простой объект для быстрого доступа)
+// Данные страниц
 const pagesData = {
     home: {
         title: '🏠 Главная',
-        description: 'Добро пожаловать в приложение'
+        description: 'Последние новости и обновления'
     },
     roulette: {
         title: '🎰 Рулетка',
@@ -42,27 +44,26 @@ const pagesData = {
     }
 };
 
-// Функция смены страницы (оптимизированная)
+// Функция смены страницы
 function changePage(page) {
-    // Защита от двойного нажатия
     if (isAnimating || currentPage === page) return;
     
     isAnimating = true;
     currentPage = page;
     
-    // Быстрое обновление активной кнопки
+    // Обновляем активную кнопку
     updateActiveButton(page);
     
-    // Плавная смена контента
+    // Переключаем контент
     switchContent(page);
     
-    // Виброотклик (если поддерживается)
+    // Виброотклик
     if (navigator.vibrate) {
         navigator.vibrate(5);
     }
 }
 
-// Обновление активной кнопки (минимальная анимация)
+// Обновление активной кнопки
 function updateActiveButton(activePage) {
     elements.buttons.forEach(button => {
         const isActive = button.getAttribute('data-page') === activePage;
@@ -70,30 +71,62 @@ function updateActiveButton(activePage) {
     });
 }
 
-// Смена контента (оптимизированная)
+// Смена контента
 function switchContent(page) {
-    // Добавляем класс для анимации исчезновения
-    elements.content.classList.add('content-changing');
-    
-    // Используем requestAnimationFrame для плавности
-    requestAnimationFrame(() => {
-        // Быстрое обновление контента
-        const data = pagesData[page];
-        elements.title.textContent = data.title;
-        elements.description.textContent = data.description;
+    if (page === 'home') {
+        elements.homeContent.style.display = 'block';
+        elements.otherContent.style.display = 'none';
+    } else {
+        elements.homeContent.style.display = 'none';
+        elements.otherContent.style.display = 'block';
         
-        // Убираем класс анимации
-        requestAnimationFrame(() => {
-            elements.content.classList.remove('content-changing');
-            isAnimating = false;
-        });
-    });
+        const data = pagesData[page];
+        elements.pageTitle.textContent = data.title;
+        elements.pageDescription.textContent = data.description;
+    }
+    
+    isAnimating = false;
 }
+
+// Функции для модального окна новости
+function openNewsModal() {
+    elements.newsModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Виброотклик при открытии
+    if (navigator.vibrate) {
+        navigator.vibrate(10);
+    }
+}
+
+function closeNewsModal() {
+    elements.newsModal.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Виброотклик при закрытии
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
+}
+
+// Закрытие модального окна по клику на фон
+elements.newsModal.addEventListener('click', function(e) {
+    if (e.target === elements.newsModal) {
+        closeNewsModal();
+    }
+});
+
+// Закрытие модального окна по ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && elements.newsModal.classList.contains('show')) {
+        closeNewsModal();
+    }
+});
 
 // Функция для кнопки
 function showAlert() {
     const messages = {
-        home: 'Добро пожаловать на главную! 🏠',
+        home: 'Читайте последние новости! 🏠',
         roulette: 'Крутите рулетку и выигрывайте! 🎰',
         tasks: 'Новые задания ждут выполнения! ✅',
         profile: 'Посмотрите свою статистику! 👤'
@@ -109,19 +142,33 @@ function showAlert() {
 // Информация о пользователе
 if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
-    if (user.first_name && currentPage === 'home') {
-        elements.title.textContent = `Привет, ${user.first_name}! 🏠`;
+    if (user.first_name) {
+        console.log('Пользователь:', user.first_name);
     }
 }
 
-// Простая интерактивность фона (отключена для старых устройств)
+// Предзагрузка изображения
+function preloadImage(url) {
+    const img = new Image();
+    img.src = url;
+}
+
+// Предзагружаем картинку новости
+preloadImage('https://www.cossa.ru/upload/iblock/12e/ibvq3564dy8dexv7sxu3lcp57ogtlaut/550087a4e3b59cc8fbf0f2cc482e9703.jpg');
+
+// Простая интерактивность фона
 let touchEnabled = 'ontouchstart' in window;
 if (touchEnabled) {
     document.addEventListener('touchmove', function(e) {
-        if (!e.target.closest('.bottom-nav')) {
+        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content')) {
             e.preventDefault();
         }
     }, { passive: false });
 }
 
-console.log('✅ Оптимизированный Mini App запущен!');
+console.log('✅ Новостной Mini App запущен!');
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Приложение полностью загружено и готово!');
+});
