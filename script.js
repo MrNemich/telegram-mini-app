@@ -13,6 +13,7 @@ tg.setBackgroundColor('#000000');
 // Текущая активная страница
 let currentPage = 'home';
 let isAnimating = false;
+let currentTab = 'inventory';
 
 // Кэшируем элементы для производительности
 const elements = {
@@ -21,7 +22,10 @@ const elements = {
     newsModal: document.getElementById('newsModal'),
     pageTitle: document.getElementById('pageTitle'),
     pageDescription: document.getElementById('pageDescription'),
-    buttons: document.querySelectorAll('.nav-button')
+    buttons: document.querySelectorAll('.nav-button'),
+    tabButtons: document.querySelectorAll('.tab-button'),
+    tabContents: document.querySelectorAll('.tab-content'),
+    starsBalance: document.getElementById('starsBalance')
 };
 
 // Данные страниц
@@ -81,21 +85,53 @@ function switchContent(page) {
         elements.otherContent.style.display = 'block';
         
         const data = pagesData[page];
-        elements.pageTitle.textContent = data.title;
-        elements.pageDescription.textContent = data.description;
+        if (elements.pageTitle) elements.pageTitle.textContent = data.title;
+        if (elements.pageDescription) elements.pageDescription.textContent = data.description;
     }
     
     isAnimating = false;
 }
 
+// Функция переключения табов
+function switchTab(tabName) {
+    if (currentTab === tabName) return;
+    
+    currentTab = tabName;
+    
+    // Обновляем активные табы
+    elements.tabButtons.forEach(button => {
+        const isActive = button.getAttribute('data-tab') === tabName;
+        button.classList.toggle('active', isActive);
+    });
+    
+    // Переключаем контент табов
+    elements.tabContents.forEach(content => {
+        const isActive = content.id === `${tabName}-tab`;
+        content.classList.toggle('active', isActive);
+    });
+    
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate(3);
+    }
+}
+
 // Функция для открытия кейса
 function openCase(price) {
     const caseNames = {
-        100: "Обычный кейс",
-        200: "Премиум кейс", 
-        500: "Эпический кейс",
-        1000: "Легендарный кейс",
-        1500: "Мифический кейс"
+        100: "Начальный набор",
+        200: "Золотой сундук", 
+        500: "Эпический ларец",
+        1000: "Легендарный артефакт",
+        1500: "Мифическая шкатулка"
+    };
+    
+    const caseDescriptions = {
+        100: "Отличный старт для новичка!",
+        200: "Возможность получить редкие предметы",
+        500: "Эксклюзивные награды ждут тебя!",
+        1000: "Уникальные предметы высшего качества",
+        1500: "Легендарные сокровища из древних времён"
     };
     
     // Виброотклик
@@ -105,7 +141,7 @@ function openCase(price) {
     
     tg.showPopup({
         title: '🎁 Открытие кейса',
-        message: `Вы пытаетесь открыть ${caseNames[price]} за ${price} звёзд`,
+        message: `${caseDescriptions[price]}\n\n${caseNames[price]} за ${price} звёзд`,
         buttons: [
             { 
                 id: 'open', 
@@ -116,10 +152,44 @@ function openCase(price) {
                 type: 'cancel' 
             }
         ]
+    }).then(function(buttonId) {
+        if (buttonId === 'open') {
+            // Логика открытия кейса
+            simulateCaseOpening(price, caseNames[price]);
+        }
     });
     
-    // Здесь будет логика открытия кейса
-    console.log(`Попытка открыть кейс за ${price} звёзд`);
+    console.log(`Попытка открыть ${caseNames[price]} за ${price} звёзд`);
+}
+
+// Симуляция открытия кейса
+function simulateCaseOpening(price, caseName) {
+    // Проверяем достаточно ли звёзд
+    const currentBalance = parseInt(elements.starsBalance.textContent.replace(',', ''));
+    if (currentBalance < price) {
+        tg.showPopup({
+            title: '❌ Недостаточно звёзд',
+            message: `Вам нужно ещё ${price - currentBalance} звёзд для открытия этого кейса`,
+            buttons: [{ type: 'ok' }]
+        });
+        return;
+    }
+    
+    // Обновляем баланс
+    const newBalance = currentBalance - price;
+    elements.starsBalance.textContent = newBalance.toLocaleString();
+    
+    // Показываем анимацию открытия
+    tg.showPopup({
+        title: '🎉 Поздравляем!',
+        message: `Вы открыли ${caseName}!\n\nПолучены:\n• 150 игровой валюты\n• 3 редких кристалла\n• 1 случайный предмет`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    // Виброотклик успеха
+    if (navigator.vibrate) {
+        navigator.vibrate([20, 10, 20]);
+    }
 }
 
 // Функции для модального окна новости
@@ -196,6 +266,9 @@ if (touchEnabled) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Приложение полностью загружено и готово!');
     console.log('📱 Текущая страница:', currentPage);
+    
+    // Инициализируем начальный таб
+    switchTab('inventory');
 });
 
 console.log('✅ Новостной Mini App запущен!');
