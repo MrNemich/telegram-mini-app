@@ -144,17 +144,9 @@ if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
         console.log('Пользователь:', user.first_name);
+        // Можно добавить персонализацию в будущем
     }
 }
-
-// Предзагрузка изображения
-function preloadImage(url) {
-    const img = new Image();
-    img.src = url;
-}
-
-// Предзагружаем картинку новости
-preloadImage('https://www.cossa.ru/upload/iblock/12e/ibvq3564dy8dexv7sxu3lcp57ogtlaut/550087a4e3b59cc8fbf0f2cc482e9703.jpg');
 
 // Простая интерактивность фона
 let touchEnabled = 'ontouchstart' in window;
@@ -166,9 +158,10 @@ if (touchEnabled) {
     }, { passive: false });
 }
 
-console.log('✅ Новостной Mini App запущен!');
-
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Приложение полностью загружено и готово!');
+    console.log('📱 Текущая страница:', currentPage);
 });
+
+console.log('✅ Новостной Mini App запущен!');
