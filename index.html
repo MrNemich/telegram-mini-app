@@ -17,24 +17,6 @@
             <h1>🏠 Главная</h1>
             <p>Последние новости и обновления</p>
             
-            <!-- Стикеры -->
-            <div class="sticker-container">
-                <div class="sticker-slider">
-                    <div class="sticker-item" data-sticker="CAACAgIAAxkBAAIBOWZ4AAE9oN9O1XvQ5QABlX9AAAMAAT0AA4UuAALx9wABSx8AATB7AAH3LwQ">
-                        <div class="sticker-placeholder">🎮</div>
-                    </div>
-                    <div class="sticker-item" data-sticker="CAACAgIAAxkBAAIBO2Z4AAFFoN9O1XvQ5QABlX9AAAMAAT0AA4UuAALx9wABSx8AATB7AAH3LwQ">
-                        <div class="sticker-placeholder">⭐</div>
-                    </div>
-                    <div class="sticker-item" data-sticker="CAACAgIAAxkBAAIBPWZ4AAFFoN9O1XvQ5QABlX9AAAMAAT0AA4UuAALx9wABSx8AATB7AAH3LwQ">
-                        <div class="sticker-placeholder">🎯</div>
-                    </div>
-                    <div class="sticker-item" data-sticker="CAACAgIAAxkBAAIBP2Z4AAFFoN9O1XvQ5QABlX9AAAMAAT0AA4UuAALx9wABSx8AATB7AAH3LwQ">
-                        <div class="sticker-placeholder">🚀</div>
-                    </div>
-                </div>
-            </div>
-            
             <div class="news-container">
                 <div class="news-card">
                     <div class="news-header">
@@ -51,101 +33,45 @@
             </div>
         </div>
 
-        <!-- Контент для Рулетки -->
-        <div class="content" id="roulette-content" style="display: none;">
-            <h1>🎰 Рулетка</h1>
-            <p>Испытайте удачу и выигрывайте призы!</p>
-            
-            <div class="balance-container">
-                <div class="balance">
-                    <i class="fas fa-star"></i>
-                    <span id="balance-value">1000</span> звёзд
-                </div>
-            </div>
-            
-            <div class="roulette-buttons">
-                <div class="roulette-button tier-1" onclick="spinRoulette(100)">
-                    <div class="button-content">
-                        <div class="button-icon">🎮</div>
-                        <div class="button-text">
-                            <div class="button-title">Рулетка за 100 звёзд</div>
-                            <div class="button-subtitle">Малый приз</div>
-                        </div>
-                        <div class="button-cost">100 ⭐</div>
-                    </div>
-                    <div class="button-glow"></div>
-                </div>
-                
-                <div class="roulette-button tier-2" onclick="spinRoulette(200)">
-                    <div class="button-content">
-                        <div class="button-icon">🎯</div>
-                        <div class="button-text">
-                            <div class="button-title">Рулетка за 200 звёзд</div>
-                            <div class="button-subtitle">Средний приз</div>
-                        </div>
-                        <div class="button-cost">200 ⭐</div>
-                    </div>
-                    <div class="button-glow"></div>
-                </div>
-                
-                <div class="roulette-button tier-3" onclick="spinRoulette(500)">
-                    <div class="button-content">
-                        <div class="button-icon">🔥</div>
-                        <div class="button-text">
-                            <div class="button-title">Рулетка за 500 звёзд</div>
-                            <div class="button-subtitle">Большой приз</div>
-                        </div>
-                        <div class="button-cost">500 ⭐</div>
-                    </div>
-                    <div class="button-glow"></div>
-                </div>
-                
-                <div class="roulette-button tier-4" onclick="spinRoulette(1000)">
-                    <div class="button-content">
-                        <div class="button-icon">⚡</div>
-                        <div class="button-text">
-                            <div class="button-title">Рулетка за 1000 звёзд</div>
-                            <div class="button-subtitle">Эпический приз</div>
-                        </div>
-                        <div class="button-cost">1000 ⭐</div>
-                    </div>
-                    <div class="button-glow"></div>
-                </div>
-                
-                <div class="roulette-button tier-5" onclick="spinRoulette(1500)">
-                    <div class="button-content">
-                        <div class="button-icon">👑</div>
-                        <div class="button-text">
-                            <div class="button-title">Рулетка за 1500 звёзд</div>
-                            <div class="button-subtitle">Легендарный приз</div>
-                        </div>
-                        <div class="button-cost">1500 ⭐</div>
-                    </div>
-                    <div class="button-glow"></div>
-                </div>
-            </div>
-            
-            <div class="roulette-wheel-container" id="roulette-wheel" style="display: none;">
-                <div class="wheel">
-                    <div class="wheel-inner">
-                        <div class="wheel-item">10 ⭐</div>
-                        <div class="wheel-item">50 ⭐</div>
-                        <div class="wheel-item">100 ⭐</div>
-                        <div class="wheel-item">200 ⭐</div>
-                        <div class="wheel-item">500 ⭐</div>
-                        <div class="wheel-item">1000 ⭐</div>
-                    </div>
-                </div>
-                <div class="wheel-pointer"></div>
-                <button class="spin-button" onclick="stopRoulette()">Остановить</button>
-            </div>
-        </div>
-
-        <!-- Контент для других страниц -->
+        <!-- Контент для других страниц (скрыт) -->
         <div class="content" id="other-content" style="display: none;">
-            <h1 id="pageTitle">✅ Задания</h1>
-            <p id="pageDescription">Выполняйте задания и получайте награды</p>
-            <button class="tg-button" onclick="showAlert()">Действие</button>
+            <h1 id="pageTitle">🎰 Рулетка</h1>
+            <p id="pageDescription">Испытайте удачу в рулетке</p>
+            
+            <div class="roulette-container">
+                <div class="roulette-wheel">
+                    <div class="roulette-items" id="rouletteItems">
+                        <!-- Элементы рулетки будут добавлены через JS -->
+                    </div>
+                    <div class="roulette-pointer"></div>
+                </div>
+                
+                <div class="selected-roulette" id="selectedRoulette">
+                    Выберите ставку
+                </div>
+                
+                <div class="roulette-buttons">
+                    <button class="roulette-btn roulette-btn-100" onclick="selectRoulette(100)">
+                        <span class="stars-icon">⭐</span> Рулетка за 100 звёзд
+                    </button>
+                    <button class="roulette-btn roulette-btn-200" onclick="selectRoulette(200)">
+                        <span class="stars-icon">⭐</span> Рулетка за 200 звёзд
+                    </button>
+                    <button class="roulette-btn roulette-btn-500" onclick="selectRoulette(500)">
+                        <span class="stars-icon">⭐</span> Рулетка за 500 звёзд
+                    </button>
+                    <button class="roulette-btn roulette-btn-1000" onclick="selectRoulette(1000)">
+                        <span class="stars-icon">⭐</span> Рулетка за 1000 звёзд
+                    </button>
+                    <button class="roulette-btn roulette-btn-1500" onclick="selectRoulette(1500)">
+                        <span class="stars-icon">⭐</span> Рулетка за 1500 звёзд
+                    </button>
+                </div>
+                
+                <button class="spin-btn" id="spinBtn" onclick="spinRoulette()" disabled>
+                    Крутить рулетку
+                </button>
+            </div>
         </div>
     </div>
 
@@ -181,13 +107,11 @@
 
     <!-- Модальное окно результата рулетки -->
     <div class="result-modal" id="resultModal">
-        <div class="modal-content">
-            <div class="result-content">
-                <div class="result-icon">🎉</div>
-                <h2 class="result-title">Поздравляем!</h2>
-                <p class="result-text">Вы выиграли: <span id="prize-amount">0</span> звёзд!</p>
-                <button class="result-button" onclick="closeResultModal()">Отлично!</button>
-            </div>
+        <div class="result-content">
+            <div class="result-icon" id="resultIcon">🎁</div>
+            <h2 class="result-title" id="resultTitle">Поздравляем!</h2>
+            <p class="result-text" id="resultText">Вы выиграли 50 звёзд!</p>
+            <button class="close-result" onclick="closeResultModal()">Отлично!</button>
         </div>
     </div>
 
