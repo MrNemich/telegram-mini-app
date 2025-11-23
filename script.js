@@ -17,8 +17,9 @@ let isAnimating = false;
 // Кэшируем элементы для производительности
 const elements = {
     homeContent: document.getElementById('home-content'),
+    rouletteContent: document.getElementById('roulette-content'),
     otherContent: document.getElementById('other-content'),
-    newsModal: document.getElementById('newsModal'),
+    stickerPanel: document.getElementById('stickerPanel'),
     pageTitle: document.getElementById('pageTitle'),
     pageDescription: document.getElementById('pageDescription'),
     buttons: document.querySelectorAll('.nav-button')
@@ -51,6 +52,9 @@ function changePage(page) {
     isAnimating = true;
     currentPage = page;
     
+    // Закрываем панель стикеров если открыта
+    closeStickers();
+    
     // Обновляем активную кнопку
     updateActiveButton(page);
     
@@ -73,13 +77,18 @@ function updateActiveButton(activePage) {
 
 // Смена контента
 function switchContent(page) {
+    // Скрываем все контенты
+    elements.homeContent.style.display = 'none';
+    elements.rouletteContent.style.display = 'none';
+    elements.otherContent.style.display = 'none';
+    
+    // Показываем нужный контент
     if (page === 'home') {
         elements.homeContent.style.display = 'block';
-        elements.otherContent.style.display = 'none';
+    } else if (page === 'roulette') {
+        elements.rouletteContent.style.display = 'block';
     } else {
-        elements.homeContent.style.display = 'none';
         elements.otherContent.style.display = 'block';
-        
         const data = pagesData[page];
         elements.pageTitle.textContent = data.title;
         elements.pageDescription.textContent = data.description;
@@ -88,40 +97,124 @@ function switchContent(page) {
     isAnimating = false;
 }
 
-// Функции для модального окна новости
-function openNewsModal() {
-    elements.newsModal.classList.add('show');
+// Функции для панели стикеров
+function showStickers() {
+    elements.stickerPanel.classList.add('show');
     document.body.style.overflow = 'hidden';
     
-    // Виброотклик при открытии
+    // Виброотклик
     if (navigator.vibrate) {
         navigator.vibrate(10);
     }
 }
 
-function closeNewsModal() {
-    elements.newsModal.classList.remove('show');
+function closeStickers() {
+    elements.stickerPanel.classList.remove('show');
     document.body.style.overflow = '';
     
-    // Виброотклик при закрытии
+    // Виброотклик
     if (navigator.vibrate) {
         navigator.vibrate(5);
     }
 }
 
-// Закрытие модального окна по клику на фон
-elements.newsModal.addEventListener('click', function(e) {
-    if (e.target === elements.newsModal) {
-        closeNewsModal();
+function sendSticker(sticker) {
+    // Здесь можно добавить логику отправки стикера
+    tg.showPopup({
+        title: 'Стикер отправлен',
+        message: `Вы отправили стикер: ${sticker}`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate(15);
+    }
+    
+    closeStickers();
+}
+
+// Функции для модального окна новости
+function openNewsModal(newsId) {
+    const modal = document.getElementById(`newsModal${newsId}`);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // Виброотклик при открытии
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+    }
+}
+
+function closeNewsModal(newsId) {
+    const modal = document.getElementById(`newsModal${newsId}`);
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        
+        // Виброотклик при закрытии
+        if (navigator.vibrate) {
+            navigator.vibrate(5);
+        }
+    }
+}
+
+// Закрытие модальных окон по клику на фон
+document.querySelectorAll('.news-modal').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            const modalId = modal.id.replace('newsModal', '');
+            closeNewsModal(modalId);
+        }
+    });
+});
+
+// Закрытие модальных окон по ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.news-modal.show').forEach(modal => {
+            const modalId = modal.id.replace('newsModal', '');
+            closeNewsModal(modalId);
+        });
+        closeStickers();
     }
 });
 
-// Закрытие модального окна по ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && elements.newsModal.classList.contains('show')) {
-        closeNewsModal();
+// Функция для рулетки
+function playRoulette(stars) {
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate(20);
     }
-});
+    
+    // Анимация нажатия
+    const button = event.currentTarget;
+    button.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+        button.style.transform = '';
+        
+        // Показываем результат
+        const results = [
+            `🎉 Поздравляем! Вы выиграли ${Math.round(stars * 0.5)} звёзд!`,
+            `😊 Вы выиграли ${Math.round(stars * 0.8)} звёзд!`,
+            `🎰 Упс! Вы проиграли ${stars} звёзд...`,
+            `🚀 Вау! Вы выиграли ${stars * 2} звёзд!`,
+            `⭐ Вы выиграли ${Math.round(stars * 1.5)} звёзд!`
+        ];
+        
+        const randomResult = results[Math.floor(Math.random() * results.length)];
+        
+        tg.showPopup({
+            title: 'Результат рулетки',
+            message: randomResult,
+            buttons: [{ type: 'ok' }]
+        });
+        
+    }, 150);
+}
 
 // Функция для кнопки
 function showAlert() {
@@ -152,7 +245,7 @@ if (tg.initDataUnsafe.user) {
 let touchEnabled = 'ontouchstart' in window;
 if (touchEnabled) {
     document.addEventListener('touchmove', function(e) {
-        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content')) {
+        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content') && !e.target.closest('.sticker-panel')) {
             e.preventDefault();
         }
     }, { passive: false });
