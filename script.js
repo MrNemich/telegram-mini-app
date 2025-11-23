@@ -13,24 +13,15 @@ tg.setBackgroundColor('#000000');
 // Текущая активная страница
 let currentPage = 'home';
 let isAnimating = false;
-let selectedRoulette = 0;
-let isSpinning = false;
 
 // Кэшируем элементы для производительности
 const elements = {
     homeContent: document.getElementById('home-content'),
     otherContent: document.getElementById('other-content'),
     newsModal: document.getElementById('newsModal'),
-    resultModal: document.getElementById('resultModal'),
     pageTitle: document.getElementById('pageTitle'),
     pageDescription: document.getElementById('pageDescription'),
-    buttons: document.querySelectorAll('.nav-button'),
-    rouletteItems: document.getElementById('rouletteItems'),
-    spinBtn: document.getElementById('spinBtn'),
-    selectedRoulette: document.getElementById('selectedRoulette'),
-    resultIcon: document.getElementById('resultIcon'),
-    resultTitle: document.getElementById('resultTitle'),
-    resultText: document.getElementById('resultText')
+    buttons: document.querySelectorAll('.nav-button')
 };
 
 // Данные страниц
@@ -41,7 +32,7 @@ const pagesData = {
     },
     roulette: {
         title: '🎰 Рулетка',
-        description: 'Испытайте удачу в рулетке'
+        description: 'Откройте кейсы и получите награды'
     },
     tasks: {
         title: '✅ Задания',
@@ -52,40 +43,6 @@ const pagesData = {
         description: 'Ваш профиль и статистика'
     }
 };
-
-// Призы для рулетки
-const roulettePrizes = [
-    { name: "10 ⭐", value: 10, color: "#6A0DAD" },
-    { name: "20 ⭐", value: 20, color: "#8A2BE2" },
-    { name: "50 ⭐", value: 50, color: "#DA70D6" },
-    { name: "100 ⭐", value: 100, color: "#FF69B4" },
-    { name: "200 ⭐", value: 200, color: "#FF1493" },
-    { name: "Удача!", value: 0, color: "#32CD32" },
-    { name: "5 ⭐", value: 5, color: "#6A0DAD" },
-    { name: "30 ⭐", value: 30, color: "#8A2BE2" }
-];
-
-// Инициализация рулетки
-function initRoulette() {
-    elements.rouletteItems.innerHTML = '';
-    
-    const itemCount = roulettePrizes.length;
-    const angleStep = 360 / itemCount;
-    
-    roulettePrizes.forEach((prize, index) => {
-        const item = document.createElement('div');
-        item.className = 'roulette-item';
-        item.style.transform = `rotate(${index * angleStep}deg)`;
-        item.style.backgroundColor = prize.color;
-        
-        const content = document.createElement('div');
-        content.className = 'roulette-item-content';
-        content.textContent = prize.name;
-        
-        item.appendChild(content);
-        elements.rouletteItems.appendChild(item);
-    });
-}
 
 // Функция смены страницы
 function changePage(page) {
@@ -99,11 +56,6 @@ function changePage(page) {
     
     // Переключаем контент
     switchContent(page);
-    
-    // Инициализируем рулетку при переходе на страницу рулетки
-    if (page === 'roulette') {
-        initRoulette();
-    }
     
     // Виброотклик
     if (navigator.vibrate) {
@@ -136,89 +88,38 @@ function switchContent(page) {
     isAnimating = false;
 }
 
-// Выбор рулетки
-function selectRoulette(stars) {
-    if (isSpinning) return;
-    
-    selectedRoulette = stars;
-    elements.selectedRoulette.textContent = `Выбрана рулетка за ${stars} звёзд`;
-    elements.spinBtn.disabled = false;
-    
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
-}
-
-// Вращение рулетки
-function spinRoulette() {
-    if (isSpinning || selectedRoulette === 0) return;
-    
-    isSpinning = true;
-    elements.spinBtn.disabled = true;
-    
-    // Медленное вращение в начале
-    elements.rouletteItems.style.transition = 'transform 0.5s ease-out';
-    elements.rouletteItems.style.transform = 'rotate(180deg)';
-    
-    // Быстрое вращение после небольшой паузы
-    setTimeout(() => {
-        elements.rouletteItems.style.transition = 'transform 7s cubic-bezier(0.1, 0.2, 0.3, 1)';
-        
-        // Случайный угол остановки (несколько полных оборотов + случайный приз)
-        const fullRotations = 5 + Math.floor(Math.random() * 3);
-        const prizeIndex = Math.floor(Math.random() * roulettePrizes.length);
-        const angleStep = 360 / roulettePrizes.length;
-        const stopAngle = fullRotations * 360 + (prizeIndex * angleStep) + (Math.random() * angleStep * 0.5);
-        
-        elements.rouletteItems.style.transform = `rotate(${stopAngle}deg)`;
-        
-        // Показ результата после остановки
-        setTimeout(() => {
-            showResult(roulettePrizes[prizeIndex]);
-            isSpinning = false;
-            
-            // Сброс выбора
-            selectedRoulette = 0;
-            elements.selectedRoulette.textContent = 'Выберите ставку';
-        }, 7500);
-    }, 600);
+// Функция для открытия кейса
+function openCase(price) {
+    const caseNames = {
+        100: "Обычный кейс",
+        200: "Премиум кейс", 
+        500: "Эпический кейс",
+        1000: "Легендарный кейс",
+        1500: "Мифический кейс"
+    };
     
     // Виброотклик
     if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-    }
-}
-
-// Показать результат
-function showResult(prize) {
-    elements.resultIcon.textContent = prize.value > 0 ? "🎉" : "✨";
-    elements.resultTitle.textContent = prize.value > 0 ? "Поздравляем!" : "Удача!";
-    
-    if (prize.value > 0) {
-        elements.resultText.textContent = `Вы выиграли ${prize.name}!`;
-    } else {
-        elements.resultText.textContent = "В этот раз не повезло, попробуйте ещё раз!";
+        navigator.vibrate([10, 5, 10]);
     }
     
-    elements.resultModal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+    tg.showPopup({
+        title: '🎁 Открытие кейса',
+        message: `Вы пытаетесь открыть ${caseNames[price]} за ${price} звёзд`,
+        buttons: [
+            { 
+                id: 'open', 
+                type: 'default', 
+                text: `Открыть за ${price} ⭐` 
+            },
+            { 
+                type: 'cancel' 
+            }
+        ]
+    });
     
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100, 50, 100]);
-    }
-}
-
-// Закрыть модальное окно результата
-function closeResultModal() {
-    elements.resultModal.style.display = 'none';
-    document.body.style.overflow = '';
-    
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate(5);
-    }
+    // Здесь будет логика открытия кейса
+    console.log(`Попытка открыть кейс за ${price} звёзд`);
 }
 
 // Функции для модального окна новости
@@ -249,21 +150,10 @@ elements.newsModal.addEventListener('click', function(e) {
     }
 });
 
-elements.resultModal.addEventListener('click', function(e) {
-    if (e.target === elements.resultModal) {
-        closeResultModal();
-    }
-});
-
 // Закрытие модального окна по ESC
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (elements.newsModal.classList.contains('show')) {
-            closeNewsModal();
-        }
-        if (elements.resultModal.style.display === 'block') {
-            closeResultModal();
-        }
+    if (e.key === 'Escape' && elements.newsModal.classList.contains('show')) {
+        closeNewsModal();
     }
 });
 
@@ -296,7 +186,7 @@ if (tg.initDataUnsafe.user) {
 let touchEnabled = 'ontouchstart' in window;
 if (touchEnabled) {
     document.addEventListener('touchmove', function(e) {
-        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content') && !e.target.closest('.result-content')) {
+        if (!e.target.closest('.bottom-nav') && !e.target.closest('.modal-content')) {
             e.preventDefault();
         }
     }, { passive: false });
@@ -306,9 +196,6 @@ if (touchEnabled) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Приложение полностью загружено и готово!');
     console.log('📱 Текущая страница:', currentPage);
-    
-    // Инициализация рулетки при загрузке
-    initRoulette();
 });
 
 console.log('✅ Новостной Mini App запущен!');
