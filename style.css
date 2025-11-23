@@ -403,6 +403,7 @@ p {
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 25px rgba(106, 13, 173, 0.3);
+    position: relative;
 }
 
 .balance-title {
@@ -435,6 +436,32 @@ p {
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.6));
 }
 
+.add-balance-btn {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(52, 199, 89, 0.4);
+    transition: all 0.3s ease;
+}
+
+.add-balance-btn:active {
+    transform: translateY(-50%) scale(0.95);
+    box-shadow: 0 2px 8px rgba(52, 199, 89, 0.6);
+}
+
 /* Контейнер для кейсов с скроллом */
 .cases-scroll-container {
     max-height: 420px;
@@ -461,16 +488,16 @@ p {
 .case-buttons-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .case-button {
     background: linear-gradient(135deg, rgba(106, 13, 173, 0.9), rgba(138, 43, 226, 0.8));
     border: none;
-    padding: 18px 16px;
-    border-radius: 18px;
+    padding: 14px 16px;
+    border-radius: 16px;
     color: white;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 6px 20px rgba(106, 13, 173, 0.4);
@@ -517,7 +544,7 @@ p {
 }
 
 .case-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
 }
 
@@ -527,13 +554,13 @@ p {
 
 .case-name {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     margin-bottom: 4px;
 }
 
 .case-description {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     opacity: 0.8;
     color: #e6e6e6;
 }
@@ -543,16 +570,16 @@ p {
     align-items: center;
     gap: 6px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     background: rgba(255, 255, 255, 0.15);
-    padding: 8px 14px;
-    border-radius: 14px;
+    padding: 6px 12px;
+    border-radius: 12px;
     backdrop-filter: blur(5px);
 }
 
 .star-icon {
     color: #FFD700;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
 }
 
@@ -661,6 +688,197 @@ p {
 
 .inventory-btn:active {
     transform: scale(0.95);
+}
+
+/* Стили для страницы заданий */
+.tasks-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.task-item {
+    background: rgba(30, 30, 30, 0.8);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(138, 43, 226, 0.2);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.task-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.task-reward {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 6px 12px;
+    border-radius: 12px;
+}
+
+.task-description {
+    color: #cccccc;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.task-progress {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.task-progress-bar {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.task-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 15px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
+}
+
+.task-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
+}
+
+.task-button.completed {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);
+}
+
+.task-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Стили для страницы профиля */
+.profile-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: rgba(30, 30, 30, 0.8);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+}
+
+.profile-info h3 {
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.profile-info p {
+    color: #cccccc;
+    margin-bottom: 0;
+    font-size: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    background: rgba(138, 43, 226, 0.1);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 43, 226, 0.6);
+    box-shadow: 0 8px 20px rgba(106, 13, 173, 0.3);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #8A2BE2;
+    font-weight: 600;
 }
 
 /* Модальное окно открытия кейса */
@@ -911,15 +1129,15 @@ p {
     }
     
     .case-button {
-        padding: 20px 16px;
+        padding: 16px 14px;
     }
     
     .case-icon {
-        font-size: 2.2rem;
+        font-size: 1.6rem;
     }
     
     .case-name {
-        font-size: 1.2rem;
+        font-size: 0.95rem;
     }
     
     .inventory-grid {
@@ -954,6 +1172,10 @@ p {
     
     .case-item-icon {
         font-size: 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
 
