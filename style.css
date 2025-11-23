@@ -782,4 +782,147 @@ p {
         height: 70px;
     }
     
-   
+    .sticker-placeholder {
+        font-size: 1.5rem;
+    }
+    
+    .roulette-button {
+        padding: 15px;
+    }
+    
+    .button-icon {
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .button-title {
+        font-size: 0.9rem;
+    }
+    
+    .bottom-nav {
+        padding: 8px 4px;
+    }
+    
+    .nav-button {
+        min-width: 50px;
+        padding: 5px 6px;
+    }
+    
+    .nav-icon {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+    }
+    
+    .nav-text {
+        font-size: 0.65rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .modal-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* Ландшафтная ориентация */
+@media (orientation: landscape) and (max-height: 500px) {
+    .container {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    p {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .content {
+        margin-bottom: 60px;
+    }
+    
+    .sticker-container {
+        margin: 10px 0;
+        padding: 10px;
+    }
+    
+    .sticker-item {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .roulette-buttons {
+        margin: 15px 0;
+        gap: 10px;
+    }
+    
+    .roulette-button {
+        padding: 12px;
+    }
+    
+    .bottom-nav {
+        padding: 6px 4px;
+    }
+    
+    .nav-button {
+        min-width: 45px;
+    }
+    
+    .nav-icon {
+        font-size: 1.1rem;
+    }
+    
+    .nav-text {
+        font-size: 0.6rem;
+    }
+}
+
+/* Скроллбар для модального окна */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 3px;
+}
+
+/* Отключение анимаций для пользователей, которые их предпочитают */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .background-effect {
+        animation: none;
+    }
+    
+    .sticker-item.active {
+        animation: none;
+    }
+    
+    .balance {
+        animation: none;
+    }
+    
+    .wheel {
+        animation: none;
+    }
+    
+    .result-icon {
+        animation: none;
+    }
+}
