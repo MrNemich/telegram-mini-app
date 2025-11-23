@@ -630,14 +630,39 @@ p {
 }
 
 /* Стили для страницы инвентаря */
+.inventory-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.inventory-scroll-container {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    margin-bottom: 10px;
+}
+
+.inventory-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.inventory-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.inventory-scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 3px;
+}
+
 .inventory-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 15px;
-    max-height: 420px;
-    overflow-y: auto;
-    padding-right: 5px;
 }
 
 .inventory-item {
@@ -715,6 +740,28 @@ p {
     width: 100%;
     max-width: 420px;
     margin: 0 auto;
+}
+
+.tasks-scroll-container {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    margin-bottom: 10px;
+}
+
+.tasks-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tasks-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.tasks-scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 3px;
 }
 
 .task-item {
@@ -823,6 +870,28 @@ p {
     margin: 0 auto;
 }
 
+.profile-scroll-container {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    margin-bottom: 10px;
+}
+
+.profile-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.profile-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.profile-scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 3px;
+}
+
 .profile-card {
     background: rgba(30, 30, 30, 0.8);
     border-radius: 20px;
@@ -899,6 +968,50 @@ p {
     font-size: 0.9rem;
     color: #8A2BE2;
     font-weight: 600;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.achievement-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+}
+
+.achievement-item.unlocked {
+    background: rgba(138, 43, 226, 0.2);
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    opacity: 1;
+}
+
+.achievement-item:hover {
+    transform: translateY(-2px);
+}
+
+.achievement-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.achievement-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.achievement-desc {
+    font-size: 0.7rem;
+    color: #8A2BE2;
 }
 
 /* Модальное окно открытия кейса */
@@ -1004,57 +1117,53 @@ p {
     margin-top: 4px;
 }
 
-/* Красивая стрелка выбора */
-.selection-arrow {
+/* Палка выбора */
+.selection-line {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.arrow-top {
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-bottom: 25px solid #FFD700;
-    filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.8));
-}
-
-.arrow-line {
     width: 4px;
-    height: 30px;
-    background: linear-gradient(to bottom, #FFD700, #FFA500);
-    margin-top: -1px;
-    border-radius: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, #FFD700, transparent);
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
 }
 
-.arrow-glow {
+.selection-line::before {
+    content: '';
     position: absolute;
-    top: 50%;
+    top: 0;
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #FFD700;
     border-radius: 50%;
-    animation: arrowPulse 2s ease-in-out infinite;
+    animation: linePulse 2s ease-in-out infinite;
 }
 
-@keyframes arrowPulse {
+.selection-line::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #FFD700;
+    border-radius: 50%;
+    animation: linePulse 2s ease-in-out infinite;
+}
+
+@keyframes linePulse {
     0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.5;
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
     }
     50% {
-        transform: translate(-50%, -50%) scale(1.2);
-        opacity: 0.8;
+        transform: translateX(-50%) scale(1.3);
+        opacity: 0.7;
     }
 }
 
@@ -1219,6 +1328,10 @@ p {
         min-width: 120px;
         padding: 10px 16px;
     }
+    
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Для ПК и планшетов */
@@ -1236,7 +1349,15 @@ p {
         max-height: 450px;
     }
     
-    .inventory-grid {
+    .inventory-scroll-container {
+        max-height: 450px;
+    }
+    
+    .tasks-scroll-container {
+        max-height: 450px;
+    }
+    
+    .profile-scroll-container {
         max-height: 450px;
     }
     
@@ -1268,8 +1389,19 @@ p {
         max-height: 280px;
     }
     
-    .inventory-grid {
+    .inventory-scroll-container {
         max-height: 280px;
+    }
+    
+    .tasks-scroll-container {
+        max-height: 280px;
+    }
+    
+    .profile-scroll-container {
+        max-height: 280px;
+    }
+    
+    .inventory-grid {
         grid-template-columns: repeat(4, 1fr);
     }
     
