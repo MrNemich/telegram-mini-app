@@ -6,9 +6,15 @@ tg.ready();
 tg.expand(); // Раскрываем на весь экран
 tg.enableClosingConfirmation(); // Подтверждение закрытия
 
-// Устанавливаем цвет фона Telegram
+// Устанавливаем темный цвет фона Telegram
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
+
+// Включаем темную тему если поддерживается
+if (tg.colorScheme === 'dark') {
+    document.body.style.background = '#000000';
+    tg.setBackgroundColor('#000000');
+}
 
 // Показываем информацию о пользователе если есть
 if (tg.initDataUnsafe.user) {
@@ -18,15 +24,15 @@ if (tg.initDataUnsafe.user) {
     // Добавляем приветствие с именем пользователя
     const welcomeElement = document.querySelector('h1');
     if (user.first_name) {
-        welcomeElement.textContent = `Привет, ${user.first_name}! ✨`;
+        welcomeElement.textContent = `Привет, ${user.first_name}! 🌙`;
     }
 }
 
 // Функция для кнопки
 function showAlert() {
     tg.showPopup({
-        title: 'Ура! 🎉',
-        message: 'Ваш Mini App работает отлично на телефоне!',
+        title: 'Темная магия! 🎭',
+        message: 'Теперь еще более темный и стильный!',
         buttons: [{ type: 'ok' }]
     });
 }
@@ -39,26 +45,26 @@ document.addEventListener('touchstart', function(e) {
 });
 
 document.addEventListener('touchmove', function(e) {
-    e.preventDefault(); // Предотвращаем скролл
+    e.preventDefault();
     const touch = e.touches[0];
     const deltaY = touch.clientY - lastTouchY;
     
     const effect = document.querySelector('.background-effect');
-    const intensity = Math.min(Math.abs(deltaY) * 0.1, 20);
+    const intensity = Math.min(Math.abs(deltaY) * 0.1, 15);
     
-    effect.style.transform = `scale(${1 + intensity * 0.01}) rotate(${deltaY * 0.1}deg)`;
+    effect.style.transform = `scale(${1 + intensity * 0.008}) rotate(${deltaY * 0.05}deg)`;
+    effect.style.filter = `blur(${35 - intensity * 0.5}px) brightness(${0.8 - intensity * 0.01})`;
 });
 
-// Виброотклик на кнопку (если поддерживается)
+// Виброотклик на кнопку
 document.querySelector('.tg-button').addEventListener('touchstart', function() {
     if (navigator.vibrate) {
-        navigator.vibrate(10);
+        navigator.vibrate(15);
     }
 });
 
 // Адаптация под изменение ориентации
 window.addEventListener('orientationchange', function() {
-    // Даем время на поворот экрана
     setTimeout(() => {
         const effect = document.querySelector('.background-effect');
         effect.style.animation = 'none';
@@ -68,4 +74,4 @@ window.addEventListener('orientationchange', function() {
     }, 300);
 });
 
-console.log('✅ Mini App для телефона успешно запущен!');
+console.log('✅ Темный Mini App для телефона успешно запущен!');
