@@ -1,7 +1,7 @@
 // Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 
-// База данных пользователя (теперь синхронизируется с ботом)
+// База данных пользователя
 class UserDatabase {
     constructor() {
         this.userId = tg.initDataUnsafe.user?.id || 'default_user';
@@ -30,7 +30,9 @@ class UserDatabase {
                 achievements: ['Новичок'],
                 level: 1,
                 experience: 0,
-                userId: this.userId
+                userId: this.userId,
+                username: tg.initDataUnsafe.user?.username || 'Игрок',
+                firstName: tg.initDataUnsafe.user?.first_name || 'Игрок'
             };
             this.saveUserData();
         }
@@ -92,14 +94,11 @@ class UserDatabase {
             level: this.userData.level,
             experience: this.userData.experience,
             achievements: this.userData.achievements,
-            userId: this.userId
+            userId: this.userId,
+            username: this.userData.username,
+            firstName: this.userData.firstName,
+            inventoryCount: Object.keys(this.userData.inventory).length
         };
-    }
-
-    // Синхронизация с сервером (можно добавить позже)
-    async syncWithServer() {
-        // Здесь будет код для синхронизации с ботом
-        console.log('Синхронизация данных с сервером...');
     }
 }
 
@@ -125,40 +124,29 @@ const userDB = new UserDatabase();
 // Текущая активная страница
 let currentPage = 'home';
 let isAnimating = false;
-let currentTab = 'inventory';
 
 // Кэшируем элементы для производительности
 const elements = {
     homeContent: document.getElementById('home-content'),
-    otherContent: document.getElementById('other-content'),
+    rouletteContent: document.getElementById('roulette-content'),
+    inventoryContent: document.getElementById('inventory-content'),
+    tasksContent: document.getElementById('tasks-content'),
+    profileContent: document.getElementById('profile-content'),
     newsModal: document.getElementById('newsModal'),
-    pageTitle: document.getElementById('pageTitle'),
-    pageDescription: document.getElementById('pageDescription'),
-    buttons: document.querySelectorAll('.nav-button'),
-    tabButtons: document.querySelectorAll('.tab-button'),
-    tabContents: document.querySelectorAll('.tab-content'),
     starsBalance: document.getElementById('starsBalance'),
-    inventoryGrid: document.getElementById('inventoryGrid')
-};
-
-// Данные страниц
-const pagesData = {
-    home: {
-        title: '🏠 Главная',
-        description: 'Добро пожаловать в игру!'
-    },
-    roulette: {
-        title: '🎰 Рулетка',
-        description: 'Откройте кейсы и получите награды'
-    },
-    tasks: {
-        title: '✅ Задания',
-        description: 'Выполняйте задания и получайте награды'
-    },
-    profile: {
-        title: '👤 Профиль',
-        description: 'Ваш профиль и статистика'
-    }
+    inventoryGrid: document.getElementById('inventoryGrid'),
+    buttons: document.querySelectorAll('.nav-button'),
+    // Элементы профиля
+    profileName: document.getElementById('profileName'),
+    profileLevel: document.getElementById('profileLevel'),
+    statBalance: document.getElementById('statBalance'),
+    statCases: document.getElementById('statCases'),
+    statExperience: document.getElementById('statExperience'),
+    statItems: document.getElementById('statItems'),
+    currentLevel: document.getElementById('currentLevel'),
+    currentExp: document.getElementById('currentExp'),
+    neededExp: document.getElementById('neededExp'),
+    levelProgress: document.getElementById('levelProgress')
 };
 
 // Данные кейсов
@@ -224,6 +212,28 @@ const casesData = {
             { item: "🏆 Трофеи", quantity: 5, chance: 60 },
             { item: "🛡️ Защита", quantity: 3, chance: 45 }
         ]
+    },
+    2000: {
+        name: "Чемпионский кейс",
+        description: "Для настоящих победителей",
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 3500, chance: 100 },
+            { item: "💎 Редкие кристаллы", quantity: 15, chance: 95 },
+            { item: "🔑 Ключи", quantity: 10, chance: 85 },
+            { item: "🏆 Трофеи", quantity: 7, chance: 65 },
+            { item: "🛡️ Защита", quantity: 5, chance: 50 }
+        ]
+    },
+    3000: {
+        name: "Королевский кейс",
+        description: "Эксклюзив для королей",
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 5000, chance: 100 },
+            { item: "💎 Редкие кристаллы", quantity: 20, chance: 98 },
+            { item: "🔑 Ключи", quantity: 15, chance: 90 },
+            { item: "🏆 Трофеи", quantity: 10, chance: 75 },
+            { item: "🛡️ Защита", quantity: 8, chance: 60 }
+        ]
     }
 };
 
@@ -244,6 +254,8 @@ function changePage(page) {
     if (navigator.vibrate) {
         navigator.vibrate(5);
     }
+    
+    isAnimating = false;
 }
 
 // Обновление активной кнопки
@@ -256,48 +268,33 @@ function updateActiveButton(activePage) {
 
 // Смена контента
 function switchContent(page) {
-    if (page === 'home') {
-        elements.homeContent.style.display = 'block';
-        elements.otherContent.style.display = 'none';
-    } else {
-        elements.homeContent.style.display = 'none';
-        elements.otherContent.style.display = 'block';
-        
-        const data = pagesData[page];
-        if (elements.pageTitle) elements.pageTitle.textContent = data.title;
-        if (elements.pageDescription) elements.pageDescription.textContent = data.description;
-        
-        // Обновляем баланс при переходе на страницу рулетки
-        if (page === 'roulette') {
+    // Скрываем все контенты
+    elements.homeContent.style.display = 'none';
+    elements.rouletteContent.style.display = 'none';
+    elements.inventoryContent.style.display = 'none';
+    elements.tasksContent.style.display = 'none';
+    elements.profileContent.style.display = 'none';
+    
+    // Показываем нужный контент
+    switch(page) {
+        case 'home':
+            elements.homeContent.style.display = 'block';
+            break;
+        case 'roulette':
+            elements.rouletteContent.style.display = 'block';
             updateBalanceDisplay();
+            break;
+        case 'inventory':
+            elements.inventoryContent.style.display = 'block';
             loadInventory();
-        }
-    }
-    
-    isAnimating = false;
-}
-
-// Функция переключения табов
-function switchTab(tabName) {
-    if (currentTab === tabName) return;
-    
-    currentTab = tabName;
-    
-    // Обновляем активные табы
-    elements.tabButtons.forEach(button => {
-        const isActive = button.getAttribute('data-tab') === tabName;
-        button.classList.toggle('active', isActive);
-    });
-    
-    // Переключаем контент табов
-    elements.tabContents.forEach(content => {
-        const isActive = content.id === `${tabName}-tab`;
-        content.classList.toggle('active', isActive);
-    });
-    
-    // Виброотклик
-    if (navigator.vibrate) {
-        navigator.vibrate(3);
+            break;
+        case 'tasks':
+            elements.tasksContent.style.display = 'block';
+            break;
+        case 'profile':
+            elements.profileContent.style.display = 'block';
+            updateProfile();
+            break;
     }
 }
 
@@ -312,8 +309,11 @@ function loadInventory() {
     const inventory = userDB.getInventory();
     elements.inventoryGrid.innerHTML = '';
     
+    let hasItems = false;
+    
     Object.entries(inventory).forEach(([itemName, quantity]) => {
         if (quantity > 0) {
+            hasItems = true;
             const icon = getItemIcon(itemName);
             const inventoryItem = document.createElement('div');
             inventoryItem.className = 'inventory-item';
@@ -327,7 +327,7 @@ function loadInventory() {
     });
     
     // Если инвентарь пустой
-    if (elements.inventoryGrid.children.length === 0) {
+    if (!hasItems) {
         elements.inventoryGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888;">
                 <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
@@ -336,6 +336,29 @@ function loadInventory() {
             </div>
         `;
     }
+}
+
+// Обновление профиля
+function updateProfile() {
+    const stats = userDB.getStats();
+    const userData = userDB.userData;
+    
+    // Обновляем данные профиля
+    elements.profileName.textContent = stats.firstName;
+    elements.profileLevel.textContent = stats.level;
+    elements.statBalance.textContent = userData.balance;
+    elements.statCases.textContent = stats.casesOpened;
+    elements.statExperience.textContent = userData.experience;
+    elements.statItems.textContent = stats.inventoryCount;
+    
+    // Обновляем прогресс уровня
+    const neededExp = stats.level * 100;
+    const progressPercent = (userData.experience / neededExp) * 100;
+    
+    elements.currentLevel.textContent = stats.level;
+    elements.currentExp.textContent = userData.experience;
+    elements.neededExp.textContent = neededExp;
+    elements.levelProgress.style.width = `${progressPercent}%`;
 }
 
 // Получение иконки для предмета
@@ -428,20 +451,12 @@ function simulateCaseOpening(price, caseInfo) {
     // Обновляем баланс для платных кейсов
     if (price > 0) {
         userDB.updateBalance(-price);
-        updateBalanceDisplay();
     } else {
         userDB.openFreeCase();
     }
     
     // Увеличиваем счетчик открытых кейсов
     userDB.userData.casesOpened++;
-    userDB.saveUserData();
-    
-    // Формируем сообщение о наградах
-    let rewardsMessage = '🎉 Поздравляем! Вы открыли кейс!\n\nПолучены:\n';
-    rewards.forEach(reward => {
-        rewardsMessage += `• ${reward.item}: ${reward.quantity}\n`;
-    });
     
     // Добавляем опыт
     const expGained = price === 0 ? 10 : price / 10;
@@ -452,15 +467,24 @@ function simulateCaseOpening(price, caseInfo) {
     if (userDB.userData.experience >= neededExp) {
         userDB.userData.level++;
         userDB.userData.experience = 0;
-        rewardsMessage += `\n🎊 Уровень повышен! Теперь у вас ${userDB.userData.level} уровень!`;
-        
         // Награда за уровень
         userDB.updateBalance(50);
         userDB.addToInventory('💰 Игровая валюта', 100);
-        rewardsMessage += `\n🎁 Награда за уровень: +50 ⭐ и +100 💰`;
     }
     
     userDB.saveUserData();
+    
+    // Формируем сообщение о наградах
+    let rewardsMessage = '🎉 Поздравляем! Вы открыли кейс!\n\nПолучены:\n';
+    rewards.forEach(reward => {
+        rewardsMessage += `• ${reward.item}: ${reward.quantity}\n`;
+    });
+    
+    // Добавляем информацию о повышении уровня
+    if (userDB.userData.experience === 0 && userDB.userData.level > 1) {
+        rewardsMessage += `\n🎊 Уровень повышен! Теперь у вас ${userDB.userData.level} уровень!`;
+        rewardsMessage += `\n🎁 Награда за уровень: +50 ⭐ и +100 💰`;
+    }
     
     // Показываем попап с наградами
     tg.showPopup({
@@ -469,8 +493,9 @@ function simulateCaseOpening(price, caseInfo) {
         buttons: [{ type: 'ok' }]
     });
     
-    // Обновляем инвентарь
-    loadInventory();
+    // Обновляем все отображения
+    updateBalanceDisplay();
+    updateProfile();
     
     // Виброотклик успеха
     if (navigator.vibrate) {
@@ -518,7 +543,7 @@ if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
         console.log('👤 Пользователь:', user.first_name, '(ID:', user.id, ')');
-        // Можно добавить приветствие
+        // Обновляем приветствие на главной
         document.querySelector('#home-content h1').textContent = `🏠 Привет, ${user.first_name}!`;
     }
 }
@@ -528,12 +553,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Мини-приложение полностью загружено и готово!');
     console.log('📱 Текущая страница:', currentPage);
     
-    // Инициализируем начальный таб
-    switchTab('inventory');
-    
     // Загружаем начальные данные
     updateBalanceDisplay();
-    loadInventory();
+    updateProfile();
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
