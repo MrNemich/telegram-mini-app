@@ -21,7 +21,9 @@ class UserDatabase {
                     // Пример начальных предметов
                     '💰 Игровая валюта': 100,
                     '💎 Редкие кристаллы': 5,
-                    '🔑 Ключи': 2
+                    '🔑 Ключи': 2,
+                    '⚡ Бустеры': 3,
+                    '🎨 Краски': 1
                 },
                 cases: {}, // Купленные кейсы
                 casesOpened: 0,
@@ -31,7 +33,15 @@ class UserDatabase {
                 experience: 0,
                 userId: this.userId,
                 username: tg.initDataUnsafe.user?.username || 'Игрок',
-                firstName: tg.initDataUnsafe.user?.first_name || 'Игрок'
+                firstName: tg.initDataUnsafe.user?.first_name || 'Игрок',
+                tasks: {
+                    'first_steps': { completed: false, progress: 30 },
+                    'collector': { completed: false, progress: 60 },
+                    'fast_start': { completed: false, progress: 40 },
+                    'rare_hunter': { completed: false, progress: 20 },
+                    'legend': { completed: false, progress: 5 },
+                    'saver': { completed: false, progress: 10 }
+                }
             };
             this.saveUserData();
         }
@@ -125,6 +135,29 @@ class UserDatabase {
             firstName: this.userData.firstName,
             inventoryCount: Object.keys(this.userData.inventory).length
         };
+    }
+
+    getTasks() {
+        return this.userData.tasks;
+    }
+
+    updateTaskProgress(taskId, progress) {
+        if (this.userData.tasks[taskId]) {
+            this.userData.tasks[taskId].progress = progress;
+            if (progress >= 100) {
+                this.userData.tasks[taskId].completed = true;
+            }
+            this.saveUserData();
+        }
+    }
+
+    completeTask(taskId) {
+        if (this.userData.tasks[taskId] && this.userData.tasks[taskId].progress >= 100) {
+            this.userData.tasks[taskId].completed = true;
+            this.saveUserData();
+            return true;
+        }
+        return false;
     }
 }
 
@@ -240,6 +273,52 @@ const casesData = {
     }
 };
 
+// Данные заданий
+const tasksData = [
+    {
+        id: 'first_steps',
+        title: '🎯 Первые шаги',
+        description: 'Откройте свой первый кейс в игре',
+        reward: 50,
+        progress: 30
+    },
+    {
+        id: 'saver',
+        title: '💰 Накопитель',
+        description: 'Накопите 500 звёзд на балансе',
+        reward: 100,
+        progress: 10
+    },
+    {
+        id: 'collector',
+        title: '🏆 Коллекционер',
+        description: 'Соберите 10 различных предметов',
+        reward: 200,
+        progress: 60
+    },
+    {
+        id: 'fast_start',
+        title: '🚀 Быстрый старт',
+        description: 'Откройте 5 кейсов за один день',
+        reward: 150,
+        progress: 40
+    },
+    {
+        id: 'rare_hunter',
+        title: '💎 Редкий охотник',
+        description: 'Получите 3 редких предмета',
+        reward: 300,
+        progress: 20
+    },
+    {
+        id: 'legend',
+        title: '🌟 Легенда',
+        description: 'Достигните 10 уровня',
+        reward: 500,
+        progress: 5
+    }
+];
+
 // Функция смены страницы
 function changePage(page) {
     if (isAnimating || currentPage === page) return;
@@ -258,7 +337,9 @@ function changePage(page) {
         navigator.vibrate(5);
     }
     
-    isAnimating = false;
+    setTimeout(() => {
+        isAnimating = false;
+    }, 300);
 }
 
 // Обновление активной кнопки
@@ -293,6 +374,7 @@ function switchContent(page) {
             break;
         case 'tasks':
             elements.tasksContent.style.display = 'block';
+            loadTasks();
             break;
         case 'profile':
             elements.profileContent.style.display = 'block';
@@ -305,6 +387,24 @@ function switchContent(page) {
 function updateBalanceDisplay() {
     const balance = userDB.getBalance();
     elements.starsBalance.textContent = balance.toLocaleString();
+}
+
+// Функция пополнения баланса
+function addBalance() {
+    const amount = 500; // Количество звёзд для пополнения
+    userDB.updateBalance(amount);
+    updateBalanceDisplay();
+    
+    tg.showPopup({
+        title: '💰 Баланс пополнен!',
+        message: `Вы получили ${amount} ⭐`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
 }
 
 // Загрузка инвентаря
@@ -360,6 +460,58 @@ function loadInventory() {
                 <div style="font-size: 0.8rem; margin-top: 5px;">Купите кейсы в разделе Рулетка</div>
             </div>
         `;
+    }
+}
+
+// Загрузка заданий
+function loadTasks() {
+    const tasksContainer = document.querySelector('.tasks-container');
+    const userTasks = userDB.getTasks();
+    
+    tasksContainer.innerHTML = '';
+    
+    tasksData.forEach(task => {
+        const userTask = userTasks[task.id] || { completed: false, progress: task.progress };
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task-item';
+        
+        taskElement.innerHTML = `
+            <div class="task-header">
+                <div class="task-title">${task.title}</div>
+                <div class="task-reward">⭐ +${task.reward}</div>
+            </div>
+            <div class="task-description">${task.description}</div>
+            <div class="task-progress">
+                <div class="task-progress-bar" style="width: ${userTask.progress}%"></div>
+            </div>
+            <button class="task-button ${userTask.completed ? 'completed' : ''}" 
+                    onclick="completeTask('${task.id}', ${task.reward})"
+                    ${userTask.completed ? 'disabled' : ''}>
+                ${userTask.completed ? '✅ Выполнено' : 'Выполнить'}
+            </button>
+        `;
+        
+        tasksContainer.appendChild(taskElement);
+    });
+}
+
+// Выполнение задания
+function completeTask(taskId, reward) {
+    if (userDB.completeTask(taskId)) {
+        userDB.updateBalance(reward);
+        updateBalanceDisplay();
+        loadTasks();
+        
+        tg.showPopup({
+            title: '🎉 Задание выполнено!',
+            message: `Вы получили ${reward} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
+        
+        // Виброотклик
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
     }
 }
 
