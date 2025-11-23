@@ -144,6 +144,7 @@ if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
         console.log('Пользователь:', user.first_name);
+        // Можно добавить персонализацию в будущем
     }
 }
 
