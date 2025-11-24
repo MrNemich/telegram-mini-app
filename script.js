@@ -194,13 +194,11 @@ let currentCaseModal = null;
 const elements = {
     homeContent: document.getElementById('home-content'),
     rouletteContent: document.getElementById('roulette-content'),
-    inventoryContent: document.getElementById('inventory-content'),
     tasksContent: document.getElementById('tasks-content'),
     profileContent: document.getElementById('profile-content'),
     newsModal: document.getElementById('newsModal'),
     caseModal: document.getElementById('caseModal'),
     starsBalance: document.getElementById('starsBalance'),
-    inventoryGrid: document.getElementById('inventoryGrid'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
     caseModalPrice: document.getElementById('caseModalPrice'),
@@ -333,7 +331,6 @@ function switchContent(page) {
     // Скрываем все контенты
     elements.homeContent.style.display = 'none';
     elements.rouletteContent.style.display = 'none';
-    elements.inventoryContent.style.display = 'none';
     elements.tasksContent.style.display = 'none';
     elements.profileContent.style.display = 'none';
     
@@ -345,10 +342,6 @@ function switchContent(page) {
         case 'roulette':
             elements.rouletteContent.style.display = 'block';
             updateBalanceDisplay();
-            break;
-        case 'inventory':
-            elements.inventoryContent.style.display = 'block';
-            loadInventory();
             break;
         case 'tasks':
             elements.tasksContent.style.display = 'block';
@@ -384,62 +377,6 @@ function addBalance() {
     }
 }
 
-// Загрузка инвентаря
-function loadInventory() {
-    const inventory = userDB.getInventory();
-    const cases = userDB.getCases();
-    elements.inventoryGrid.innerHTML = '';
-    
-    let hasItems = false;
-    
-    // Показываем предметы
-    Object.entries(inventory).forEach(([itemName, quantity]) => {
-        if (quantity > 0) {
-            hasItems = true;
-            const icon = getItemIcon(itemName);
-            const inventoryItem = document.createElement('div');
-            inventoryItem.className = 'inventory-item';
-            inventoryItem.innerHTML = `
-                <div class="inventory-icon">${icon}</div>
-                <div class="inventory-name">${itemName}</div>
-                <div class="inventory-count">${quantity}</div>
-            `;
-            elements.inventoryGrid.appendChild(inventoryItem);
-        }
-    });
-    
-    // Показываем кейсы
-    Object.entries(cases).forEach(([casePrice, quantity]) => {
-        if (quantity > 0) {
-            hasItems = true;
-            const caseData = casesData[casePrice];
-            const inventoryItem = document.createElement('div');
-            inventoryItem.className = 'inventory-item';
-            inventoryItem.innerHTML = `
-                <div class="inventory-icon">${getCaseIcon(casePrice)}</div>
-                <div class="inventory-name">${caseData.name}</div>
-                <div class="inventory-count">${quantity} шт.</div>
-                <div class="inventory-actions">
-                    <button class="inventory-btn open-btn" onclick="openCaseModal(${casePrice}, 'open')">Открыть</button>
-                    <button class="inventory-btn sell-btn" onclick="sellCase(${casePrice})">Продать</button>
-                </div>
-            `;
-            elements.inventoryGrid.appendChild(inventoryItem);
-        }
-    });
-    
-    // Если инвентарь пустой
-    if (!hasItems) {
-        elements.inventoryGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
-                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
-                <div style="font-size: 0.9rem; color: #8A2BE2;">Купите кейсы в разделе Рулетка</div>
-            </div>
-        `;
-    }
-}
-
 // Выполнение задания
 function completeTask(taskId, reward) {
     if (userDB.completeTask(taskId)) {
@@ -463,34 +400,6 @@ function completeTask(taskId, reward) {
             buttons: [{ type: 'ok' }]
         });
     }
-}
-
-// Получение иконки для предмета
-function getItemIcon(itemName) {
-    const iconMap = {
-        '💰 Игровая валюта': '💰',
-        '💎 Редкие кристаллы': '💎',
-        '🔑 Ключи': '🔑',
-        '🏆 Трофеи': '🏆',
-        '⚡ Бустеры': '⚡',
-        '🛡️ Защита': '🛡️',
-        '🎨 Краски': '🎨',
-        '🔧 Инструменты': '🔧'
-    };
-    return iconMap[itemName] || '📦';
-}
-
-// Получение иконки для кейса
-function getCaseIcon(price) {
-    const iconMap = {
-        0: '🎁',
-        100: '📦',
-        200: '🎁',
-        500: '💎',
-        1000: '🔥',
-        1500: '🌟'
-    };
-    return iconMap[price] || '🎁';
 }
 
 // Обновление профиля
@@ -627,42 +536,6 @@ function buyCase(price) {
     closeCaseModal();
 }
 
-// Продажа кейса
-function sellCase(price) {
-    const sellPrice = Math.floor(price * 0.75);
-    const caseData = casesData[price];
-    
-    tg.showPopup({
-        title: '💰 Продажа кейса',
-        message: `Вы уверены, что хотите продать "${caseData.name}" за ${sellPrice} ⭐?`,
-        buttons: [
-            { 
-                id: 'sell', 
-                type: 'default', 
-                text: `Продать за ${sellPrice} ⭐` 
-            },
-            { 
-                type: 'cancel' 
-            }
-        ]
-    }).then(function(buttonId) {
-        if (buttonId === 'sell') {
-            if (userDB.removeCase(price, 1)) {
-                userDB.updateBalance(sellPrice);
-                updateBalanceDisplay();
-                updateProfile();
-                loadInventory();
-                
-                tg.showPopup({
-                    title: '✅ Кейс продан',
-                    message: `Вы получили ${sellPrice} ⭐`,
-                    buttons: [{ type: 'ok' }]
-                });
-            }
-        }
-    });
-}
-
 // Открытие кейса
 function openCase(price) {
     const caseData = casesData[price];
@@ -740,7 +613,6 @@ function showOpenResult(reward) {
     closeButton.textContent = 'Закрыть';
     closeButton.onclick = () => {
         closeCaseModal();
-        loadInventory();
         updateProfile();
     };
     elements.caseModalActions.appendChild(closeButton);
