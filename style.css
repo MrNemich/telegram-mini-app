@@ -172,20 +172,45 @@ p {
     justify-content: center;
 }
 
-.case-price {
+/* Овальная цена кейса */
+.case-price-container {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.case-price-oval {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    padding: 6px 16px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-weight: 600;
+    gap: 6px;
+    box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+    animation: priceGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes priceGlow {
+    0% {
+        box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+    }
+    100% {
+        box-shadow: 0 3px 15px rgba(255, 215, 0, 0.8);
+    }
+}
+
+.case-price {
+    font-weight: 700;
     font-size: 0.95rem;
-    color: #FFD700;
-    margin-bottom: 10px;
+    color: #000;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .star-icon {
-    color: #FFD700;
+    color: #000;
     font-size: 1rem;
+    filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.5));
 }
 
 .buy-case-btn {
@@ -1164,48 +1189,114 @@ p {
     transform: none;
 }
 
-/* Анимация вращения */
+/* Анимация вращения - УВЕЛИЧЕНА СКОРОСТЬ */
 .case-items-track.spinning {
-    animation: spinAnimation 3s cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
+    animation: spinAnimation 8s cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
 }
 
 @keyframes spinAnimation {
     0% {
         transform: translateX(0);
     }
+    20% {
+        transform: translateX(calc(-33.333% * 50));
+    }
+    40% {
+        transform: translateX(calc(-33.333% * 100));
+    }
+    60% {
+        transform: translateX(calc(-33.333% * 150));
+    }
+    80% {
+        transform: translateX(calc(-33.333% * 180));
+    }
     100% {
-        transform: translateX(calc(-33.333% * 20));
+        transform: translateX(calc(-33.333% * 200));
     }
 }
 
-/* Результат открытия */
+/* Результат открытия - УЛУЧШЕННЫЙ ВИД */
 .open-result {
     text-align: center;
-    padding: 20px;
+    padding: 25px 20px;
+    background: linear-gradient(135deg, rgba(106, 13, 173, 0.3), rgba(138, 43, 226, 0.2));
+    border-radius: 20px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    margin: 20px 0;
 }
 
 .result-icon {
-    font-size: 4rem;
-    margin-bottom: 15px;
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    font-size: 5rem;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    animation: resultPulse 2s ease-in-out infinite;
+}
+
+@keyframes resultPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1));
+    }
 }
 
 .result-title {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: white;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.result-message {
+    font-size: 1.1rem;
+    color: #e6e6e6;
+    margin-bottom: 15px;
+    line-height: 1.4;
 }
 
 .result-item {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     color: #FFD700;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .result-quantity {
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: #8A2BE2;
+    background: rgba(138, 43, 226, 0.2);
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.success-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(52, 199, 89, 0.4);
+    margin-top: 15px;
+}
+
+.success-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(52, 199, 89, 0.6);
 }
 
 /* Адаптация для очень маленьких экранов */
@@ -1246,6 +1337,10 @@ p {
     
     .case-description {
         font-size: 0.7rem;
+    }
+    
+    .case-price-oval {
+        padding: 5px 14px;
     }
     
     .buy-case-btn {
@@ -1381,6 +1476,14 @@ p {
     }
     
     .case-items-track.spinning {
+        animation: none;
+    }
+    
+    .case-price-oval {
+        animation: none;
+    }
+    
+    .result-icon {
         animation: none;
     }
 }
