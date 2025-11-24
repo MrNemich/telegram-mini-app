@@ -629,112 +629,6 @@ p {
     box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
-/* Стили для страницы инвентаря */
-.inventory-container {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-}
-
-.inventory-scroll-container {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 5px;
-    margin-bottom: 10px;
-}
-
-.inventory-scroll-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.inventory-scroll-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-}
-
-.inventory-scroll-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
-}
-
-.inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.inventory-item {
-    background: rgba(30, 30, 30, 0.7);
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    border-radius: 16px;
-    padding: 16px;
-    text-align: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.inventory-item:hover {
-    transform: translateY(-2px);
-    border-color: rgba(138, 43, 226, 0.6);
-    box-shadow: 0 8px 20px rgba(106, 13, 173, 0.3);
-}
-
-.inventory-icon {
-    font-size: 2.2rem;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
-}
-
-.inventory-name {
-    font-size: 0.95rem;
-    color: white;
-    font-weight: 600;
-    margin-bottom: 6px;
-}
-
-.inventory-count {
-    font-size: 0.85rem;
-    color: #8A2BE2;
-    background: rgba(138, 43, 226, 0.1);
-    padding: 4px 8px;
-    border-radius: 10px;
-    display: inline-block;
-    margin-bottom: 8px;
-}
-
-.inventory-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.inventory-btn {
-    flex: 1;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.open-btn {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    color: white;
-}
-
-.sell-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.inventory-btn:active {
-    transform: scale(0.95);
-}
-
 /* Стили для страницы заданий */
 .tasks-container {
     width: 100%;
@@ -1285,10 +1179,6 @@ p {
         font-size: 0.95rem;
     }
     
-    .inventory-grid {
-        grid-template-columns: 1fr;
-    }
-    
     .bottom-nav {
         padding: 10px 6px;
     }
@@ -1349,10 +1239,6 @@ p {
         max-height: 450px;
     }
     
-    .inventory-scroll-container {
-        max-height: 450px;
-    }
-    
     .tasks-scroll-container {
         max-height: 450px;
     }
@@ -1389,20 +1275,12 @@ p {
         max-height: 280px;
     }
     
-    .inventory-scroll-container {
-        max-height: 280px;
-    }
-    
     .tasks-scroll-container {
         max-height: 280px;
     }
     
     .profile-scroll-container {
         max-height: 280px;
-    }
-    
-    .inventory-grid {
-        grid-template-columns: repeat(4, 1fr);
     }
     
     .case-modal-content {
