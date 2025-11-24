@@ -515,7 +515,7 @@ function openCaseModal(price, action) {
     
     // Заполняем трек предметами
     elements.caseItemsTrack.innerHTML = '';
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) { // Увеличили количество предметов для более длинной анимации
         caseData.rewards.forEach(reward => {
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
@@ -592,7 +592,7 @@ function openCase(price) {
     // Выбираем случайную награду
     const reward = getRandomReward(caseData.rewards);
     
-    // Останавливаем анимацию и показываем результат через 3 секунды
+    // Останавливаем анимацию и показываем результат через 8 секунд
     setTimeout(() => {
         elements.caseItemsTrack.classList.remove('spinning');
         
@@ -607,7 +607,7 @@ function openCase(price) {
         // Показываем результат
         showOpenResult(reward);
         
-    }, 3000);
+    }, 8000); // Увеличили время анимации до 8 секунд
 }
 
 // Проверка повышения уровня
@@ -643,30 +643,31 @@ function getRandomReward(rewards) {
     return rewards[0];
 }
 
-// Показ результата открытия
+// Показ результата открытия - УЛУЧШЕННАЯ ВЕРСИЯ
 function showOpenResult(reward) {
     elements.caseModalActions.innerHTML = '';
     elements.caseItemsTrack.innerHTML = `
         <div class="open-result">
             <div class="result-icon">${reward.icon}</div>
             <div class="result-title">🎉 Поздравляем!</div>
+            <div class="result-message">Вам выпал:</div>
             <div class="result-item">${reward.item}</div>
             <div class="result-quantity">${reward.quantity} шт.</div>
         </div>
     `;
     
-    const closeButton = document.createElement('button');
-    closeButton.className = 'case-action-btn cancel-btn';
-    closeButton.textContent = 'Закрыть';
-    closeButton.onclick = () => {
+    const successButton = document.createElement('button');
+    successButton.className = 'success-btn';
+    successButton.textContent = 'Отлично!';
+    successButton.onclick = () => {
         closeCaseModal();
         updateProfile();
         updateBalanceDisplay();
     };
-    elements.caseModalActions.appendChild(closeButton);
+    elements.caseModalActions.appendChild(successButton);
     
     if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
+        navigator.vibrate([100, 50, 100, 50, 100]);
     }
 }
 
