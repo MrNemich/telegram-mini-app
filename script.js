@@ -14,16 +14,10 @@ class UserDatabase {
         if (savedData) {
             this.userData = JSON.parse(savedData);
         } else {
-            // Начальные данные для нового пользователя
+            // Начальные данные для нового пользователя - ПУСТОЙ ИНВЕНТАРЬ
             this.userData = {
                 balance: 1000,
-                inventory: {
-                    '💰 Игровая валюта': 100,
-                    '💎 Редкие кристаллы': 5,
-                    '🔑 Ключи': 2,
-                    '⚡ Бустеры': 3,
-                    '🎨 Краски': 1
-                },
+                inventory: {}, // ПУСТОЙ ИНВЕНТАРЬ
                 cases: {},
                 casesOpened: 0,
                 lastFreeCase: 0,
@@ -221,7 +215,7 @@ const elements = {
     achievementsGrid: document.getElementById('achievementsGrid')
 };
 
-// Данные кейсов
+// Данные кейсов - ПОВЫШЕННЫЕ ЦЕНЫ
 const casesData = {
     0: {
         name: "Бесплатный кейс",
@@ -234,9 +228,9 @@ const casesData = {
             { item: "🏆 Трофеи", quantity: 1, chance: 5, icon: "🏆" }
         ]
     },
-    100: {
+    500: {
         name: "Начальный набор",
-        price: 100,
+        price: 500,
         rewards: [
             { item: "💰 Игровая валюта", quantity: 150, chance: 100, icon: "💰" },
             { item: "⚡ Бустеры", quantity: 2, chance: 80, icon: "⚡" },
@@ -245,9 +239,9 @@ const casesData = {
             { item: "🎨 Краски", quantity: 3, chance: 40, icon: "🎨" }
         ]
     },
-    200: {
+    1000: {
         name: "Золотой сундук",
-        price: 200,
+        price: 1000,
         rewards: [
             { item: "💰 Игровая валюта", quantity: 300, chance: 100, icon: "💰" },
             { item: "💎 Редкие кристаллы", quantity: 3, chance: 70, icon: "💎" },
@@ -256,9 +250,9 @@ const casesData = {
             { item: "🔧 Инструменты", quantity: 2, chance: 40, icon: "🔧" }
         ]
     },
-    500: {
+    2500: {
         name: "Эпический ларец",
-        price: 500,
+        price: 2500,
         rewards: [
             { item: "💰 Игровая валюта", quantity: 750, chance: 100, icon: "💰" },
             { item: "💎 Редкие кристаллы", quantity: 5, chance: 80, icon: "💎" },
@@ -267,9 +261,9 @@ const casesData = {
             { item: "🛡️ Защита", quantity: 1, chance: 25, icon: "🛡️" }
         ]
     },
-    1000: {
+    5000: {
         name: "Легендарный артефакт",
-        price: 1000,
+        price: 5000,
         rewards: [
             { item: "💰 Игровая валюта", quantity: 1500, chance: 100, icon: "💰" },
             { item: "💎 Редкие кристаллы", quantity: 8, chance: 90, icon: "💎" },
@@ -278,9 +272,9 @@ const casesData = {
             { item: "🛡️ Защита", quantity: 2, chance: 35, icon: "🛡️" }
         ]
     },
-    1500: {
+    10000: {
         name: "Мифическая шкатулка",
-        price: 1500,
+        price: 10000,
         rewards: [
             { item: "💰 Игровая валюта", quantity: 2500, chance: 100, icon: "💰" },
             { item: "💎 Редкие кристаллы", quantity: 12, chance: 95, icon: "💎" },
@@ -463,18 +457,31 @@ function openInventory() {
     const inventory = userDB.getInventory();
     elements.inventoryItems.innerHTML = '';
     
-    Object.entries(inventory).forEach(([item, quantity]) => {
-        const itemElement = document.createElement('div');
-        itemElement.className = 'inventory-item';
-        itemElement.innerHTML = `
-            <div class="inventory-item-icon">${getItemIcon(item)}</div>
-            <div class="inventory-item-info">
-                <div class="inventory-item-name">${item}</div>
-                <div class="inventory-item-quantity">${quantity} шт.</div>
+    if (Object.keys(inventory).length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'empty-inventory';
+        emptyMessage.innerHTML = `
+            <div style="text-align: center; color: #888; padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">📦</div>
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
+                <div style="font-size: 0.9rem; opacity: 0.7;">Открывайте кейсы чтобы получить предметы!</div>
             </div>
         `;
-        elements.inventoryItems.appendChild(itemElement);
-    });
+        elements.inventoryItems.appendChild(emptyMessage);
+    } else {
+        Object.entries(inventory).forEach(([item, quantity]) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'inventory-item';
+            itemElement.innerHTML = `
+                <div class="inventory-item-icon">${getItemIcon(item)}</div>
+                <div class="inventory-item-info">
+                    <div class="inventory-item-name">${item}</div>
+                    <div class="inventory-item-quantity">${quantity} шт.</div>
+                </div>
+            `;
+            elements.inventoryItems.appendChild(itemElement);
+        });
+    }
     
     elements.inventoryModal.style.display = 'block';
     
@@ -517,9 +524,9 @@ function openCaseModal(price, action) {
     elements.caseModalTitle.textContent = caseData.name;
     elements.caseModalPrice.textContent = `Цена: ${price} ⭐`;
     
-    // Заполняем трек предметами
+    // Заполняем трек предметами - ТОЛЬКО ОДИН КРУГ
     elements.caseItemsTrack.innerHTML = '';
-    for (let i = 0; i < 150; i++) { // Увеличили количество для 8-секундной анимации
+    for (let i = 0; i < 3; i++) { // Только 3 предмета для одного круга
         caseData.rewards.forEach(reward => {
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
@@ -590,7 +597,7 @@ function openCase(price) {
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Запускаем анимацию вращения
+    // Запускаем анимацию вращения - ОДИН РАЗ 8 СЕКУНД
     elements.caseItemsTrack.classList.add('spinning');
     
     // Выбираем случайную награду
@@ -614,7 +621,7 @@ function openCase(price) {
         // Показываем красивое окно результата
         showResultModal(reward);
         
-    }, 8000); // 8 секунд анимации
+    }, 8000); // 8 секунд анимации - ОДИН РАЗ
 }
 
 // Показ красивого окна результата
