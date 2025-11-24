@@ -64,6 +64,23 @@ body {
     max-width: 420px;
     margin-bottom: 90px;
     transition: opacity 0.2s ease;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border-radius: 3px;
 }
 
 h1 {
@@ -482,29 +499,7 @@ p {
     box-shadow: 0 2px 8px rgba(52, 199, 89, 0.6);
 }
 
-/* Контейнер для кейсов с скроллом */
-.cases-scroll-container {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 5px;
-    margin-bottom: 10px;
-}
-
-.cases-scroll-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.cases-scroll-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-}
-
-.cases-scroll-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
-}
-
+/* Контейнер для кейсов */
 .case-buttons-grid {
     display: flex;
     flex-direction: column;
@@ -636,33 +631,16 @@ p {
     margin: 0 auto;
 }
 
-.tasks-scroll-container {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 5px;
-    margin-bottom: 10px;
-}
-
-.tasks-scroll-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.tasks-scroll-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-}
-
-.tasks-scroll-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .task-item {
     background: rgba(30, 30, 30, 0.8);
     border-radius: 20px;
     padding: 20px;
-    margin-bottom: 15px;
     border: 1px solid rgba(138, 43, 226, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
@@ -764,28 +742,6 @@ p {
     margin: 0 auto;
 }
 
-.profile-scroll-container {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 5px;
-    margin-bottom: 10px;
-}
-
-.profile-scroll-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.profile-scroll-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-}
-
-.profile-scroll-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 3px;
-}
-
 .profile-card {
     background: rgba(30, 30, 30, 0.8);
     border-radius: 20px;
@@ -793,6 +749,7 @@ p {
     border: 1px solid rgba(138, 43, 226, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
+    margin-bottom: 15px;
 }
 
 .profile-header {
@@ -864,6 +821,31 @@ p {
     font-weight: 600;
 }
 
+/* Кнопка инвентаря */
+.inventory-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.inventory-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
+}
+
 .achievements-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -906,6 +888,91 @@ p {
 .achievement-desc {
     font-size: 0.7rem;
     color: #8A2BE2;
+}
+
+/* Модальное окно инвентаря */
+.inventory-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+}
+
+.inventory-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 420px;
+    max-height: 85vh;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    overflow: hidden;
+}
+
+.inventory-modal-header {
+    padding: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(138, 43, 226, 0.1);
+    text-align: center;
+}
+
+.inventory-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.inventory-items {
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.inventory-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inventory-item-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+}
+
+.inventory-item-info {
+    flex: 1;
+    text-align: left;
+}
+
+.inventory-item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.inventory-item-quantity {
+    font-size: 0.9rem;
+    color: #8A2BE2;
+    font-weight: 600;
 }
 
 /* Модальное окно открытия кейса */
@@ -1235,18 +1302,6 @@ p {
         margin-bottom: 100px;
     }
     
-    .cases-scroll-container {
-        max-height: 450px;
-    }
-    
-    .tasks-scroll-container {
-        max-height: 450px;
-    }
-    
-    .profile-scroll-container {
-        max-height: 450px;
-    }
-    
     .case-modal-content {
         max-width: 450px;
     }
@@ -1269,18 +1324,6 @@ p {
     .content {
         margin-bottom: 80px;
         padding: 15px 10px;
-    }
-    
-    .cases-scroll-container {
-        max-height: 280px;
-    }
-    
-    .tasks-scroll-container {
-        max-height: 280px;
-    }
-    
-    .profile-scroll-container {
-        max-height: 280px;
     }
     
     .case-modal-content {
