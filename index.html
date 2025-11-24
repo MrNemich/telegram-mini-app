@@ -1,384 +1,686 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <title>Telegram App</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="background-effect"></div>
+// Инициализация Telegram Web App
+const tg = window.Telegram.WebApp;
+
+// База данных пользователя
+class UserDatabase {
+    constructor() {
+        this.userId = tg.initDataUnsafe.user?.id || 'default_user';
+        this.storageKey = `user_data_${this.userId}`;
+        this.loadUserData();
+    }
+
+    loadUserData() {
+        const savedData = localStorage.getItem(this.storageKey);
+        if (savedData) {
+            this.userData = JSON.parse(savedData);
+        } else {
+            // Начальные данные для нового пользователя
+            this.userData = {
+                balance: 1000,
+                inventory: {
+                    '💰 Игровая валюта': 100,
+                    '💎 Редкие кристаллы': 5,
+                    '🔑 Ключи': 2,
+                    '⚡ Бустеры': 3,
+                    '🎨 Краски': 1
+                },
+                cases: {},
+                casesOpened: 0,
+                lastFreeCase: 0,
+                achievements: ['Новичок'],
+                level: 1,
+                experience: 0,
+                userId: this.userId,
+                username: tg.initDataUnsafe.user?.username || 'Игрок',
+                firstName: tg.initDataUnsafe.user?.first_name || 'Игрок',
+                tasks: {
+                    'first_steps': { completed: false, progress: 30 },
+                    'collector': { completed: false, progress: 60 },
+                    'fast_start': { completed: false, progress: 40 },
+                    'rare_hunter': { completed: false, progress: 20 },
+                    'legend': { completed: false, progress: 5 },
+                    'saver': { completed: false, progress: 10 }
+                }
+            };
+            this.saveUserData();
+        }
+    }
+
+    saveUserData() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.userData));
+    }
+
+    getBalance() {
+        return this.userData.balance;
+    }
+
+    updateBalance(amount) {
+        this.userData.balance += amount;
+        if (this.userData.balance < 0) this.userData.balance = 0;
+        this.saveUserData();
+        return this.userData.balance;
+    }
+
+    getInventory() {
+        return this.userData.inventory;
+    }
+
+    addToInventory(item, quantity = 1) {
+        if (!this.userData.inventory[item]) {
+            this.userData.inventory[item] = 0;
+        }
+        this.userData.inventory[item] += quantity;
+        this.saveUserData();
+    }
+
+    removeFromInventory(item, quantity = 1) {
+        if (this.userData.inventory[item] && this.userData.inventory[item] >= quantity) {
+            this.userData.inventory[item] -= quantity;
+            if (this.userData.inventory[item] <= 0) {
+                delete this.userData.inventory[item];
+            }
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    // Управление кейсами
+    addCase(caseType, quantity = 1) {
+        if (!this.userData.cases[caseType]) {
+            this.userData.cases[caseType] = 0;
+        }
+        this.userData.cases[caseType] += quantity;
+        this.saveUserData();
+    }
+
+    removeCase(caseType, quantity = 1) {
+        if (this.userData.cases[caseType] && this.userData.cases[caseType] >= quantity) {
+            this.userData.cases[caseType] -= quantity;
+            if (this.userData.cases[caseType] <= 0) {
+                delete this.userData.cases[caseType];
+            }
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    getCases() {
+        return this.userData.cases;
+    }
+
+    canOpenFreeCase() {
+        const now = Date.now();
+        const lastOpen = this.userData.lastFreeCase;
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        return (now - lastOpen) >= twentyFourHours;
+    }
+
+    openFreeCase() {
+        this.userData.lastFreeCase = Date.now();
+        this.userData.casesOpened++;
+        this.saveUserData();
+    }
+
+    getStats() {
+        return {
+            casesOpened: this.userData.casesOpened,
+            level: this.userData.level,
+            experience: this.userData.experience,
+            achievements: this.userData.achievements,
+            userId: this.userId,
+            username: this.userData.username,
+            firstName: this.userData.firstName,
+            inventoryCount: Object.keys(this.userData.inventory).length
+        };
+    }
+
+    getTasks() {
+        return this.userData.tasks;
+    }
+
+    updateTaskProgress(taskId, progress) {
+        if (this.userData.tasks[taskId]) {
+            this.userData.tasks[taskId].progress = progress;
+            if (progress >= 100) {
+                this.userData.tasks[taskId].completed = true;
+            }
+            this.saveUserData();
+        }
+    }
+
+    completeTask(taskId) {
+        if (this.userData.tasks[taskId] && this.userData.tasks[taskId].progress >= 100) {
+            this.userData.tasks[taskId].completed = true;
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    addAchievement(achievement) {
+        if (!this.userData.achievements.includes(achievement)) {
+            this.userData.achievements.push(achievement);
+            this.saveUserData();
+            return true;
+        }
+        return false;
+    }
+
+    getAchievements() {
+        return this.userData.achievements;
+    }
+}
+
+// Инициализируем приложение
+tg.ready();
+tg.expand();
+tg.enableClosingConfirmation();
+
+// Устанавливаем темный цвет фона
+tg.setHeaderColor('#000000');
+tg.setBackgroundColor('#000000');
+
+// Инициализация базы данных
+const userDB = new UserDatabase();
+
+// Текущая активная страница
+let currentPage = 'home';
+let isAnimating = false;
+let currentCaseModal = null;
+
+// Кэшируем элементы для производительности
+const elements = {
+    homeContent: document.getElementById('home-content'),
+    rouletteContent: document.getElementById('roulette-content'),
+    tasksContent: document.getElementById('tasks-content'),
+    profileContent: document.getElementById('profile-content'),
+    newsModal: document.getElementById('newsModal'),
+    caseModal: document.getElementById('caseModal'),
+    starsBalance: document.getElementById('starsBalance'),
+    caseItemsTrack: document.getElementById('caseItemsTrack'),
+    caseModalTitle: document.getElementById('caseModalTitle'),
+    caseModalPrice: document.getElementById('caseModalPrice'),
+    caseModalActions: document.getElementById('caseModalActions'),
+    buttons: document.querySelectorAll('.nav-button'),
+    // Элементы профиля
+    profileName: document.getElementById('profileName'),
+    profileLevel: document.getElementById('profileLevel'),
+    profileAvatar: document.getElementById('profileAvatar'),
+    statBalance: document.getElementById('statBalance'),
+    statCases: document.getElementById('statCases'),
+    statExperience: document.getElementById('statExperience'),
+    statItems: document.getElementById('statItems'),
+    achievementsGrid: document.getElementById('achievementsGrid')
+};
+
+// Данные кейсов
+const casesData = {
+    0: {
+        name: "Бесплатный кейс",
+        price: 0,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 50, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 1, chance: 70, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 15, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 1, chance: 5, icon: "🏆" }
+        ]
+    },
+    100: {
+        name: "Начальный набор",
+        price: 100,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 150, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 2, chance: 80, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 2, chance: 50, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 30, icon: "🔑" },
+            { item: "🎨 Краски", quantity: 3, chance: 40, icon: "🎨" }
+        ]
+    },
+    200: {
+        name: "Золотой сундук",
+        price: 200,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 300, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 3, chance: 70, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 2, chance: 50, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 1, chance: 30, icon: "🏆" },
+            { item: "🔧 Инструменты", quantity: 2, chance: 40, icon: "🔧" }
+        ]
+    },
+    500: {
+        name: "Эпический ларец",
+        price: 500,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 750, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 5, chance: 80, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 3, chance: 60, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 2, chance: 40, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 1, chance: 25, icon: "🛡️" }
+        ]
+    },
+    1000: {
+        name: "Легендарный артефакт",
+        price: 1000,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 1500, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 8, chance: 90, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 5, chance: 70, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 3, chance: 50, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 2, chance: 35, icon: "🛡️" }
+        ]
+    },
+    1500: {
+        name: "Мифическая шкатулка",
+        price: 1500,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 2500, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 12, chance: 95, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 8, chance: 80, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 5, chance: 60, icon: "🏆" },
+            { item: "🛡️ Защита", quantity: 3, chance: 45, icon: "🛡️" }
+        ]
+    }
+};
+
+// Данные достижений
+const achievementsData = [
+    { name: "Новичок", icon: "🎯", description: "Начните играть" },
+    { name: "Первые шаги", icon: "🚶", description: "Откройте первый кейс" },
+    { name: "Коллекционер", icon: "🏆", description: "Соберите 5 предметов" },
+    { name: "Богач", icon: "💰", description: "Накопите 1000 звезд" },
+    { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
+    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" }
+];
+
+// Функция смены страницы
+function changePage(page) {
+    if (isAnimating || currentPage === page) return;
+    
+    isAnimating = true;
+    currentPage = page;
+    
+    // Обновляем активную кнопку
+    updateActiveButton(page);
+    
+    // Переключаем контент
+    switchContent(page);
+    
+    // Виброотклик
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
+    
+    setTimeout(() => {
+        isAnimating = false;
+    }, 300);
+}
+
+// Обновление активной кнопки
+function updateActiveButton(activePage) {
+    elements.buttons.forEach(button => {
+        const isActive = button.getAttribute('data-page') === activePage;
+        button.classList.toggle('active', isActive);
+    });
+}
+
+// Смена контента
+function switchContent(page) {
+    // Скрываем все контенты
+    elements.homeContent.style.display = 'none';
+    elements.rouletteContent.style.display = 'none';
+    elements.tasksContent.style.display = 'none';
+    elements.profileContent.style.display = 'none';
+    
+    // Показываем нужный контент
+    switch(page) {
+        case 'home':
+            elements.homeContent.style.display = 'block';
+            break;
+        case 'roulette':
+            elements.rouletteContent.style.display = 'block';
+            updateBalanceDisplay();
+            break;
+        case 'tasks':
+            elements.tasksContent.style.display = 'block';
+            break;
+        case 'profile':
+            elements.profileContent.style.display = 'block';
+            updateProfile();
+            break;
+    }
+}
+
+// Обновление отображения баланса
+function updateBalanceDisplay() {
+    const balance = userDB.getBalance();
+    elements.starsBalance.textContent = balance.toLocaleString();
+}
+
+// Функция пополнения баланса
+function addBalance() {
+    const amount = 500;
+    userDB.updateBalance(amount);
+    updateBalanceDisplay();
+    updateProfile();
+    
+    tg.showPopup({
+        title: '💰 Баланс пополнен!',
+        message: `Вы получили ${amount} ⭐`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
+}
+
+// Выполнение задания
+function completeTask(taskId, reward) {
+    if (userDB.completeTask(taskId)) {
+        userDB.updateBalance(reward);
+        updateBalanceDisplay();
+        updateProfile();
         
-        <!-- Контент для Главной страницы -->
-        <div class="content" id="home-content">
-            <h1>🏠 Главная</h1>
-            <p>Добро пожаловать в игру! Открывайте кейсы и получайте награды</p>
-            
-            <div class="news-container">
-                <div class="news-card">
-                    <div class="news-header">
-                        <h3 class="news-title">Разработка бота началась. V1.0</h3>
-                        <span class="news-date">23.11.2025</span>
-                    </div>
-                    <div class="news-preview">
-                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.
-                    </div>
-                    <button class="read-more-btn" onclick="openNewsModal()">
-                        Показать полный текст
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Контент для Рулетки -->
-        <div class="content" id="roulette-content" style="display: none;">
-            <div class="roulette-container">
-                <!-- Баланс звёзд -->
-                <div class="balance-container">
-                    <div class="balance-title">
-                        <div class="balance-text">Ваш баланс</div>
-                    </div>
-                    <div class="balance-amount-container">
-                        <div class="balance-amount">
-                            <span class="balance-stars">⭐</span>
-                            <span id="starsBalance">0</span>
-                        </div>
-                        <button class="add-balance-btn" onclick="addBalance()">+</button>
-                    </div>
-                </div>
-                
-                <!-- Кейсы с скроллом -->
-                <div class="cases-scroll-container">
-                    <div class="case-buttons-grid">
-                        <button class="case-button free" onclick="openCaseModal(0, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">🎁</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Бесплатный кейс</div>
-                                        <div class="case-description">Открывается каждые 24 часа</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">🆓</span>
-                                    Бесплатно
-                                </div>
-                            </div>
-                        </button>
-                        
-                        <button class="case-button" onclick="openCaseModal(100, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">📦</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Начальный набор</div>
-                                        <div class="case-description">Идеально для новичков</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    100
-                                </div>
-                            </div>
-                        </button>
-                        
-                        <button class="case-button premium" onclick="openCaseModal(200, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">🎁</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Золотой сундук</div>
-                                        <div class="case-description">Шанс на редкие предметы</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    200
-                                </div>
-                            </div>
-                        </button>
-                        
-                        <button class="case-button epic" onclick="openCaseModal(500, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">💎</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Эпический ларец</div>
-                                        <div class="case-description">Эксклюзивные награды</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    500
-                                </div>
-                            </div>
-                        </button>
-                        
-                        <button class="case-button legendary" onclick="openCaseModal(1000, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">🔥</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Легендарный артефакт</div>
-                                        <div class="case-description">Уникальные предметы</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    1000
-                                </div>
-                            </div>
-                        </button>
-                        
-                        <button class="case-button mythic" onclick="openCaseModal(1500, 'buy')">
-                            <div class="case-button-content">
-                                <div class="case-info">
-                                    <div class="case-icon">🌟</div>
-                                    <div class="case-details">
-                                        <div class="case-name">Мифическая шкатулка</div>
-                                        <div class="case-description">Легендарные сокровища</div>
-                                    </div>
-                                </div>
-                                <div class="case-price">
-                                    <span class="star-icon">⭐</span>
-                                    1500
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Контент для Инвентаря -->
-        <div class="content" id="inventory-content" style="display: none;">
-            <h1>📦 Инвентарь</h1>
-            <p>Ваши предметы и ресурсы</p>
-            
-            <div class="inventory-container">
-                <div class="inventory-scroll-container">
-                    <div class="inventory-grid" id="inventoryGrid">
-                        <!-- Инвентарь будет загружен через JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Контент для Заданий -->
-        <div class="content" id="tasks-content" style="display: none;">
-            <h1>✅ Задания</h1>
-            <p>Выполняйте задания и получайте награды</p>
-            
-            <div class="tasks-container">
-                <div class="tasks-scroll-container">
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🎯 Первые шаги</div>
-                            <div class="task-reward">⭐ +50</div>
-                        </div>
-                        <div class="task-description">
-                            Откройте свой первый кейс в игре
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 30%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('first_steps', 50)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">💰 Накопитель</div>
-                            <div class="task-reward">⭐ +100</div>
-                        </div>
-                        <div class="task-description">
-                            Накопите 500 звёзд на балансе
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 10%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('saver', 100)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🏆 Коллекционер</div>
-                            <div class="task-reward">⭐ +200</div>
-                        </div>
-                        <div class="task-description">
-                            Соберите 10 различных предметов
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 60%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('collector', 200)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🚀 Быстрый старт</div>
-                            <div class="task-reward">⭐ +150</div>
-                        </div>
-                        <div class="task-description">
-                            Откройте 5 кейсов за один день
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 40%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('fast_start', 150)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">💎 Редкий охотник</div>
-                            <div class="task-reward">⭐ +300</div>
-                        </div>
-                        <div class="task-description">
-                            Получите 3 редких предмета
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 20%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🌟 Легенда</div>
-                            <div class="task-reward">⭐ +500</div>
-                        </div>
-                        <div class="task-description">
-                            Достигните 10 уровня
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 5%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('legend', 500)">Выполнить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Контент для Профиля -->
-        <div class="content" id="profile-content" style="display: none;">
-            <h1>👤 Мой профиль</h1>
-            <p>Ваша статистика и достижения</p>
-            
-            <div class="profile-container">
-                <div class="profile-scroll-container">
-                    <div class="profile-card">
-                        <div class="profile-header">
-                            <div class="profile-avatar" id="profileAvatar">👤</div>
-                            <div class="profile-info">
-                                <h3 id="profileName">Игрок</h3>
-                                <p>Уровень: <span id="profileLevel">1</span></p>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-value" id="statBalance">0</div>
-                                <div class="stat-label">Баланс</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="statCases">0</div>
-                                <div class="stat-label">Кейсы</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="statExperience">0</div>
-                                <div class="stat-label">Опыт</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="statItems">0</div>
-                                <div class="stat-label">Предметы</div>
-                            </div>
-                        </div>
-                        
-                        <div class="profile-achievements">
-                            <h4 style="color: white; margin-bottom: 15px; text-align: center;">🏆 Достижения</h4>
-                            <div class="achievements-grid" id="achievementsGrid">
-                                <!-- Достижения будут загружены через JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно новости -->
-    <div class="news-modal" id="newsModal">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeNewsModal()">×</button>
-            <div class="modal-header">
-                <h2 class="modal-title">Разработка бота началась. V1.0</h2>
-                <div class="modal-date">23.11.2025</div>
-            </div>
-            <div class="modal-body">
-                <div class="modal-text">
-                    <p><strong>Разработка нашего бота началась.</strong> Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.</p>
-                    
-                    <p>Мы надеемся что бот подарит вам много впечатлений как и нам. Спасибо за ваше будущее использование.</p>
-                    
-                    <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
-                        🚀 Следите за обновлениями! 🚀
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно открытия кейса -->
-    <div class="case-modal" id="caseModal">
-        <div class="case-modal-content">
-            <div class="case-modal-header">
-                <h2 class="case-modal-title" id="caseModalTitle">Открытие кейса</h2>
-                <div class="case-modal-price" id="caseModalPrice">Цена: 100 ⭐</div>
-            </div>
-            
-            <div class="case-items-container">
-                <div class="case-items-track" id="caseItemsTrack">
-                    <!-- Предметы будут добавлены через JavaScript -->
-                </div>
-                <div class="selection-line"></div>
-            </div>
-            
-            <div class="case-modal-actions" id="caseModalActions">
-                <!-- Кнопки будут добавлены через JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Нижняя панель навигации -->
-    <div class="bottom-nav">
-        <button class="nav-button active" onclick="changePage('home')" data-page="home">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Главная</div>
-        </button>
+        tg.showPopup({
+            title: '🎉 Задание выполнено!',
+            message: `Вы получили ${reward} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
         
-        <button class="nav-button" onclick="changePage('roulette')" data-page="roulette">
-            <div class="nav-icon">🎰</div>
-            <div class="nav-text">Рулетка</div>
-        </button>
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
+    } else {
+        tg.showPopup({
+            title: '❌ Задание не выполнено',
+            message: 'Выполните условия задания',
+            buttons: [{ type: 'ok' }]
+        });
+    }
+}
 
-        <button class="nav-button" onclick="changePage('inventory')" data-page="inventory">
-            <div class="nav-icon">📦</div>
-            <div class="nav-text">Инвентарь</div>
-        </button>
-        
-        <button class="nav-button" onclick="changePage('tasks')" data-page="tasks">
-            <div class="nav-icon">✅</div>
-            <div class="nav-text">Задания</div>
-        </button>
-        
-        <button class="nav-button" onclick="changePage('profile')" data-page="profile">
-            <div class="nav-icon">👤</div>
-            <div class="nav-text">Профиль</div>
-        </button>
-    </div>
+// Обновление профиля
+function updateProfile() {
+    const stats = userDB.getStats();
+    const userData = userDB.userData;
+    const achievements = userDB.getAchievements();
+    
+    elements.profileName.textContent = stats.firstName;
+    elements.profileLevel.textContent = stats.level;
+    elements.statBalance.textContent = userData.balance.toLocaleString();
+    elements.statCases.textContent = stats.casesOpened;
+    elements.statExperience.textContent = userData.experience;
+    elements.statItems.textContent = stats.inventoryCount;
+    
+    updateProfileAvatar(stats.level);
+    loadAchievements(achievements);
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+// Обновление аватара профиля
+function updateProfileAvatar(level) {
+    const avatars = ['👤', '🦊', '🐯', '🐉', '🦄', '👑'];
+    let avatarIndex = 0;
+    
+    if (level >= 10) avatarIndex = 5;
+    else if (level >= 8) avatarIndex = 4;
+    else if (level >= 6) avatarIndex = 3;
+    else if (level >= 4) avatarIndex = 2;
+    else if (level >= 2) avatarIndex = 1;
+    
+    elements.profileAvatar.textContent = avatars[avatarIndex];
+}
+
+// Загрузка достижений
+function loadAchievements(userAchievements) {
+    elements.achievementsGrid.innerHTML = '';
+    
+    achievementsData.forEach(achievement => {
+        const isUnlocked = userAchievements.includes(achievement.name);
+        const achievementElement = document.createElement('div');
+        achievementElement.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
+        
+        achievementElement.innerHTML = `
+            <div class="achievement-icon">${achievement.icon}</div>
+            <div class="achievement-name">${achievement.name}</div>
+            <div class="achievement-desc">${achievement.description}</div>
+        `;
+        
+        elements.achievementsGrid.appendChild(achievementElement);
+    });
+}
+
+// Открытие модального окна кейса
+function openCaseModal(price, action) {
+    const caseData = casesData[price];
+    if (!caseData) return;
+    
+    currentCaseModal = { price, action };
+    
+    elements.caseModalTitle.textContent = caseData.name;
+    elements.caseModalPrice.textContent = action === 'buy' ? `Цена: ${price} ⭐` : 'Ваш кейс';
+    
+    elements.caseItemsTrack.innerHTML = '';
+    for (let i = 0; i < 50; i++) {
+        caseData.rewards.forEach(reward => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'case-item';
+            itemElement.innerHTML = `
+                <div class="case-item-icon">${reward.icon}</div>
+                <div class="case-item-name">${reward.item}</div>
+                <div class="case-item-quantity">${reward.quantity}</div>
+            `;
+            elements.caseItemsTrack.appendChild(itemElement);
+        });
+    }
+    
+    elements.caseModalActions.innerHTML = '';
+    
+    if (action === 'buy') {
+        const buyButton = document.createElement('button');
+        buyButton.className = 'case-action-btn buy-btn';
+        buyButton.textContent = `Купить за ${price} ⭐`;
+        buyButton.onclick = () => buyCase(price);
+        elements.caseModalActions.appendChild(buyButton);
+    } else {
+        const openButton = document.createElement('button');
+        openButton.className = 'case-action-btn open-btn';
+        openButton.textContent = 'Открыть';
+        openButton.onclick = () => openCase(price);
+        elements.caseModalActions.appendChild(openButton);
+    }
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'case-action-btn cancel-btn';
+    cancelButton.textContent = 'Отмена';
+    cancelButton.onclick = closeCaseModal;
+    elements.caseModalActions.appendChild(cancelButton);
+    
+    elements.caseModal.style.display = 'block';
+}
+
+// Закрытие модального окна кейса
+function closeCaseModal() {
+    elements.caseModal.style.display = 'none';
+    currentCaseModal = null;
+}
+
+// Покупка кейса
+function buyCase(price) {
+    const balance = userDB.getBalance();
+    const caseData = casesData[price];
+    
+    if (balance < price) {
+        tg.showPopup({
+            title: '❌ Недостаточно звёзд',
+            message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
+        return;
+    }
+    
+    userDB.updateBalance(-price);
+    userDB.addCase(price, 1);
+    
+    updateBalanceDisplay();
+    updateProfile();
+    
+    tg.showPopup({
+        title: '🎉 Успех!',
+        message: `Кейс "${caseData.name}" добавлен в ваш инвентарь!`,
+        buttons: [{ type: 'ok' }]
+    });
+    
+    closeCaseModal();
+}
+
+// Открытие кейса
+function openCase(price) {
+    const caseData = casesData[price];
+    
+    elements.caseItemsTrack.classList.add('fast-spin');
+    
+    const buttons = elements.caseModalActions.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    setTimeout(() => {
+        elements.caseItemsTrack.classList.remove('fast-spin');
+        
+        const reward = getRandomReward(caseData.rewards);
+        
+        userDB.addToInventory(reward.item, reward.quantity);
+        userDB.removeCase(price, 1);
+        userDB.userData.casesOpened++;
+        userDB.userData.experience += 10;
+        
+        checkLevelUp();
+        userDB.saveUserData();
+        
+        showOpenResult(reward);
+        
+    }, 8000);
+}
+
+// Проверка повышения уровня
+function checkLevelUp() {
+    const userData = userDB.userData;
+    const expNeeded = userData.level * 100;
+    
+    if (userData.experience >= expNeeded) {
+        userData.level++;
+        userData.experience = 0;
+        userDB.addAchievement(achievementsData[userData.level]?.name || 'Новый уровень');
+        
+        tg.showPopup({
+            title: '🎉 Уровень повышен!',
+            message: `Поздравляем! Вы достигли ${userData.level} уровня!`,
+            buttons: [{ type: 'ok' }]
+        });
+    }
+}
+
+// Выбор случайной награды
+function getRandomReward(rewards) {
+    const totalChance = rewards.reduce((sum, reward) => sum + reward.chance, 0);
+    let random = Math.random() * totalChance;
+    
+    for (const reward of rewards) {
+        if (random < reward.chance) {
+            return reward;
+        }
+        random -= reward.chance;
+    }
+    
+    return rewards[0];
+}
+
+// Показ результата открытия
+function showOpenResult(reward) {
+    elements.caseModalActions.innerHTML = '';
+    elements.caseItemsTrack.innerHTML = `
+        <div class="open-result">
+            <div class="result-icon">${reward.icon}</div>
+            <div class="result-title">🎉 Поздравляем!</div>
+            <div class="result-item">${reward.item}</div>
+            <div class="result-quantity">${reward.quantity} шт.</div>
+        </div>
+    `;
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'case-action-btn cancel-btn';
+    closeButton.textContent = 'Закрыть';
+    closeButton.onclick = () => {
+        closeCaseModal();
+        updateProfile();
+    };
+    elements.caseModalActions.appendChild(closeButton);
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
+}
+
+// Функции для модального окна новости
+function openNewsModal() {
+    elements.newsModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(10);
+    }
+}
+
+function closeNewsModal() {
+    elements.newsModal.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
+}
+
+// Закрытие модальных окон по клику на фон
+elements.newsModal.addEventListener('click', function(e) {
+    if (e.target === elements.newsModal) {
+        closeNewsModal();
+    }
+});
+
+elements.caseModal.addEventListener('click', function(e) {
+    if (e.target === elements.caseModal) {
+        closeCaseModal();
+    }
+});
+
+// Закрытие модальных окон по ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (elements.newsModal.classList.contains('show')) {
+            closeNewsModal();
+        }
+        if (elements.caseModal.style.display === 'block') {
+            closeCaseModal();
+        }
+    }
+});
+
+// Информация о пользователе
+if (tg.initDataUnsafe.user) {
+    const user = tg.initDataUnsafe.user;
+    if (user.first_name) {
+        console.log('👤 Пользователь:', user.first_name, '(ID:', user.id, ')');
+        document.querySelector('#home-content h1').textContent = `🏠 Привет, ${user.first_name}!`;
+    }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Мини-приложение полностью загружено и готово!');
+    
+    updateBalanceDisplay();
+    updateProfile();
+});
+
+console.log('✅ Игровое мини-приложение запущено!');
