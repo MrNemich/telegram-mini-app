@@ -511,8 +511,9 @@ function openCaseModal(price, action) {
     currentCaseModal = { price, action };
     
     elements.caseModalTitle.textContent = caseData.name;
-    elements.caseModalPrice.textContent = action === 'buy' ? `Цена: ${price} ⭐` : 'Ваш кейс';
+    elements.caseModalPrice.textContent = `Цена: ${price} ⭐`;
     
+    // Заполняем трек предметами
     elements.caseItemsTrack.innerHTML = '';
     for (let i = 0; i < 50; i++) {
         caseData.rewards.forEach(reward => {
@@ -529,16 +530,18 @@ function openCaseModal(price, action) {
     
     elements.caseModalActions.innerHTML = '';
     
-    if (action === 'buy') {
-        const buyButton = document.createElement('button');
-        buyButton.className = 'case-action-btn buy-btn';
-        buyButton.textContent = `Купить за ${price} ⭐`;
-        buyButton.onclick = () => buyCase(price);
-        elements.caseModalActions.appendChild(buyButton);
-    } else {
+    // Для бесплатного кейса сразу кнопка "Открыть"
+    if (price === 0) {
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
-        openButton.textContent = 'Открыть';
+        openButton.textContent = 'Открыть кейс';
+        openButton.onclick = () => openCase(price);
+        elements.caseModalActions.appendChild(openButton);
+    } else {
+        // Для платных кейсов кнопка "Открыть" (теперь сразу открываем, а не покупаем)
+        const openButton = document.createElement('button');
+        openButton.className = 'case-action-btn open-btn';
+        openButton.textContent = `Открыть за ${price} ⭐`;
         openButton.onclick = () => openCase(price);
         elements.caseModalActions.appendChild(openButton);
     }
@@ -558,12 +561,13 @@ function closeCaseModal() {
     currentCaseModal = null;
 }
 
-// Покупка кейса
-function buyCase(price) {
-    const balance = userDB.getBalance();
+// Открытие кейса
+function openCase(price) {
     const caseData = casesData[price];
+    const balance = userDB.getBalance();
     
-    if (balance < price) {
+    // Проверяем баланс для платных кейсов
+    if (price > 0 && balance < price) {
         tg.showPopup({
             title: '❌ Недостаточно звёзд',
             message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
@@ -572,46 +576,38 @@ function buyCase(price) {
         return;
     }
     
-    userDB.updateBalance(-price);
-    userDB.addCase(price, 1);
+    // Снимаем деньги с баланса для платных кейсов
+    if (price > 0) {
+        userDB.updateBalance(-price);
+        updateBalanceDisplay();
+    }
     
-    updateBalanceDisplay();
-    updateProfile();
-    
-    tg.showPopup({
-        title: '🎉 Успех!',
-        message: `Кейс "${caseData.name}" добавлен в ваш инвентарь!`,
-        buttons: [{ type: 'ok' }]
-    });
-    
-    closeCaseModal();
-}
-
-// Открытие кейса
-function openCase(price) {
-    const caseData = casesData[price];
-    
-    elements.caseItemsTrack.classList.add('fast-spin');
-    
+    // Отключаем кнопки во время анимации
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
+    // Запускаем анимацию вращения
+    elements.caseItemsTrack.classList.add('spinning');
+    
+    // Выбираем случайную награду
+    const reward = getRandomReward(caseData.rewards);
+    
+    // Останавливаем анимацию и показываем результат через 3 секунды
     setTimeout(() => {
-        elements.caseItemsTrack.classList.remove('fast-spin');
+        elements.caseItemsTrack.classList.remove('spinning');
         
-        const reward = getRandomReward(caseData.rewards);
-        
+        // Добавляем награду в инвентарь
         userDB.addToInventory(reward.item, reward.quantity);
-        userDB.removeCase(price, 1);
         userDB.userData.casesOpened++;
         userDB.userData.experience += 10;
         
         checkLevelUp();
         userDB.saveUserData();
         
+        // Показываем результат
         showOpenResult(reward);
         
-    }, 8000);
+    }, 3000);
 }
 
 // Проверка повышения уровня
@@ -665,6 +661,7 @@ function showOpenResult(reward) {
     closeButton.onclick = () => {
         closeCaseModal();
         updateProfile();
+        updateBalanceDisplay();
     };
     elements.caseModalActions.appendChild(closeButton);
     
