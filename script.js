@@ -198,11 +198,13 @@ const elements = {
     profileContent: document.getElementById('profile-content'),
     newsModal: document.getElementById('newsModal'),
     caseModal: document.getElementById('caseModal'),
+    inventoryModal: document.getElementById('inventoryModal'),
     starsBalance: document.getElementById('starsBalance'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
     caseModalPrice: document.getElementById('caseModalPrice'),
     caseModalActions: document.getElementById('caseModalActions'),
+    inventoryItems: document.getElementById('inventoryItems'),
     buttons: document.querySelectorAll('.nav-button'),
     // Элементы профиля
     profileName: document.getElementById('profileName'),
@@ -452,6 +454,55 @@ function loadAchievements(userAchievements) {
     });
 }
 
+// Открытие инвентаря
+function openInventory() {
+    const inventory = userDB.getInventory();
+    elements.inventoryItems.innerHTML = '';
+    
+    Object.entries(inventory).forEach(([item, quantity]) => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'inventory-item';
+        itemElement.innerHTML = `
+            <div class="inventory-item-icon">${getItemIcon(item)}</div>
+            <div class="inventory-item-info">
+                <div class="inventory-item-name">${item}</div>
+                <div class="inventory-item-quantity">${quantity} шт.</div>
+            </div>
+        `;
+        elements.inventoryItems.appendChild(itemElement);
+    });
+    
+    elements.inventoryModal.style.display = 'block';
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(10);
+    }
+}
+
+// Получение иконки для предмета
+function getItemIcon(item) {
+    const iconMap = {
+        '💰 Игровая валюта': '💰',
+        '💎 Редкие кристаллы': '💎',
+        '🔑 Ключи': '🔑',
+        '⚡ Бустеры': '⚡',
+        '🎨 Краски': '🎨',
+        '🏆 Трофеи': '🏆',
+        '🔧 Инструменты': '🔧',
+        '🛡️ Защита': '🛡️'
+    };
+    return iconMap[item] || '📦';
+}
+
+// Закрытие инвентаря
+function closeInventory() {
+    elements.inventoryModal.style.display = 'none';
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
+}
+
 // Открытие модального окна кейса
 function openCaseModal(price, action) {
     const caseData = casesData[price];
@@ -654,6 +705,12 @@ elements.caseModal.addEventListener('click', function(e) {
     }
 });
 
+elements.inventoryModal.addEventListener('click', function(e) {
+    if (e.target === elements.inventoryModal) {
+        closeInventory();
+    }
+});
+
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -662,6 +719,9 @@ document.addEventListener('keydown', function(e) {
         }
         if (elements.caseModal.style.display === 'block') {
             closeCaseModal();
+        }
+        if (elements.inventoryModal.style.display === 'block') {
+            closeInventory();
         }
     }
 });
