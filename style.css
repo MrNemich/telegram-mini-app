@@ -107,14 +107,14 @@ p {
 .cases-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 15px;
     margin-top: 20px;
 }
 
 .case-square {
     background: linear-gradient(135deg, rgba(106, 13, 173, 0.9), rgba(138, 43, 226, 0.8));
-    border-radius: 16px;
-    padding: 15px;
+    border-radius: 18px;
+    padding: 18px 15px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -122,7 +122,7 @@ p {
     box-shadow: 0 6px 20px rgba(106, 13, 173, 0.4);
     display: flex;
     flex-direction: column;
-    height: 180px;
+    height: 220px;
     position: relative;
     overflow: hidden;
 }
@@ -132,8 +132,8 @@ p {
 }
 
 .case-image {
-    font-size: 3rem;
-    margin-bottom: 10px;
+    font-size: 3.2rem;
+    margin-bottom: 12px;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
     flex: 1;
     display: flex;
@@ -142,49 +142,74 @@ p {
 }
 
 .case-info {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .case-name {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: white;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     line-height: 1.2;
+    min-height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.case-description {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+    line-height: 1.2;
+    min-height: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .case-price {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: #FFD700;
+    margin-bottom: 10px;
 }
 
 .star-icon {
     color: #FFD700;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .buy-case-btn {
     background: linear-gradient(45deg, #34C759, #30D158);
     border: none;
     color: white;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 0.8rem;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 100%;
-    box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+    box-shadow: 0 3px 10px rgba(52, 199, 89, 0.3);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .buy-case-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 1px 4px rgba(52, 199, 89, 0.5);
+    box-shadow: 0 1px 5px rgba(52, 199, 89, 0.5);
 }
 
 /* Градиенты для разных кейсов */
@@ -1203,20 +1228,30 @@ p {
     }
     
     .cases-grid {
-        gap: 8px;
+        gap: 10px;
     }
     
     .case-square {
-        height: 160px;
-        padding: 12px;
+        height: 200px;
+        padding: 15px 12px;
     }
     
     .case-image {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
     }
     
     .case-name {
+        font-size: 0.9rem;
+    }
+    
+    .case-description {
+        font-size: 0.7rem;
+    }
+    
+    .buy-case-btn {
+        padding: 10px 14px;
         font-size: 0.85rem;
+        min-height: 40px;
     }
     
     .bottom-nav {
@@ -1276,11 +1311,11 @@ p {
     }
     
     .cases-grid {
-        gap: 15px;
+        gap: 18px;
     }
     
     .case-square {
-        height: 200px;
+        height: 240px;
     }
     
     .case-image {
@@ -1317,7 +1352,7 @@ p {
     }
     
     .case-square {
-        height: 140px;
+        height: 180px;
     }
     
     .case-modal-content {
