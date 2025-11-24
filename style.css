@@ -1171,17 +1171,17 @@ p {
     transform: none;
 }
 
-/* Анимация быстрого вращения */
-.case-items-track.fast-spin {
-    animation: fastSpin 8s cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
+/* Анимация вращения */
+.case-items-track.spinning {
+    animation: spinAnimation 3s cubic-bezier(0.1, 0.1, 0.1, 1) forwards;
 }
 
-@keyframes fastSpin {
+@keyframes spinAnimation {
     0% {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(calc(-33.333% * 50));
+        transform: translateX(calc(-33.333% * 20));
     }
 }
 
@@ -1351,7 +1351,7 @@ p {
         animation: none;
     }
     
-    .case-items-track.fast-spin {
+    .case-items-track.spinning {
         animation: none;
     }
 }
