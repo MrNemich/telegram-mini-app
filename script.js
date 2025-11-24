@@ -199,12 +199,16 @@ const elements = {
     newsModal: document.getElementById('newsModal'),
     caseModal: document.getElementById('caseModal'),
     inventoryModal: document.getElementById('inventoryModal'),
+    resultModal: document.getElementById('resultModal'),
     starsBalance: document.getElementById('starsBalance'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
     caseModalPrice: document.getElementById('caseModalPrice'),
     caseModalActions: document.getElementById('caseModalActions'),
     inventoryItems: document.getElementById('inventoryItems'),
+    resultGift: document.getElementById('resultGift'),
+    resultItemName: document.getElementById('resultItemName'),
+    resultItemQuantity: document.getElementById('resultItemQuantity'),
     buttons: document.querySelectorAll('.nav-button'),
     // Элементы профиля
     profileName: document.getElementById('profileName'),
@@ -515,7 +519,7 @@ function openCaseModal(price, action) {
     
     // Заполняем трек предметами
     elements.caseItemsTrack.innerHTML = '';
-    for (let i = 0; i < 100; i++) { // Увеличили количество предметов для более длинной анимации
+    for (let i = 0; i < 150; i++) { // Увеличили количество для 8-секундной анимации
         caseData.rewards.forEach(reward => {
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
@@ -538,7 +542,7 @@ function openCaseModal(price, action) {
         openButton.onclick = () => openCase(price);
         elements.caseModalActions.appendChild(openButton);
     } else {
-        // Для платных кейсов кнопка "Открыть" (теперь сразу открываем, а не покупаем)
+        // Для платных кейсов кнопка "Открыть"
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
         openButton.textContent = `Открыть за ${price} ⭐`;
@@ -604,10 +608,42 @@ function openCase(price) {
         checkLevelUp();
         userDB.saveUserData();
         
-        // Показываем результат
-        showOpenResult(reward);
+        // Закрываем модальное окно кейса
+        closeCaseModal();
         
-    }, 8000); // Увеличили время анимации до 8 секунд
+        // Показываем красивое окно результата
+        showResultModal(reward);
+        
+    }, 8000); // 8 секунд анимации
+}
+
+// Показ красивого окна результата
+function showResultModal(reward) {
+    elements.resultGift.textContent = reward.icon;
+    elements.resultItemName.textContent = reward.item;
+    elements.resultItemQuantity.textContent = `${reward.quantity} шт.`;
+    
+    // Активируем фейерверки
+    const fireworks = document.querySelectorAll('.firework');
+    fireworks.forEach(firework => {
+        const x = (Math.random() - 0.5) * 200;
+        const y = (Math.random() - 0.5) * 200;
+        firework.style.setProperty('--x', `${x}px`);
+        firework.style.setProperty('--y', `${y}px`);
+    });
+    
+    elements.resultModal.style.display = 'block';
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100, 50, 100]);
+    }
+}
+
+// Закрытие окна результата
+function closeResultModal() {
+    elements.resultModal.style.display = 'none';
+    updateProfile();
+    updateBalanceDisplay();
 }
 
 // Проверка повышения уровня
@@ -641,34 +677,6 @@ function getRandomReward(rewards) {
     }
     
     return rewards[0];
-}
-
-// Показ результата открытия - УЛУЧШЕННАЯ ВЕРСИЯ
-function showOpenResult(reward) {
-    elements.caseModalActions.innerHTML = '';
-    elements.caseItemsTrack.innerHTML = `
-        <div class="open-result">
-            <div class="result-icon">${reward.icon}</div>
-            <div class="result-title">🎉 Поздравляем!</div>
-            <div class="result-message">Вам выпал:</div>
-            <div class="result-item">${reward.item}</div>
-            <div class="result-quantity">${reward.quantity} шт.</div>
-        </div>
-    `;
-    
-    const successButton = document.createElement('button');
-    successButton.className = 'success-btn';
-    successButton.textContent = 'Отлично!';
-    successButton.onclick = () => {
-        closeCaseModal();
-        updateProfile();
-        updateBalanceDisplay();
-    };
-    elements.caseModalActions.appendChild(successButton);
-    
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100, 50, 100]);
-    }
 }
 
 // Функции для модального окна новости
@@ -709,6 +717,12 @@ elements.inventoryModal.addEventListener('click', function(e) {
     }
 });
 
+elements.resultModal.addEventListener('click', function(e) {
+    if (e.target === elements.resultModal) {
+        closeResultModal();
+    }
+});
+
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -720,6 +734,9 @@ document.addEventListener('keydown', function(e) {
         }
         if (elements.inventoryModal.style.display === 'block') {
             closeInventory();
+        }
+        if (elements.resultModal.style.display === 'block') {
+            closeResultModal();
         }
     }
 });
