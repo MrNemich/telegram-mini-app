@@ -43,6 +43,32 @@
     margin-bottom: 10px;
 }
 
+/* Таймер для бесплатного кейса */
+.timer-container {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 0, 0, 0.4);
+    margin-top: 8px;
+}
+
+.timer-text {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timer {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
 /* Убираем описание кейсов */
 .case-description {
     display: none;
@@ -1520,6 +1546,18 @@ p {
         padding: 10px 14px;
         font-size: 0.85rem;
         min-height: 40px;
+    }
+    
+    .timer-container {
+        padding: 8px;
+    }
+    
+    .timer-text {
+        font-size: 0.7rem;
+    }
+    
+    .timer {
+        font-size: 1rem;
     }
     
     .bottom-nav {
