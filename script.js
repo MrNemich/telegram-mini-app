@@ -215,7 +215,7 @@ const elements = {
     achievementsGrid: document.getElementById('achievementsGrid')
 };
 
-// Данные кейсов - ПОВЫШЕННЫЕ ЦЕНЫ
+// Данные новых кейсов
 const casesData = {
     0: {
         name: "Бесплатный кейс",
@@ -228,59 +228,70 @@ const casesData = {
             { item: "🏆 Трофеи", quantity: 1, chance: 5, icon: "🏆" }
         ]
     },
-    500: {
-        name: "Начальный набор",
-        price: 500,
+    50: {
+        name: "Кейс Бомж",
+        price: 50,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 150, chance: 100, icon: "💰" },
-            { item: "⚡ Бустеры", quantity: 2, chance: 80, icon: "⚡" },
-            { item: "💎 Редкие кристаллы", quantity: 2, chance: 50, icon: "💎" },
-            { item: "🔑 Ключи", quantity: 1, chance: 30, icon: "🔑" },
-            { item: "🎨 Краски", quantity: 3, chance: 40, icon: "🎨" }
+            { item: "💰 Игровая валюта", quantity: 80, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 1, chance: 75, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 1, chance: 35, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 20, icon: "🔑" },
+            { item: "🎨 Краски", quantity: 1, chance: 25, icon: "🎨" }
         ]
     },
-    1000: {
-        name: "Золотой сундук",
-        price: 1000,
+    100: {
+        name: "Кейс Чемпион",
+        price: 100,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 300, chance: 100, icon: "💰" },
+            { item: "💰 Игровая валюта", quantity: 120, chance: 100, icon: "💰" },
+            { item: "⚡ Бустеры", quantity: 2, chance: 80, icon: "⚡" },
+            { item: "💎 Редкие кристаллы", quantity: 1, chance: 45, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 1, chance: 30, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 1, chance: 15, icon: "🏆" }
+        ]
+    },
+    200: {
+        name: "Pepe фарм",
+        price: 200,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 180, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 2, chance: 60, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 2, chance: 40, icon: "🔑" },
+            { item: "⚡ Бустеры", quantity: 2, chance: 70, icon: "⚡" },
+            { item: "🔧 Инструменты", quantity: 1, chance: 25, icon: "🔧" }
+        ]
+    },
+    350: {
+        name: "БизнесМем",
+        price: 350,
+        rewards: [
+            { item: "💰 Игровая валюта", quantity: 250, chance: 100, icon: "💰" },
             { item: "💎 Редкие кристаллы", quantity: 3, chance: 70, icon: "💎" },
             { item: "🔑 Ключи", quantity: 2, chance: 50, icon: "🔑" },
             { item: "🏆 Трофеи", quantity: 1, chance: 30, icon: "🏆" },
-            { item: "🔧 Инструменты", quantity: 2, chance: 40, icon: "🔧" }
+            { item: "🛡️ Защита", quantity: 1, chance: 20, icon: "🛡️" }
         ]
     },
-    2500: {
-        name: "Эпический ларец",
-        price: 2500,
+    500: {
+        name: "Кейс Рабочий",
+        price: 500,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 750, chance: 100, icon: "💰" },
-            { item: "💎 Редкие кристаллы", quantity: 5, chance: 80, icon: "💎" },
-            { item: "🔑 Ключи", quantity: 3, chance: 60, icon: "🔑" },
-            { item: "🏆 Трофеи", quantity: 2, chance: 40, icon: "🏆" },
+            { item: "💰 Игровая валюта", quantity: 350, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 4, chance: 75, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 3, chance: 55, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 2, chance: 35, icon: "🏆" },
             { item: "🛡️ Защита", quantity: 1, chance: 25, icon: "🛡️" }
         ]
     },
-    5000: {
-        name: "Легендарный артефакт",
-        price: 5000,
+    1000: {
+        name: "Кейс Элита",
+        price: 1000,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 1500, chance: 100, icon: "💰" },
-            { item: "💎 Редкие кристаллы", quantity: 8, chance: 90, icon: "💎" },
-            { item: "🔑 Ключи", quantity: 5, chance: 70, icon: "🔑" },
-            { item: "🏆 Трофеи", quantity: 3, chance: 50, icon: "🏆" },
+            { item: "💰 Игровая валюта", quantity: 600, chance: 100, icon: "💰" },
+            { item: "💎 Редкие кристаллы", quantity: 5, chance: 85, icon: "💎" },
+            { item: "🔑 Ключи", quantity: 4, chance: 65, icon: "🔑" },
+            { item: "🏆 Трофеи", quantity: 3, chance: 45, icon: "🏆" },
             { item: "🛡️ Защита", quantity: 2, chance: 35, icon: "🛡️" }
-        ]
-    },
-    10000: {
-        name: "Мифическая шкатулка",
-        price: 10000,
-        rewards: [
-            { item: "💰 Игровая валюта", quantity: 2500, chance: 100, icon: "💰" },
-            { item: "💎 Редкие кристаллы", quantity: 12, chance: 95, icon: "💎" },
-            { item: "🔑 Ключи", quantity: 8, chance: 80, icon: "🔑" },
-            { item: "🏆 Трофеи", quantity: 5, chance: 60, icon: "🏆" },
-            { item: "🛡️ Защита", quantity: 3, chance: 45, icon: "🛡️" }
         ]
     }
 };
