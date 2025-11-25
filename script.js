@@ -20,7 +20,7 @@ class UserDatabase {
                 inventory: {}, // ПУСТОЙ ИНВЕНТАРЬ
                 cases: {},
                 casesOpened: 0,
-                lastFreeCase: 0,
+                lastFreeCase: 0, // Время последнего открытия бесплатного кейса
                 achievements: ['Новичок'],
                 level: 1,
                 experience: 0,
@@ -108,7 +108,25 @@ class UserDatabase {
         const now = Date.now();
         const lastOpen = this.userData.lastFreeCase;
         const twentyFourHours = 24 * 60 * 60 * 1000;
-        return (now - lastOpen) >= twentyFourHours;
+        
+        // Если никогда не открывали или прошло больше 24 часов
+        if (lastOpen === 0 || (now - lastOpen) >= twentyFourHours) {
+            return true;
+        }
+        return false;
+    }
+
+    getFreeCaseCooldown() {
+        const now = Date.now();
+        const lastOpen = this.userData.lastFreeCase;
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        if (lastOpen === 0) return 0;
+        
+        const timePassed = now - lastOpen;
+        const timeRemaining = twentyFourHours - timePassed;
+        
+        return timeRemaining > 0 ? timeRemaining : 0;
     }
 
     openFreeCase() {
@@ -183,6 +201,7 @@ const userDB = new UserDatabase();
 let currentPage = 'home';
 let isAnimating = false;
 let currentCaseModal = null;
+let freeCaseTimerInterval = null;
 
 // Кэшируем элементы для производительности
 const elements = {
@@ -204,6 +223,9 @@ const elements = {
     resultItemName: document.getElementById('resultItemName'),
     resultItemQuantity: document.getElementById('resultItemQuantity'),
     buttons: document.querySelectorAll('.nav-button'),
+    freeCaseBtn: document.getElementById('freeCaseBtn'),
+    freeCaseTimer: document.getElementById('freeCaseTimer'),
+    freeCaseTimerDisplay: document.getElementById('freeCaseTimerDisplay'),
     // Элементы профиля
     profileName: document.getElementById('profileName'),
     profileLevel: document.getElementById('profileLevel'),
@@ -306,6 +328,49 @@ const achievementsData = [
     { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" }
 ];
 
+// Функция для форматирования времени
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Функция для обновления таймера бесплатного кейса
+function updateFreeCaseTimer() {
+    const cooldown = userDB.getFreeCaseCooldown();
+    
+    if (cooldown > 0) {
+        // Показываем таймер и скрываем кнопку
+        elements.freeCaseBtn.style.display = 'none';
+        elements.freeCaseTimer.style.display = 'block';
+        elements.freeCaseTimerDisplay.textContent = formatTime(cooldown);
+    } else {
+        // Скрываем таймер и показываем кнопку
+        elements.freeCaseBtn.style.display = 'block';
+        elements.freeCaseTimer.style.display = 'none';
+        
+        // Останавливаем интервал если таймер закончился
+        if (freeCaseTimerInterval) {
+            clearInterval(freeCaseTimerInterval);
+            freeCaseTimerInterval = null;
+        }
+    }
+}
+
+// Запуск таймера бесплатного кейса
+function startFreeCaseTimer() {
+    // Обновляем сразу
+    updateFreeCaseTimer();
+    
+    // Запускаем интервал только если таймер активен
+    if (userDB.getFreeCaseCooldown() > 0 && !freeCaseTimerInterval) {
+        freeCaseTimerInterval = setInterval(updateFreeCaseTimer, 1000);
+    }
+}
+
 // Функция смены страницы
 function changePage(page) {
     if (isAnimating || currentPage === page) return;
@@ -353,6 +418,7 @@ function switchContent(page) {
         case 'roulette':
             elements.rouletteContent.style.display = 'block';
             updateBalanceDisplay();
+            startFreeCaseTimer(); // Запускаем таймер при переходе на страницу рулетки
             break;
         case 'tasks':
             elements.tasksContent.style.display = 'block';
@@ -530,6 +596,16 @@ function openCaseModal(price, action) {
     const caseData = casesData[price];
     if (!caseData) return;
     
+    // Для бесплатного кейса проверяем кулдаун
+    if (price === 0 && !userDB.canOpenFreeCase()) {
+        tg.showPopup({
+            title: '⏰ Бесплатный кейс недоступен',
+            message: 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!',
+            buttons: [{ type: 'ok' }]
+        });
+        return;
+    }
+    
     currentCaseModal = { price, action };
     
     elements.caseModalTitle.textContent = caseData.name;
@@ -598,10 +674,26 @@ function openCase(price) {
         return;
     }
     
+    // Для бесплатного кейса проверяем кулдаун еще раз
+    if (price === 0 && !userDB.canOpenFreeCase()) {
+        tg.showPopup({
+            title: '⏰ Бесплатный кейс недоступен',
+            message: 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!',
+            buttons: [{ type: 'ok' }]
+        });
+        return;
+    }
+    
     // Снимаем деньги с баланса для платных кейсов
     if (price > 0) {
         userDB.updateBalance(-price);
         updateBalanceDisplay();
+    }
+    
+    // Для бесплатного кейса записываем время открытия
+    if (price === 0) {
+        userDB.openFreeCase();
+        startFreeCaseTimer(); // Запускаем таймер после открытия
     }
     
     // Отключаем кнопки во время анимации
@@ -774,6 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateBalanceDisplay();
     updateProfile();
+    startFreeCaseTimer(); // Запускаем таймер при загрузке
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
