@@ -66,9 +66,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(0, 'open')">
+                        <button class="buy-case-btn free-case-btn" id="freeCaseBtn" onclick="event.stopPropagation(); openCaseModal(0, 'open')">
                             Открыть
                         </button>
+                        <div class="timer-container" id="freeCaseTimer" style="display: none;">
+                            <div class="timer-text">Доступно через:</div>
+                            <div class="timer" id="freeCaseTimerDisplay">24:00:00</div>
+                        </div>
                     </div>
                     
                     <!-- Кейс Бомж -->
