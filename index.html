@@ -50,11 +50,13 @@
                     </div>
                 </div>
                 
-                <!-- Кейсы в виде квадратов -->
+                <!-- Новые кейсы с картинками -->
                 <div class="cases-grid">
                     <!-- Бесплатный кейс -->
                     <div class="case-square free" onclick="openCaseModal(0, 'open')">
-                        <div class="case-image">🎁</div>
+                        <div class="case-image">
+                            <img src="images/result_free.PNG" alt="Бесплатный кейс">
+                        </div>
                         <div class="case-info">
                             <div class="case-name">Бесплатный кейс</div>
                             <div class="case-price-container">
@@ -69,11 +71,108 @@
                         </button>
                     </div>
                     
-                    <!-- Начальный набор -->
-                    <div class="case-square" onclick="openCaseModal(500, 'open')">
-                        <div class="case-image">📦</div>
+                    <!-- Кейс Бомж -->
+                    <div class="case-square bomj" onclick="openCaseModal(50, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_bomg.PNG" alt="Кейс Бомж">
+                        </div>
                         <div class="case-info">
-                            <div class="case-name">Начальный набор</div>
+                            <div class="case-name">Кейс Бомж</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">50</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(50, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Кейс Чемпион -->
+                    <div class="case-square champion" onclick="openCaseModal(100, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_chem.PNG" alt="Кейс Чемпион">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Кейс Чемпион</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Pepe фарм -->
+                    <div class="case-square pepe" onclick="openCaseModal(200, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_pepe.PNG" alt="Pepe фарм">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Pepe фарм</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">200</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Cap фарм -->
+                    <div class="case-square cap" onclick="openCaseModal(200, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_cap.PNG" alt="Cap фарм">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Cap фарм</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">200</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Кейс БизнесМем -->
+                    <div class="case-square business" onclick="openCaseModal(350, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_biznes mem.PNG" alt="Кейс БизнесМем">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">БизнесМем</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">350</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(350, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Кейс Рабочий -->
+                    <div class="case-square worker" onclick="openCaseModal(500, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_rab.PNG" alt="Кейс Рабочий">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Кейс Рабочий</div>
                             <div class="case-price-container">
                                 <div class="case-price-oval">
                                     <span class="star-icon">⭐</span>
@@ -86,11 +185,13 @@
                         </button>
                     </div>
                     
-                    <!-- Золотой сундук -->
-                    <div class="case-square premium" onclick="openCaseModal(1000, 'open')">
-                        <div class="case-image">🎁</div>
+                    <!-- Кейс Элита -->
+                    <div class="case-square elite" onclick="openCaseModal(1000, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_elita.PNG" alt="Кейс Элита">
+                        </div>
                         <div class="case-info">
-                            <div class="case-name">Золотой сундук</div>
+                            <div class="case-name">Кейс Элита</div>
                             <div class="case-price-container">
                                 <div class="case-price-oval">
                                     <span class="star-icon">⭐</span>
@@ -99,57 +200,6 @@
                             </div>
                         </div>
                         <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
-                            Купить
-                        </button>
-                    </div>
-                    
-                    <!-- Эпический ларец -->
-                    <div class="case-square epic" onclick="openCaseModal(2500, 'open')">
-                        <div class="case-image">💎</div>
-                        <div class="case-info">
-                            <div class="case-name">Эпический ларец</div>
-                            <div class="case-price-container">
-                                <div class="case-price-oval">
-                                    <span class="star-icon">⭐</span>
-                                    <span class="case-price">2500</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(2500, 'open')">
-                            Купить
-                        </button>
-                    </div>
-                    
-                    <!-- Легендарный артефакт -->
-                    <div class="case-square legendary" onclick="openCaseModal(5000, 'open')">
-                        <div class="case-image">🔥</div>
-                        <div class="case-info">
-                            <div class="case-name">Легендарный артефакт</div>
-                            <div class="case-price-container">
-                                <div class="case-price-oval">
-                                    <span class="star-icon">⭐</span>
-                                    <span class="case-price">5000</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(5000, 'open')">
-                            Купить
-                        </button>
-                    </div>
-                    
-                    <!-- Мифическая шкатулка -->
-                    <div class="case-square mythic" onclick="openCaseModal(10000, 'open')">
-                        <div class="case-image">🌟</div>
-                        <div class="case-info">
-                            <div class="case-name">Мифическая шкатулка</div>
-                            <div class="case-price-container">
-                                <div class="case-price-oval">
-                                    <span class="star-icon">⭐</span>
-                                    <span class="case-price">10000</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(10000, 'open')">
                             Купить
                         </button>
                     </div>
