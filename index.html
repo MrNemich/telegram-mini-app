@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>NFT Case Game</title>
+    <title>Telegram App</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -15,31 +15,31 @@
         <!-- Контент для Главной страницы -->
         <div class="content" id="home-content">
             <h1>🏠 Главная</h1>
-            <p>Добро пожаловать в NFT игру! Открывайте кейсы и получайте уникальные предметы</p>
+            <p>Добро пожаловать в игру! Открывайте кейсы и получайте награды</p>
             
             <div class="news-container">
                 <div class="news-card">
                     <div class="news-header">
-                        <h3 class="news-title">Новые NFT кейсы уже доступны! V2.0</h3>
-                        <span class="news-date">26.11.2025</span>
+                        <h3 class="news-title">Разработка бота началась. V1.0</h3>
+                        <span class="news-date">23.11.2025</span>
                     </div>
                     <div class="news-preview">
-                        В нашем боте начали выходить новые кейсы с уникальными NFT предметами. Начиная от мишек заканчивая редкими Пепе...
+                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.
                     </div>
-                    <button class="read-more-btn" onclick="openNewsModal('new_cases')">
+                    <button class="read-more-btn" onclick="openNewsModal('news1')">
                         Показать полный текст
                     </button>
                 </div>
 
                 <div class="news-card">
                     <div class="news-header">
-                        <h3 class="news-title">Запуск NFT платформы V1.0</h3>
-                        <span class="news-date">23.11.2025</span>
+                        <h3 class="news-title">Новые кейсы уже доступны!</h3>
+                        <span class="news-date">26.11.2025</span>
                     </div>
                     <div class="news-preview">
-                        Мы запустили первую версию нашей NFT платформы! Теперь вы можете собирать, продавать и выводить уникальные предметы...
+                        В нашем боте начали выходить новые кейсы, где доступны разнообразные подарки. Начиная от мишек заканчивая до Пепе.
                     </div>
-                    <button class="read-more-btn" onclick="openNewsModal('development')">
+                    <button class="read-more-btn" onclick="openNewsModal('news2')">
                         Показать полный текст
                     </button>
                 </div>
@@ -53,7 +53,6 @@
                 <div class="balance-container">
                     <div class="balance-title">
                         <div class="balance-text">Ваш баланс</div>
-                        <div class="balance-stats">Открыто кейсов: <span id="openedCases">0</span></div>
                     </div>
                     <div class="balance-amount-container">
                         <div class="balance-amount">
@@ -64,10 +63,10 @@
                     </div>
                 </div>
                 
-                <!-- Кейсы -->
+                <!-- Новые кейсы с картинками -->
                 <div class="cases-grid">
                     <!-- Бесплатный кейс -->
-                    <div class="case-square free" onclick="openCaseModal(0)">
+                    <div class="case-square free" onclick="openCaseModal(0, 'open')">
                         <div class="case-image">
                             <img src="images/result_free.PNG" alt="Бесплатный кейс">
                         </div>
@@ -80,7 +79,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn free-case-btn" id="freeCaseBtn" onclick="event.stopPropagation(); openCaseModal(0)">
+                        <button class="buy-case-btn free-case-btn" id="freeCaseBtn" onclick="event.stopPropagation(); openCaseModal(0, 'open')">
                             Открыть
                         </button>
                         <div class="timer-container" id="freeCaseTimer" style="display: none;">
@@ -90,7 +89,7 @@
                     </div>
                     
                     <!-- Кейс Бомж -->
-                    <div class="case-square bomj" onclick="openCaseModal(50)">
+                    <div class="case-square bomj" onclick="openCaseModal(50, 'open')">
                         <div class="case-image">
                             <img src="images/result_bomg.PNG" alt="Кейс Бомж">
                         </div>
@@ -103,13 +102,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(50)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(50, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Чемпион -->
-                    <div class="case-square champion" onclick="openCaseModal(100)">
+                    <div class="case-square champion" onclick="openCaseModal(100, 'open')">
                         <div class="case-image">
                             <img src="images/result_chem.PNG" alt="Кейс Чемпион">
                         </div>
@@ -122,13 +121,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Эконом -->
-                    <div class="case-square econom" onclick="openCaseModal(180)">
+                    <div class="case-square economy" onclick="openCaseModal(180, 'open')">
                         <div class="case-image">
                             <img src="images/result_IMG_4282.PNG" alt="Кейс Эконом">
                         </div>
@@ -141,13 +140,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(180)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(180, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Pepe фарм -->
-                    <div class="case-square pepe" onclick="openCaseModal(200)">
+                    <div class="case-square pepe" onclick="openCaseModal(200, 'open')">
                         <div class="case-image">
                             <img src="images/result_pepe.PNG" alt="Pepe фарм">
                         </div>
@@ -160,13 +159,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Cap фарм -->
-                    <div class="case-square cap" onclick="openCaseModal(200)">
+                    <div class="case-square cap" onclick="openCaseModal(200, 'open')">
                         <div class="case-image">
                             <img src="images/result_cap.PNG" alt="Cap фарм">
                         </div>
@@ -179,13 +178,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс БизнесМем -->
-                    <div class="case-square business" onclick="openCaseModal(350)">
+                    <div class="case-square business" onclick="openCaseModal(350, 'open')">
                         <div class="case-image">
                             <img src="images/result_biznes mem.PNG" alt="Кейс БизнесМем">
                         </div>
@@ -198,13 +197,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(350)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(350, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Рабочий -->
-                    <div class="case-square worker" onclick="openCaseModal(500)">
+                    <div class="case-square worker" onclick="openCaseModal(500, 'open')">
                         <div class="case-image">
                             <img src="images/result_rab.PNG" alt="Кейс Рабочий">
                         </div>
@@ -217,13 +216,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(500)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(500, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Элита -->
-                    <div class="case-square elite" onclick="openCaseModal(1000)">
+                    <div class="case-square elite" onclick="openCaseModal(1000, 'open')">
                         <div class="case-image">
                             <img src="images/result_elita.PNG" alt="Кейс Элита">
                         </div>
@@ -236,13 +235,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Премиум -->
-                    <div class="case-square premium" onclick="openCaseModal(1000)">
+                    <div class="case-square premium" onclick="openCaseModal(1000, 'open')">
                         <div class="case-image">
                             <img src="images/result_IMG_4162 (2).PNG" alt="Кейс Премиум">
                         </div>
@@ -255,7 +254,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000)">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
                             Купить
                         </button>
                     </div>
@@ -269,8 +268,90 @@
             <p>Выполняйте задания и получайте награды</p>
             
             <div class="tasks-container">
-                <div class="tasks-list" id="tasksList">
-                    <!-- Задания будут загружены через JavaScript -->
+                <div class="tasks-list">
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🎯 Первые шаги</div>
+                            <div class="task-reward">⭐ +50</div>
+                        </div>
+                        <div class="task-description">
+                            Откройте свой первый кейс в игре
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="firstStepsProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="firstStepsBtn" onclick="completeTask('first_steps', 50)">Выполнить</button>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">💰 Накопитель</div>
+                            <div class="task-reward">⭐ +100</div>
+                        </div>
+                        <div class="task-description">
+                            Накопите 500 звёзд на балансе
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="saverProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="saverBtn" onclick="completeTask('saver', 100)">Выполнить</button>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🏆 Коллекционер</div>
+                            <div class="task-reward">⭐ +200</div>
+                        </div>
+                        <div class="task-description">
+                            Соберите 5 различных предметов
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="collectorProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="collectorBtn" onclick="completeTask('collector', 200)">Выполнить</button>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🚀 Быстрый старт</div>
+                            <div class="task-reward">⭐ +150</div>
+                        </div>
+                        <div class="task-description">
+                            Откройте 3 кейса за один день
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="fastStartProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="fastStartBtn" onclick="completeTask('fast_start', 150)">Выполнить</button>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">💎 Редкий охотник</div>
+                            <div class="task-reward">⭐ +300</div>
+                        </div>
+                        <div class="task-description">
+                            Получите 1 редкий предмет
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="rareHunterProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="rareHunterBtn" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-header">
+                            <div class="task-title">🌟 Легенда</div>
+                            <div class="task-reward">⭐ +500</div>
+                        </div>
+                        <div class="task-description">
+                            Достигните 3 уровня
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" id="legendProgress" style="width: 0%"></div>
+                        </div>
+                        <button class="task-button" id="legendBtn" onclick="completeTask('legend', 500)">Выполнить</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -287,7 +368,6 @@
                         <div class="profile-info">
                             <h3 id="profileName">Игрок</h3>
                             <p>Уровень: <span id="profileLevel">1</span></p>
-                            <p>Опыт: <span id="profileExp">0</span>/<span id="profileExpNeeded">100</span></p>
                         </div>
                     </div>
                     
@@ -312,18 +392,9 @@
                 </div>
 
                 <!-- Промокод -->
-                <div class="promo-section">
-                    <div class="section-title">
-                        <span>🎁 Промокоды</span>
-                        <button class="info-btn" onclick="showPromoInfo()">ℹ️</button>
-                    </div>
-                    <div class="promo-container">
-                        <input type="text" id="promoCodeInput" placeholder="Введите промокод" class="promo-input">
-                        <button class="promo-button" onclick="activatePromoCode()">Активировать</button>
-                    </div>
-                    <div class="active-promos" id="activePromos">
-                        <!-- Активные промокоды -->
-                    </div>
+                <div class="promo-container">
+                    <input type="text" id="promoCodeInput" placeholder="Введите промокод" class="promo-input">
+                    <button class="promo-button" onclick="activatePromoCode()">Активировать</button>
                 </div>
 
                 <!-- Кнопка инвентаря -->
@@ -344,17 +415,51 @@
         </div>
     </div>
 
-    <!-- Модальное окно новости -->
-    <div class="news-modal" id="newsModal">
+    <!-- Модальное окно новости 1 -->
+    <div class="news-modal" id="newsModal1">
         <div class="modal-content">
             <button class="close-modal" onclick="closeNewsModal()">×</button>
             <div class="modal-header">
-                <h2 class="modal-title" id="newsModalTitle">Заголовок новости</h2>
-                <div class="modal-date" id="newsModalDate">дата</div>
+                <h2 class="modal-title">Разработка бота началась. V1.0</h2>
+                <div class="modal-date">23.11.2025</div>
             </div>
             <div class="modal-body">
-                <div class="modal-text" id="newsModalText">
-                    <!-- Текст новости -->
+                <div class="modal-text">
+                    <p><strong>Разработка нашего бота началась.</strong> Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.</p>
+                    
+                    <p>Мы надеемся что бот подарит вам много впечатлений как и нам. Спасибо за ваше будущее использование.</p>
+
+                    <p><strong>🎁 Промокод:</strong> Используйте код <strong>Free2025</strong> чтобы получить 10 звёзд на баланс!</p>
+                    
+                    <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
+                        🚀 Следите за обновлениями! 🚀
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно новости 2 -->
+    <div class="news-modal" id="newsModal2">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeNewsModal()">×</button>
+            <div class="modal-header">
+                <h2 class="modal-title">Новые кейсы уже доступны!</h2>
+                <div class="modal-date">26.11.2025</div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-text">
+                    <p><strong>В нашем боте начали выходить новые кейсы, где доступны разнообразные подарки.</strong> Начиная от мишек заканчивая до Пепе.</p>
+                    
+                    <p>Теперь вы можете открывать кейсы с уникальными NFT-предметами, каждый из которых имеет свою ценность. Собирайте коллекции, продавайте предметы или выводите их!</p>
+                    
+                    <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
+                        🎁 Удачи в открытиях! 🎁
+                    </p>
+
+                    <p style="text-align: center; margin-top: 15px;">
+                        Спасибо за использование нашего бота!
+                    </p>
                 </div>
             </div>
         </div>
@@ -365,78 +470,11 @@
         <div class="inventory-modal-content">
             <div class="inventory-modal-header">
                 <h2 class="inventory-modal-title">📦 Мой инвентарь</h2>
-                <div class="inventory-stats">
-                    <span>Предметов: <span id="inventoryCount">0</span></span>
-                    <span>Общая стоимость: <span id="inventoryValue">0</span> ⭐</span>
-                </div>
-            </div>
-            <div class="inventory-filters">
-                <button class="filter-btn active" onclick="filterInventory('all')">Все</button>
-                <button class="filter-btn" onclick="filterInventory('common')">Обычные</button>
-                <button class="filter-btn" onclick="filterInventory('rare')">Редкие</button>
-                <button class="filter-btn" onclick="filterInventory('epic')">Эпические</button>
             </div>
             <div class="inventory-items" id="inventoryItems">
                 <!-- Предметы будут загружены через JavaScript -->
             </div>
             <button class="close-modal" onclick="closeInventory()" style="position: absolute; top: 16px; right: 16px;">×</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно предмета -->
-    <div class="item-modal" id="itemModal">
-        <div class="item-modal-content">
-            <div class="item-modal-header">
-                <div class="item-icon" id="itemModalIcon">🎁</div>
-                <div class="item-info">
-                    <h3 id="itemModalName">Название предмета</h3>
-                    <p id="itemModalValue">Стоимость: 0 ⭐</p>
-                    <p id="itemModalRarity">Редкость: Обычный</p>
-                </div>
-            </div>
-            <div class="item-modal-actions">
-                <button class="item-action-btn withdraw-btn" onclick="withdrawItem()">
-                    <span>📤</span> Вывести
-                </button>
-                <button class="item-action-btn sell-btn" onclick="sellItem()">
-                    <span>💰</span> Продать
-                </button>
-                <button class="item-action-btn cancel-btn" onclick="closeItemModal()">
-                    <span>❌</span> Отмена
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно вывода -->
-    <div class="withdraw-modal" id="withdrawModal">
-        <div class="withdraw-modal-content">
-            <div class="withdraw-modal-header">
-                <h2>📤 Вывод NFT</h2>
-            </div>
-            <div class="withdraw-modal-body">
-                <div class="withdraw-item-info">
-                    <div id="withdrawItemIcon" class="item-icon">🎁</div>
-                    <div>
-                        <h4 id="withdrawItemName">Название предмета</h4>
-                        <p id="withdrawItemValue">Стоимость: 0 ⭐</p>
-                    </div>
-                </div>
-                <p>Введите ваш username для вывода:</p>
-                <input type="text" id="usernameInput" placeholder="@username" class="username-input">
-                <p class="withdraw-info">
-                    💡 После подтверждения админом NFT будет передан на ваш аккаунт.<br>
-                    ⏱️ Обычно это занимает до 24 часов.
-                </p>
-            </div>
-            <div class="withdraw-modal-actions">
-                <button class="withdraw-confirm-btn" onclick="confirmWithdraw()">
-                    <span>✅</span> Подтвердить вывод
-                </button>
-                <button class="withdraw-cancel-btn" onclick="closeWithdrawModal()">
-                    <span>❌</span> Отмена
-                </button>
-            </div>
         </div>
     </div>
 
@@ -446,10 +484,6 @@
             <div class="case-modal-header">
                 <h2 class="case-modal-title" id="caseModalTitle">Открытие кейса</h2>
                 <div class="case-modal-price" id="caseModalPrice">Цена: 100 ⭐</div>
-            </div>
-            
-            <div class="case-preview" id="casePreview">
-                <!-- Превью предметов кейса -->
             </div>
             
             <div class="case-items-container">
@@ -475,58 +509,38 @@
                 <div class="firework"></div>
                 <div class="firework"></div>
             </div>
-            <div class="result-header">
-                <div class="result-gift" id="resultGift">🎁</div>
-                <div class="result-title">🎉 Поздравляем!</div>
+            <div class="result-item-image" id="resultItemImage">
+                <img src="" alt="Выигрыш" id="resultItemImg">
             </div>
-            <div class="result-body">
-                <div class="result-message">Вам выпал:</div>
-                <div class="result-item" id="resultItemName">NFT Предмет</div>
-                <div class="result-rarity" id="resultItemRarity">⚡ Редкий</div>
-                <div class="result-quantity" id="resultItemQuantity">Стоимость: 100 ⭐</div>
-            </div>
-            <button class="success-btn" onclick="closeResultModal()">
-                <span>🎯</span> Отлично!
-            </button>
+            <div class="result-title">🎉 Поздравляем!</div>
+            <div class="result-message">Вам выпал:</div>
+            <div class="result-item" id="resultItemName">💰 Игровая валюта</div>
+            <div class="result-price" id="resultItemPrice">Цена при продаже: 100 ⭐</div>
+            <button class="success-btn" onclick="closeResultModal()">Отлично!</button>
         </div>
     </div>
 
-    <!-- Модальное окно информации о промокодах -->
-    <div class="info-modal" id="promoInfoModal">
-        <div class="info-modal-content">
-            <div class="info-modal-header">
-                <h2>ℹ️ Информация о промокодах</h2>
+    <!-- Модальное окно вывода -->
+    <div class="withdraw-modal" id="withdrawModal">
+        <div class="withdraw-modal-content">
+            <div class="withdraw-modal-header">
+                <h2 class="withdraw-modal-title">📤 Вывод предмета</h2>
             </div>
-            <div class="info-modal-body">
-                <div class="info-section">
-                    <h3>🎁 Как работают промокоды?</h3>
-                    <p>Промокоды дают бонусные звёзды за активацию. Вводите их в поле выше и нажимайте "Активировать".</p>
-                </div>
-                <div class="info-section">
-                    <h3>⭐ Доступные промокоды</h3>
-                    <div class="promo-list">
-                        <div class="promo-item">
-                            <span class="promo-code">FREE2025</span>
-                            <span class="promo-reward">+10 ⭐</span>
-                        </div>
-                        <div class="promo-item">
-                            <span class="promo-code">WELCOME</span>
-                            <span class="promo-reward">+50 ⭐</span>
-                        </div>
-                        <div class="promo-item">
-                            <span class="promo-code">NFTGAME</span>
-                            <span class="promo-reward">+100 ⭐</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-section">
-                    <h3>💡 Советы</h3>
-                    <p>• Следите за новостями - там публикуются новые промокоды</p>
-                    <p>• Каждый промокод можно активировать только один раз</p>
-                    <p>• Промокоды имеют ограниченный срок действия</p>
+            <div class="withdraw-item-info">
+                <img src="" alt="Предмет" id="withdrawItemImage">
+                <div class="withdraw-item-details">
+                    <div class="withdraw-item-name" id="withdrawItemName"></div>
+                    <div class="withdraw-item-price" id="withdrawItemPrice"></div>
                 </div>
             </div>
-            <button class="info-close-btn" onclick="closePromoInfo()">Понятно!</button>
+            <div class="withdraw-form">
+                <input type="text" id="usernameInput" placeholder="Введите ваш @username" class="username-input">
+                <div class="withdraw-actions">
+                    <button class="withdraw-confirm-btn" onclick="confirmWithdraw()">Подтвердить вывод</button>
+                    <button class="withdraw-cancel-btn" onclick="closeWithdrawModal()">Отмена</button>
+                </div>
+            </div>
+            <button class="close-modal" onclick="closeWithdrawModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
@@ -539,7 +553,7 @@
         
         <button class="nav-button" onclick="changePage('roulette')" data-page="roulette">
             <div class="nav-icon">🎰</div>
-            <div class="nav-text">Кейсы</div>
+            <div class="nav-text">Рулетка</div>
         </button>
         
         <button class="nav-button" onclick="changePage('tasks')" data-page="tasks">
