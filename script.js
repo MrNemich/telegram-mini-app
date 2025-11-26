@@ -36,7 +36,8 @@ class UserDatabase {
                 },
                 usedPromoCodes: [],
                 dailyCasesOpened: 0,
-                lastDailyReset: Date.now()
+                lastDailyReset: Date.now(),
+                uniqueItemsCollected: 0
             };
             this.saveUserData();
         }
@@ -77,15 +78,31 @@ class UserDatabase {
     }
 
     addToInventory(item, image, sellPrice) {
+        const wasNewItem = !this.userData.inventory[item];
+        
         if (!this.userData.inventory[item]) {
             this.userData.inventory[item] = {
                 quantity: 0,
                 image: image,
                 sellPrice: sellPrice
             };
+            // Увеличиваем счетчик уникальных предметов
+            if (wasNewItem) {
+                this.userData.uniqueItemsCollected++;
+            }
         }
         this.userData.inventory[item].quantity += 1;
         this.saveUserData();
+        
+        // Проверяем достижение коллекционера
+        if (this.userData.uniqueItemsCollected >= 5) {
+            this.addAchievement('Коллекционер');
+        }
+        
+        // Проверяем достижение редкого охотника
+        if (sellPrice > 500) {
+            this.addAchievement('Редкий охотник');
+        }
     }
 
     removeFromInventory(item) {
@@ -93,6 +110,7 @@ class UserDatabase {
             this.userData.inventory[item].quantity -= 1;
             if (this.userData.inventory[item].quantity <= 0) {
                 delete this.userData.inventory[item];
+                this.userData.uniqueItemsCollected--;
             }
             this.saveUserData();
             return true;
@@ -128,12 +146,43 @@ class UserDatabase {
         this.userData.lastFreeCase = Date.now();
         this.userData.casesOpened++;
         this.userData.dailyCasesOpened++;
+        
+        // Проверяем достижение первых шагов
+        if (this.userData.casesOpened === 1) {
+            this.addAchievement('Первые шаги');
+        }
+        
         this.saveUserData();
     }
 
     openPaidCase() {
         this.userData.casesOpened++;
         this.userData.dailyCasesOpened++;
+        
+        // Проверяем достижение первых шагов
+        if (this.userData.casesOpened === 1) {
+            this.addAchievement('Первые шаги');
+        }
+        
+        this.saveUserData();
+    }
+
+    addExperience(amount) {
+        this.userData.experience += amount;
+        const expNeeded = this.userData.level * 100;
+        
+        if (this.userData.experience >= expNeeded) {
+            this.userData.level++;
+            this.userData.experience = 0;
+            
+            // Проверяем достижения уровней
+            if (this.userData.level >= 3) {
+                this.addAchievement('Легенда');
+            }
+            if (this.userData.level >= 5) {
+                this.addAchievement('Опытный');
+            }
+        }
         this.saveUserData();
     }
 
@@ -146,7 +195,8 @@ class UserDatabase {
             userId: this.userId,
             username: this.userData.username,
             firstName: this.userData.firstName,
-            inventoryCount: Object.keys(this.userData.inventory).length
+            inventoryCount: Object.keys(this.userData.inventory).length,
+            uniqueItemsCollected: this.userData.uniqueItemsCollected
         };
     }
 
@@ -174,6 +224,12 @@ class UserDatabase {
         if (!this.userData.achievements.includes(achievement)) {
             this.userData.achievements.push(achievement);
             this.saveUserData();
+            
+            // Показываем уведомление о новом достижении
+            if (window.showAchievementNotification) {
+                window.showAchievementNotification(achievement);
+            }
+            
             return true;
         }
         return false;
@@ -193,6 +249,63 @@ class UserDatabase {
     }
 }
 
+// Глобальная база данных для заявок на вывод
+class WithdrawDatabase {
+    constructor() {
+        this.storageKey = 'withdraw_requests';
+        this.loadData();
+    }
+
+    loadData() {
+        const savedData = localStorage.getItem(this.storageKey);
+        this.requests = savedData ? JSON.parse(savedData) : [];
+    }
+
+    saveData() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.requests));
+    }
+
+    addRequest(userId, username, itemName, itemImage, itemPrice) {
+        const request = {
+            id: Date.now().toString(),
+            userId: userId,
+            username: username,
+            itemName: itemName,
+            itemImage: itemImage,
+            itemPrice: itemPrice,
+            timestamp: Date.now(),
+            status: 'pending'
+        };
+        this.requests.unshift(request); // Добавляем в начало
+        this.saveData();
+        return request;
+    }
+
+    getRequests() {
+        return this.requests.filter(request => request.status === 'pending');
+    }
+
+    completeRequest(requestId) {
+        const request = this.requests.find(r => r.id === requestId);
+        if (request) {
+            request.status = 'completed';
+            this.saveData();
+            return true;
+        }
+        return false;
+    }
+
+    getUserById(userId) {
+        // В реальном приложении здесь был бы запрос к серверу
+        // Для демо версии просто возвращаем тестовые данные
+        return {
+            userId: userId,
+            username: `@user${userId}`,
+            firstName: `User ${userId}`
+        };
+    }
+}
+
 // Инициализируем приложение
 tg.ready();
 tg.expand();
@@ -202,8 +315,9 @@ tg.enableClosingConfirmation();
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
-// Инициализация базы данных
+// Инициализация баз данных
 const userDB = new UserDatabase();
+const withdrawDB = new WithdrawDatabase();
 
 // Текущая активная страница
 let currentPage = 'home';
@@ -211,6 +325,7 @@ let isAnimating = false;
 let currentCaseModal = null;
 let freeCaseTimerInterval = null;
 let currentWithdrawItem = null;
+let selectedRewardIndex = null;
 
 // Кэшируем элементы для производительности
 const elements = {
@@ -224,6 +339,10 @@ const elements = {
     inventoryModal: document.getElementById('inventoryModal'),
     resultModal: document.getElementById('resultModal'),
     withdrawModal: document.getElementById('withdrawModal'),
+    consoleModal: document.getElementById('consoleModal'),
+    adminModal: document.getElementById('adminModal'),
+    withdrawRequestsModal: document.getElementById('withdrawRequestsModal'),
+    userSearchModal: document.getElementById('userSearchModal'),
     starsBalance: document.getElementById('starsBalance'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
@@ -237,6 +356,11 @@ const elements = {
     withdrawItemName: document.getElementById('withdrawItemName'),
     withdrawItemPrice: document.getElementById('withdrawItemPrice'),
     usernameInput: document.getElementById('usernameInput'),
+    consoleInput: document.getElementById('consoleInput'),
+    consoleOutput: document.getElementById('consoleOutput'),
+    withdrawRequestsList: document.getElementById('withdrawRequestsList'),
+    userIdInput: document.getElementById('userIdInput'),
+    userInfo: document.getElementById('userInfo'),
     buttons: document.querySelectorAll('.nav-button'),
     freeCaseBtn: document.getElementById('freeCaseBtn'),
     freeCaseTimer: document.getElementById('freeCaseTimer'),
@@ -268,7 +392,7 @@ const elements = {
 
 // Данные кейсов с реальными призами
 const casesData = {
-    0: {
+    free: {
         name: "Бесплатный кейс",
         price: 0,
         rewards: [
@@ -278,7 +402,7 @@ const casesData = {
             { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 25 }
         ]
     },
-    50: {
+    bomj: {
         name: "Кейс Бомж",
         price: 50,
         rewards: [
@@ -292,7 +416,7 @@ const casesData = {
             { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 2.47 }
         ]
     },
-    100: {
+    champion: {
         name: "Кейс Чемпион",
         price: 100,
         rewards: [
@@ -306,7 +430,7 @@ const casesData = {
             { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 9.19 }
         ]
     },
-    180: {
+    economy: {
         name: "Кейс Эконом",
         price: 180,
         rewards: [
@@ -319,7 +443,7 @@ const casesData = {
             { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 16.885 }
         ]
     },
-    200: {
+    pepe: {
         name: "Pepe фарм",
         price: 200,
         rewards: [
@@ -327,7 +451,15 @@ const casesData = {
             { item: "Plush Pepe", image: "nft/пепе.png", sellPrice: 1000000, chance: 0.1 }
         ]
     },
-    350: {
+    cap: {
+        name: "Cap фарм",
+        price: 200,
+        rewards: [
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 99.9 },
+            { item: "Durov's Cap", image: "nft/кепка.png", sellPrice: 100000, chance: 0.1 }
+        ]
+    },
+    business: {
         name: "БизнесМем",
         price: 350,
         rewards: [
@@ -352,7 +484,7 @@ const casesData = {
             { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 0.50 }
         ]
     },
-    500: {
+    worker: {
         name: "Кейс Рабочий",
         price: 500,
         rewards: [
@@ -373,7 +505,7 @@ const casesData = {
             { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 4.39 }
         ]
     },
-    1000: {
+    elite: {
         name: "Кейс Элита",
         price: 1000,
         rewards: [
@@ -394,41 +526,29 @@ const casesData = {
             { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 5.36 },
             { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 5.22 }
         ]
+    },
+    premium: {
+        name: "Кейс Премиум",
+        price: 1000,
+        rewards: [
+            { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 13.75 },
+            { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 10.44 },
+            { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 5.78 },
+            { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 8.94 },
+            { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 7.19 },
+            { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 7.93 },
+            { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 5.78 },
+            { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 4.74 },
+            { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 4.95 },
+            { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 6.16 },
+            { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 3.49 },
+            { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 3.13 },
+            { item: "Eternal Rose", image: "nft/роза в стекле.png", sellPrice: 1800, chance: 3.98 },
+            { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 3.76 },
+            { item: "Low Rider", image: "nft/снуп машина.png", sellPrice: 3500, chance: 2.78 },
+            { item: "Toy Bear", image: "nft/Медведь нфт.png", sellPrice: 3000, chance: 3.00 }
+        ]
     }
-};
-
-// Кейс Премиум (отдельный, тоже за 1000)
-const premiumCaseData = {
-    name: "Кейс Премиум",
-    price: 1000,
-    rewards: [
-        { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 13.75 },
-        { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 10.44 },
-        { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 5.78 },
-        { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 8.94 },
-        { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 7.19 },
-        { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 7.93 },
-        { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 5.78 },
-        { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 4.74 },
-        { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 4.95 },
-        { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 6.16 },
-        { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 3.49 },
-        { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 3.13 },
-        { item: "Eternal Rose", image: "nft/роза в стекле.png", sellPrice: 1800, chance: 3.98 },
-        { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 3.76 },
-        { item: "Low Rider", image: "nft/снуп машина.png", sellPrice: 3500, chance: 2.78 },
-        { item: "Toy Bear", image: "nft/Медведь нфт.png", sellPrice: 3000, chance: 3.00 }
-    ]
-};
-
-// Cap фарм кейс (отдельный)
-const capFarmCaseData = {
-    name: "Cap фарм",
-    price: 200,
-    rewards: [
-        { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 99.9 },
-        { item: "Durov's Cap", image: "nft/кепка.png", sellPrice: 100000, chance: 0.1 }
-    ]
 };
 
 // Данные достижений
@@ -438,7 +558,8 @@ const achievementsData = [
     { name: "Коллекционер", icon: "🏆", description: "Соберите 5 предметов" },
     { name: "Богач", icon: "💰", description: "Накопите 1000 звезд" },
     { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
-    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" }
+    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" },
+    { name: "Редкий охотник", icon: "💎", description: "Получите редкий предмет" }
 ];
 
 // Промокоды
@@ -573,7 +694,7 @@ function updateTasksProgress() {
     const firstStepsProgress = Math.min(userData.casesOpened * 100, 100);
     userDB.updateTaskProgress('first_steps', firstStepsProgress);
     elements.firstStepsProgress.style.width = `${firstStepsProgress}%`;
-    elements.firstStepsBtn.disabled = !tasks.first_steps.completed;
+    elements.firstStepsBtn.disabled = tasks.first_steps.completed || firstStepsProgress < 100;
     elements.firstStepsBtn.textContent = tasks.first_steps.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.first_steps.completed) elements.firstStepsBtn.classList.add('completed');
     
@@ -581,15 +702,15 @@ function updateTasksProgress() {
     const saverProgress = Math.min((userData.balance / 500) * 100, 100);
     userDB.updateTaskProgress('saver', saverProgress);
     elements.saverProgress.style.width = `${saverProgress}%`;
-    elements.saverBtn.disabled = !tasks.saver.completed;
+    elements.saverBtn.disabled = tasks.saver.completed || saverProgress < 100;
     elements.saverBtn.textContent = tasks.saver.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.saver.completed) elements.saverBtn.classList.add('completed');
     
     // Коллекционер - 5 предметов
-    const collectorProgress = Math.min(Object.keys(inventory).length * 20, 100);
+    const collectorProgress = Math.min(userData.uniqueItemsCollected * 20, 100);
     userDB.updateTaskProgress('collector', collectorProgress);
     elements.collectorProgress.style.width = `${collectorProgress}%`;
-    elements.collectorBtn.disabled = !tasks.collector.completed;
+    elements.collectorBtn.disabled = tasks.collector.completed || collectorProgress < 100;
     elements.collectorBtn.textContent = tasks.collector.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.collector.completed) elements.collectorBtn.classList.add('completed');
     
@@ -597,7 +718,7 @@ function updateTasksProgress() {
     const fastStartProgress = Math.min((userData.dailyCasesOpened / 3) * 100, 100);
     userDB.updateTaskProgress('fast_start', fastStartProgress);
     elements.fastStartProgress.style.width = `${fastStartProgress}%`;
-    elements.fastStartBtn.disabled = !tasks.fast_start.completed;
+    elements.fastStartBtn.disabled = tasks.fast_start.completed || fastStartProgress < 100;
     elements.fastStartBtn.textContent = tasks.fast_start.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.fast_start.completed) elements.fastStartBtn.classList.add('completed');
     
@@ -606,7 +727,7 @@ function updateTasksProgress() {
     const rareHunterProgress = hasRareItem ? 100 : 0;
     userDB.updateTaskProgress('rare_hunter', rareHunterProgress);
     elements.rareHunterProgress.style.width = `${rareHunterProgress}%`;
-    elements.rareHunterBtn.disabled = !tasks.rare_hunter.completed;
+    elements.rareHunterBtn.disabled = tasks.rare_hunter.completed || rareHunterProgress < 100;
     elements.rareHunterBtn.textContent = tasks.rare_hunter.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.rare_hunter.completed) elements.rareHunterBtn.classList.add('completed');
     
@@ -614,7 +735,7 @@ function updateTasksProgress() {
     const legendProgress = Math.min((userData.level / 3) * 100, 100);
     userDB.updateTaskProgress('legend', legendProgress);
     elements.legendProgress.style.width = `${legendProgress}%`;
-    elements.legendBtn.disabled = !tasks.legend.completed;
+    elements.legendBtn.disabled = tasks.legend.completed || legendProgress < 100;
     elements.legendBtn.textContent = tasks.legend.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.legend.completed) elements.legendBtn.classList.add('completed');
 }
@@ -656,7 +777,7 @@ function updateProfile() {
     elements.statBalance.textContent = userData.balance.toLocaleString();
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
-    elements.statItems.textContent = stats.inventoryCount;
+    elements.statItems.textContent = stats.uniqueItemsCollected;
     
     updateProfileAvatar(stats.level);
     loadAchievements(achievements);
@@ -695,6 +816,15 @@ function loadAchievements(userAchievements) {
     });
 }
 
+// Показ уведомления о достижении
+window.showAchievementNotification = function(achievementName) {
+    tg.showPopup({
+        title: '🏆 Новое достижение!',
+        message: `Вы получили достижение: ${achievementName}`,
+        buttons: [{ type: 'ok' }]
+    });
+};
+
 // Активация промокода
 function activatePromoCode() {
     const code = elements.promoCodeInput.value.trim().toUpperCase();
@@ -720,6 +850,11 @@ function activatePromoCode() {
                 message: 'Вы получили 10 ⭐',
                 buttons: [{ type: 'ok' }]
             });
+            
+            // Проверяем достижение богача
+            if (userDB.getBalance() >= 1000) {
+                userDB.addAchievement('Богач');
+            }
         } else {
             tg.showPopup({
                 title: '❌ Ошибка',
@@ -755,7 +890,7 @@ function openInventory() {
     } else {
         Object.entries(inventory).forEach(([itemName, itemData]) => {
             const itemElement = document.createElement('div');
-            itemElement.className = 'inventory-item';
+            itemElement.className = 'inventory-item-card';
             itemElement.innerHTML = `
                 <div class="inventory-item-image">
                     <img src="${itemData.image}" alt="${itemName}" onerror="this.src='nft/placeholder.png'">
@@ -766,8 +901,8 @@ function openInventory() {
                     <div class="inventory-item-quantity">Количество: ${itemData.quantity} шт.</div>
                 </div>
                 <div class="inventory-item-actions">
-                    <button class="withdraw-btn" onclick="openWithdrawModal('${itemName}')">Вывести</button>
-                    <button class="sell-btn" onclick="sellItem('${itemName}')">Продать</button>
+                    <button class="inventory-action-btn withdraw-action-btn" onclick="openWithdrawModal('${itemName}')">Вывести</button>
+                    <button class="inventory-action-btn sell-action-btn" onclick="sellItem('${itemName}')">Продать</button>
                 </div>
             `;
             elements.inventoryItems.appendChild(itemElement);
@@ -813,6 +948,11 @@ function sellItem(itemName) {
                     // Обновляем инвентарь если он открыт
                     if (elements.inventoryModal.style.display === 'block') {
                         openInventory();
+                    }
+                    
+                    // Проверяем достижение богача
+                    if (userDB.getBalance() >= 1000) {
+                        userDB.addAchievement('Богач');
                     }
                 }
             }
@@ -863,26 +1003,37 @@ function confirmWithdraw() {
         return;
     }
     
-    // Здесь должна быть логика отправки запроса админу
-    // В демо-версии просто удаляем предмет и показываем сообщение
+    const inventory = userDB.getInventory();
+    const itemData = inventory[currentWithdrawItem];
     
-    tg.showPopup({
-        title: '📤 Запрос на вывод отправлен',
-        message: `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`,
-        buttons: [{ type: 'ok' }]
-    }).then(() => {
-        // В реальном приложении предмет удаляется только после подтверждения админа
-        // В демо-версии удаляем сразу для тестирования
+    if (itemData && itemData.quantity > 0) {
+        // Создаем заявку на вывод
+        withdrawDB.addRequest(
+            userDB.userId,
+            username,
+            currentWithdrawItem,
+            itemData.image,
+            itemData.sellPrice
+        );
+        
+        // Удаляем предмет из инвентаря
         userDB.removeFromInventory(currentWithdrawItem);
-        closeWithdrawModal();
         
-        // Обновляем инвентарь если он открыт
-        if (elements.inventoryModal.style.display === 'block') {
-            openInventory();
-        }
-        
-        updateProfile();
-    });
+        tg.showPopup({
+            title: '📤 Запрос на вывод отправлен',
+            message: `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`,
+            buttons: [{ type: 'ok' }]
+        }).then(() => {
+            closeWithdrawModal();
+            
+            // Обновляем инвентарь если он открыт
+            if (elements.inventoryModal.style.display === 'block') {
+                openInventory();
+            }
+            
+            updateProfile();
+        });
+    }
 }
 
 // Закрытие инвентаря
@@ -895,17 +1046,8 @@ function closeInventory() {
 }
 
 // Открытие модального окна кейса
-function openCaseModal(price, action) {
-    let caseData;
-    
-    // Определяем какой кейс открываем
-    if (price === 1000 && action === 'premium') {
-        caseData = premiumCaseData;
-    } else if (price === 200 && action === 'cap') {
-        caseData = capFarmCaseData;
-    } else {
-        caseData = casesData[price];
-    }
+function openCaseModal(price, caseType) {
+    const caseData = casesData[caseType];
     
     if (!caseData) return;
     
@@ -919,23 +1061,27 @@ function openCaseModal(price, action) {
         return;
     }
     
-    currentCaseModal = { price, action, caseData };
+    currentCaseModal = { price, caseType, caseData };
     
     elements.caseModalTitle.textContent = caseData.name;
     elements.caseModalPrice.textContent = `Цена: ${price} ⭐`;
     
-    // Заполняем трек предметами
+    // Заполняем трек предметами - ВСЕ ПОДАРКИ ВИДНЫ
     elements.caseItemsTrack.innerHTML = '';
-    for (let i = 0; i < 5; i++) { // 5 кругов для плавной анимации
-        caseData.rewards.forEach(reward => {
+    
+    // Создаем 10 кругов для плавной анимации
+    for (let i = 0; i < 10; i++) {
+        caseData.rewards.forEach((reward, index) => {
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
+            itemElement.setAttribute('data-reward-index', index);
             itemElement.innerHTML = `
                 <div class="case-item-image">
                     <img src="${reward.image}" alt="${reward.item}" onerror="this.src='nft/placeholder.png'">
                 </div>
                 <div class="case-item-name">${reward.item}</div>
                 <div class="case-item-price">${reward.sellPrice} ⭐</div>
+                <div class="case-item-chance">${reward.chance}%</div>
             `;
             elements.caseItemsTrack.appendChild(itemElement);
         });
@@ -947,13 +1093,13 @@ function openCaseModal(price, action) {
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
         openButton.textContent = 'Открыть кейс';
-        openButton.onclick = () => openCase(price, action);
+        openButton.onclick = () => openCase(price, caseType);
         elements.caseModalActions.appendChild(openButton);
     } else {
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
         openButton.textContent = `Открыть за ${price} ⭐`;
-        openButton.onclick = () => openCase(price, action);
+        openButton.onclick = () => openCase(price, caseType);
         elements.caseModalActions.appendChild(openButton);
     }
     
@@ -970,20 +1116,12 @@ function openCaseModal(price, action) {
 function closeCaseModal() {
     elements.caseModal.style.display = 'none';
     currentCaseModal = null;
+    selectedRewardIndex = null;
 }
 
 // Открытие кейса
-function openCase(price, action) {
-    let caseData;
-    
-    if (price === 1000 && action === 'premium') {
-        caseData = premiumCaseData;
-    } else if (price === 200 && action === 'cap') {
-        caseData = capFarmCaseData;
-    } else {
-        caseData = casesData[price];
-    }
-    
+function openCase(price, caseType) {
+    const caseData = casesData[caseType];
     const balance = userDB.getBalance();
     
     // Проверяем баланс для платных кейсов
@@ -1020,11 +1158,12 @@ function openCase(price, action) {
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Запускаем анимацию вращения - 8 СЕКУНД
-    elements.caseItemsTrack.classList.add('spinning');
-    
     // Выбираем случайную награду
     const reward = getRandomReward(caseData.rewards);
+    selectedRewardIndex = caseData.rewards.findIndex(r => r.item === reward.item);
+    
+    // Запускаем анимацию вращения - 8 СЕКУНД
+    elements.caseItemsTrack.classList.add('spinning');
     
     // Останавливаем анимацию и показываем результат через 8 секунд
     setTimeout(() => {
@@ -1032,9 +1171,8 @@ function openCase(price, action) {
         
         // Добавляем награду в инвентарь
         userDB.addToInventory(reward.item, reward.image, reward.sellPrice);
-        userDB.userData.experience += 10;
+        userDB.addExperience(10);
         
-        checkLevelUp();
         userDB.saveUserData();
         
         // Закрываем модальное окно кейса
@@ -1078,26 +1216,6 @@ function closeResultModal() {
     updateBalanceDisplay();
 }
 
-// Проверка повышения уровня
-function checkLevelUp() {
-    const userData = userDB.userData;
-    const expNeeded = userData.level * 100;
-    
-    if (userData.experience >= expNeeded) {
-        userData.level++;
-        userData.experience = 0;
-        userDB.addAchievement(achievementsData[userData.level]?.name || 'Новый уровень');
-        
-        tg.showPopup({
-            title: '🎉 Уровень повышен!',
-            message: `Поздравляем! Вы достигли ${userData.level} уровня!`,
-            buttons: [{ type: 'ok' }]
-        });
-        
-        updateTasksProgress();
-    }
-}
-
 // Выбор случайной награды
 function getRandomReward(rewards) {
     const totalChance = rewards.reduce((sum, reward) => sum + reward.chance, 0);
@@ -1137,6 +1255,128 @@ function closeNewsModal() {
     }
 }
 
+// Консоль администратора
+function openConsole() {
+    elements.consoleModal.style.display = 'block';
+    elements.consoleInput.value = '';
+    elements.consoleOutput.innerHTML = '<div class="console-message">Введите команду для выполнения...</div>';
+}
+
+function closeConsole() {
+    elements.consoleModal.style.display = 'none';
+}
+
+function executeConsoleCommand() {
+    const command = elements.consoleInput.value.trim();
+    
+    if (!command) {
+        elements.consoleOutput.innerHTML = '<div class="console-error">Введите команду</div>';
+        return;
+    }
+    
+    if (command === '/admin G7#gQ!j2$Lp9@wRn') {
+        closeConsole();
+        openAdminPanel();
+    } else {
+        elements.consoleOutput.innerHTML = '<div class="console-error">Неизвестная команда</div>';
+    }
+}
+
+// Админ панель
+function openAdminPanel() {
+    elements.adminModal.style.display = 'block';
+}
+
+function closeAdminPanel() {
+    elements.adminModal.style.display = 'none';
+}
+
+// Заявки на вывод
+function openWithdrawRequests() {
+    const requests = withdrawDB.getRequests();
+    elements.withdrawRequestsList.innerHTML = '';
+    
+    if (requests.length === 0) {
+        elements.withdrawRequestsList.innerHTML = '<div class="no-requests">Нет активных заявок на вывод</div>';
+    } else {
+        requests.forEach(request => {
+            const requestElement = document.createElement('div');
+            requestElement.className = 'withdraw-request-item';
+            requestElement.innerHTML = `
+                <div class="request-header">
+                    <div class="request-user">${request.username}</div>
+                    <div class="request-date">${new Date(request.timestamp).toLocaleString()}</div>
+                </div>
+                <div class="request-item">
+                    <img src="${request.itemImage}" alt="${request.itemName}" onerror="this.src='nft/placeholder.png'">
+                    <div class="request-item-info">
+                        <div class="request-item-name">${request.itemName}</div>
+                        <div class="request-item-price">${request.itemPrice} ⭐</div>
+                    </div>
+                </div>
+                <div class="request-user-id">ID: ${request.userId}</div>
+                <button class="request-confirm-btn" onclick="confirmWithdrawRequest('${request.id}')">Подтвердить вывод</button>
+            `;
+            elements.withdrawRequestsList.appendChild(requestElement);
+        });
+    }
+    
+    elements.withdrawRequestsModal.style.display = 'block';
+}
+
+function closeWithdrawRequests() {
+    elements.withdrawRequestsModal.style.display = 'none';
+}
+
+function confirmWithdrawRequest(requestId) {
+    if (withdrawDB.completeRequest(requestId)) {
+        tg.showPopup({
+            title: '✅ Вывод подтвержден',
+            message: 'Заявка на вывод успешно обработана',
+            buttons: [{ type: 'ok' }]
+        });
+        openWithdrawRequests(); // Обновляем список
+    }
+}
+
+// Поиск пользователя
+function openUserSearch() {
+    elements.userSearchModal.style.display = 'block';
+    elements.userIdInput.value = '';
+    elements.userInfo.innerHTML = '';
+}
+
+function closeUserSearch() {
+    elements.userSearchModal.style.display = 'none';
+}
+
+function searchUser() {
+    const userId = elements.userIdInput.value.trim();
+    
+    if (!userId) {
+        elements.userInfo.innerHTML = '<div class="user-info-error">Введите ID пользователя</div>';
+        return;
+    }
+    
+    const user = withdrawDB.getUserById(userId);
+    elements.userInfo.innerHTML = `
+        <div class="user-info-card">
+            <div class="user-info-item"><strong>ID:</strong> ${user.userId}</div>
+            <div class="user-info-item"><strong>Username:</strong> ${user.username}</div>
+            <div class="user-info-item"><strong>Имя:</strong> ${user.firstName}</div>
+        </div>
+    `;
+}
+
+// Добавление звезд пользователю (заглушка)
+function addStarsToUser() {
+    tg.showPopup({
+        title: '⭐ Добавление звезд',
+        message: 'Функция в разработке',
+        buttons: [{ type: 'ok' }]
+    });
+}
+
 // Закрытие модальных окон по клику на фон
 document.querySelectorAll('.news-modal').forEach(modal => {
     modal.addEventListener('click', function(e) {
@@ -1170,6 +1410,30 @@ elements.withdrawModal.addEventListener('click', function(e) {
     }
 });
 
+elements.consoleModal.addEventListener('click', function(e) {
+    if (e.target === elements.consoleModal) {
+        closeConsole();
+    }
+});
+
+elements.adminModal.addEventListener('click', function(e) {
+    if (e.target === elements.adminModal) {
+        closeAdminPanel();
+    }
+});
+
+elements.withdrawRequestsModal.addEventListener('click', function(e) {
+    if (e.target === elements.withdrawRequestsModal) {
+        closeWithdrawRequests();
+    }
+});
+
+elements.userSearchModal.addEventListener('click', function(e) {
+    if (e.target === elements.userSearchModal) {
+        closeUserSearch();
+    }
+});
+
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -1187,6 +1451,18 @@ document.addEventListener('keydown', function(e) {
         }
         if (elements.withdrawModal.style.display === 'block') {
             closeWithdrawModal();
+        }
+        if (elements.consoleModal.style.display === 'block') {
+            closeConsole();
+        }
+        if (elements.adminModal.style.display === 'block') {
+            closeAdminPanel();
+        }
+        if (elements.withdrawRequestsModal.style.display === 'block') {
+            closeWithdrawRequests();
+        }
+        if (elements.userSearchModal.style.display === 'block') {
+            closeUserSearch();
         }
     }
 });
