@@ -1,133 +1,3 @@
-/* Все стили остаются такими же, только меняем анимацию вращения */
-
-/* Анимация вращения - ОДИН РАЗ 8 СЕКУНД */
-.case-items-track.spinning {
-    animation: spinAnimation 8s cubic-bezier(0.2, 0.8, 0.1, 1) forwards;
-}
-
-@keyframes spinAnimation {
-    0% {
-        transform: translateX(0);
-    }
-    15% {
-        transform: translateX(calc(-33.333% * 20));
-    }
-    30% {
-        transform: translateX(calc(-33.333% * 40));
-    }
-    45% {
-        transform: translateX(calc(-33.333% * 60));
-    }
-    60% {
-        transform: translateX(calc(-33.333% * 80));
-    }
-    75% {
-        transform: translateX(calc(-33.333% * 95));
-    }
-    90% {
-        transform: translateX(calc(-33.333% * 99));
-    }
-    100% {
-        transform: translateX(calc(-33.333% * 100));
-    }
-}
-
-/* Стили для картинок кейсов */
-.case-image img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    margin-bottom: 10px;
-}
-
-/* Таймер для бесплатного кейса */
-.timer-container {
-    text-align: center;
-    padding: 10px;
-    background: rgba(255, 0, 0, 0.2);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 0, 0, 0.4);
-    margin-top: 8px;
-}
-
-.timer-text {
-    font-size: 0.8rem;
-    color: #ff6b6b;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.timer {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 1px;
-}
-
-/* Убираем описание кейсов */
-.case-description {
-    display: none;
-}
-
-/* Поднимаем цену выше */
-.case-price-container {
-    margin-bottom: 15px;
-    margin-top: 5px;
-}
-
-/* Уменьшаем высоту кейса */
-.case-square {
-    height: 200px;
-    padding: 15px;
-}
-
-/* Градиенты для новых кейсов */
-.case-square.free {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-}
-
-.case-square.bomj {
-    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
-    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
-}
-
-.case-square.champion {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
-}
-
-.case-square.pepe {
-    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
-    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
-}
-
-.case-square.cap {
-    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
-    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
-}
-
-.case-square.business {
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
-    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
-}
-
-.case-square.worker {
-    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-}
-
-.case-square.elite {
-    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
-}
-
-/* Остальные стили остаются без изменений */
 * {
     margin: 0;
     padding: 0;
@@ -269,6 +139,16 @@ p {
     margin-bottom: 8px;
 }
 
+.case-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 10px;
+}
+
 .case-info {
     margin-bottom: 12px;
     flex: 1;
@@ -289,9 +169,13 @@ p {
     justify-content: center;
 }
 
-/* Овальная цена кейса - УЛУЧШЕННЫЙ ДИЗАЙН */
+.case-description {
+    display: none;
+}
+
 .case-price-container {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    margin-top: 5px;
     display: flex;
     justify-content: center;
 }
@@ -388,6 +272,87 @@ p {
     box-shadow: 0 1px 5px rgba(52, 199, 89, 0.5);
 }
 
+.buy-case-btn.free-case-btn {
+    background: linear-gradient(45deg, #007AFF, #5856D6);
+}
+
+.timer-container {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 0, 0, 0.4);
+    margin-top: 8px;
+    display: none;
+}
+
+.timer-text {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timer {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+/* Градиенты для кейсов */
+.case-square.free {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.case-square.bomj {
+    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
+    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
+}
+
+.case-square.champion {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.case-square.econom {
+    background: linear-gradient(135deg, rgba(100, 181, 246, 0.9), rgba(66, 165, 245, 0.8));
+    box-shadow: 0 6px 20px rgba(100, 181, 246, 0.4);
+}
+
+.case-square.pepe {
+    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
+    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+}
+
+.case-square.cap {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.case-square.business {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
+    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+}
+
+.case-square.worker {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.case-square.elite {
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+}
+
+.case-square.premium {
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.9), rgba(255, 167, 38, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
 /* Баланс */
 .balance-container {
     background: linear-gradient(135deg, rgba(106, 13, 173, 0.3), rgba(138, 43, 226, 0.2));
@@ -462,216 +427,6 @@ p {
 .add-balance-btn:active {
     transform: scale(0.95);
     box-shadow: 0 2px 8px rgba(52, 199, 89, 0.6);
-}
-
-/* Модальное окно результата - КРАСИВЫЙ ДИЗАЙН */
-.result-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 3000;
-    backdrop-filter: blur(15px);
-}
-
-.result-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(50, 50, 50, 0.9));
-    border-radius: 25px;
-    border: 3px solid rgba(138, 43, 226, 0.6);
-    box-shadow: 
-        0 0 50px rgba(138, 43, 226, 0.5),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
-    padding: 40px 30px;
-    text-align: center;
-    overflow: hidden;
-}
-
-/* Фейерверки */
-.fireworks {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-}
-
-.firework {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #FFD700;
-    border-radius: 50%;
-    animation: firework 2s ease-out infinite;
-}
-
-.firework:nth-child(1) {
-    top: 20%;
-    left: 20%;
-    animation-delay: 0s;
-}
-
-.firework:nth-child(2) {
-    top: 30%;
-    left: 80%;
-    animation-delay: 0.5s;
-}
-
-.firework:nth-child(3) {
-    top: 70%;
-    left: 30%;
-    animation-delay: 1s;
-}
-
-.firework:nth-child(4) {
-    top: 60%;
-    left: 70%;
-    animation-delay: 1.5s;
-}
-
-.firework:nth-child(5) {
-    top: 40%;
-    left: 50%;
-    animation-delay: 0.8s;
-}
-
-@keyframes firework {
-    0% {
-        transform: translate(0, 0) scale(1);
-        opacity: 1;
-        box-shadow: 
-            0 0 0 0 rgba(255, 215, 0, 0.8),
-            0 0 0 0 rgba(255, 107, 53, 0.8),
-            0 0 0 0 rgba(138, 43, 226, 0.8);
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        transform: translate(var(--x, 0), var(--y, 0)) scale(0);
-        opacity: 0;
-        box-shadow: 
-            0 0 20px 20px rgba(255, 215, 0, 0),
-            0 0 40px 40px rgba(255, 107, 53, 0),
-            0 0 60px 60px rgba(138, 43, 226, 0);
-    }
-}
-
-.result-gift {
-    font-size: 6rem;
-    margin-bottom: 20px;
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
-    animation: giftBounce 2s ease-in-out infinite;
-}
-
-@keyframes giftBounce {
-    0%, 100% {
-        transform: scale(1) translateY(0);
-    }
-    50% {
-        transform: scale(1.1) translateY(-10px);
-    }
-}
-
-.result-title {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #FFD700;
-    margin-bottom: 15px;
-    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
-    animation: textGlow 2s ease-in-out infinite alternate;
-}
-
-@keyframes textGlow {
-    0% {
-        text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
-    }
-    100% {
-        text-shadow: 0 2px 20px rgba(255, 215, 0, 0.8);
-    }
-}
-
-.result-message {
-    font-size: 1.2rem;
-    color: #ffffff;
-    margin-bottom: 10px;
-    opacity: 0.9;
-}
-
-.result-item {
-    font-size: 1.4rem;
-    color: #FFD700;
-    margin-bottom: 8px;
-    font-weight: 700;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.result-quantity {
-    font-size: 1.1rem;
-    color: #8A2BE2;
-    background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(218, 112, 214, 0.2));
-    padding: 10px 20px;
-    border-radius: 15px;
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 25px;
-    border: 1px solid rgba(138, 43, 226, 0.4);
-}
-
-.success-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    border: none;
-    color: white;
-    padding: 16px 40px;
-    border-radius: 20px;
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    box-shadow: 
-        0 4px 20px rgba(52, 199, 89, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.success-btn:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 10px rgba(52, 199, 89, 0.6);
-}
-
-/* Остальные стили остаются без изменений */
-.tg-button {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    padding: 18px 32px;
-    border-radius: 30px;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: transform 0.1s ease;
-    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.4);
-    width: 100%;
-    max-width: 280px;
-    font-weight: 600;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    transform: translateZ(0);
-}
-
-.tg-button:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.6);
 }
 
 /* Стили для новостей */
@@ -766,6 +521,11 @@ p {
     backdrop-filter: blur(10px);
 }
 
+.news-modal.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
 .modal-content {
     position: absolute;
     top: 50%;
@@ -779,6 +539,7 @@ p {
     border: 2px solid rgba(138, 43, 226, 0.4);
     box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
     overflow: hidden;
+    animation: slideIn 0.3s ease;
 }
 
 .modal-header {
@@ -861,15 +622,6 @@ p {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.news-modal.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-    animation: slideIn 0.3s ease;
 }
 
 .news-card {
@@ -1151,6 +903,47 @@ p {
     font-weight: 600;
 }
 
+/* Промокод */
+.promo-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    background: rgba(30, 30, 30, 0.8);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.promo-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+}
+
+.promo-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.promo-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.promo-button:active {
+    transform: scale(0.95);
+}
+
 /* Кнопка инвентаря */
 .inventory-button {
     background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
@@ -1280,11 +1073,25 @@ p {
     border-radius: 12px;
     margin-bottom: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.inventory-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .inventory-item-icon {
     font-size: 2rem;
     margin-right: 15px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(138, 43, 226, 0.2);
+    border-radius: 10px;
 }
 
 .inventory-item-info {
@@ -1299,10 +1106,203 @@ p {
     margin-bottom: 5px;
 }
 
-.inventory-item-quantity {
+.inventory-item-value {
     font-size: 0.9rem;
-    color: #8A2BE2;
+    color: #FFD700;
     font-weight: 600;
+}
+
+/* Модальное окно предмета */
+.item-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2500;
+    backdrop-filter: blur(10px);
+}
+
+.item-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 350px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 20px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.item-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.item-icon {
+    font-size: 3rem;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(138, 43, 226, 0.2);
+    border-radius: 15px;
+}
+
+.item-info h3 {
+    color: white;
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+}
+
+.item-info p {
+    color: #FFD700;
+    margin: 0;
+    font-weight: 600;
+}
+
+.item-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-action-btn {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.withdraw-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.sell-btn {
+    background: linear-gradient(45deg, #FF6B35, #FF8E53);
+    color: white;
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.item-action-btn:active {
+    transform: scale(0.98);
+}
+
+/* Модальное окно вывода */
+.withdraw-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2600;
+    backdrop-filter: blur(10px);
+}
+
+.withdraw-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 350px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 20px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.withdraw-modal-header h2 {
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.withdraw-modal-body {
+    margin-bottom: 20px;
+}
+
+.withdraw-modal-body p {
+    color: white;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.username-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.username-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.withdraw-info {
+    font-size: 0.9rem;
+    color: #888;
+    text-align: center;
+}
+
+.withdraw-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.withdraw-confirm-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.withdraw-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.withdraw-confirm-btn:active,
+.withdraw-cancel-btn:active {
+    transform: scale(0.98);
 }
 
 /* Модальное окно открытия кейса */
@@ -1370,6 +1370,31 @@ p {
     display: flex;
     transition: transform 0.1s linear;
     height: 100%;
+}
+
+.case-items-track.spinning {
+    animation: spinAnimation 6s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes spinAnimation {
+    0% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(calc(-33.333% * 30));
+    }
+    40% {
+        transform: translateX(calc(-33.333% * 60));
+    }
+    60% {
+        transform: translateX(calc(-33.333% * 90));
+    }
+    80% {
+        transform: translateX(calc(-33.333% * 98));
+    }
+    100% {
+        transform: translateX(calc(-33.333% * 100));
+    }
 }
 
 .case-item {
@@ -1501,6 +1526,193 @@ p {
     transform: none;
 }
 
+/* Модальное окно результата */
+.result-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 3000;
+    backdrop-filter: blur(15px);
+}
+
+.result-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(50, 50, 50, 0.9));
+    border-radius: 25px;
+    border: 3px solid rgba(138, 43, 226, 0.6);
+    box-shadow: 
+        0 0 50px rgba(138, 43, 226, 0.5),
+        inset 0 0 30px rgba(255, 255, 255, 0.1);
+    padding: 40px 30px;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Фейерверки */
+.fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.firework {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #FFD700;
+    border-radius: 50%;
+    animation: firework 2s ease-out infinite;
+}
+
+.firework:nth-child(1) {
+    top: 20%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.firework:nth-child(2) {
+    top: 30%;
+    left: 80%;
+    animation-delay: 0.5s;
+}
+
+.firework:nth-child(3) {
+    top: 70%;
+    left: 30%;
+    animation-delay: 1s;
+}
+
+.firework:nth-child(4) {
+    top: 60%;
+    left: 70%;
+    animation-delay: 1.5s;
+}
+
+.firework:nth-child(5) {
+    top: 40%;
+    left: 50%;
+    animation-delay: 0.8s;
+}
+
+@keyframes firework {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+        box-shadow: 
+            0 0 0 0 rgba(255, 215, 0, 0.8),
+            0 0 0 0 rgba(255, 107, 53, 0.8),
+            0 0 0 0 rgba(138, 43, 226, 0.8);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--x, 0), var(--y, 0)) scale(0);
+        opacity: 0;
+        box-shadow: 
+            0 0 20px 20px rgba(255, 215, 0, 0),
+            0 0 40px 40px rgba(255, 107, 53, 0),
+            0 0 60px 60px rgba(138, 43, 226, 0);
+    }
+}
+
+.result-gift {
+    font-size: 6rem;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    animation: giftBounce 2s ease-in-out infinite;
+}
+
+@keyframes giftBounce {
+    0%, 100% {
+        transform: scale(1) translateY(0);
+    }
+    50% {
+        transform: scale(1.1) translateY(-10px);
+    }
+}
+
+.result-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #FFD700;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+    animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes textGlow {
+    0% {
+        text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        text-shadow: 0 2px 20px rgba(255, 215, 0, 0.8);
+    }
+}
+
+.result-message {
+    font-size: 1.2rem;
+    color: #ffffff;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.result-item {
+    font-size: 1.4rem;
+    color: #FFD700;
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.result-quantity {
+    font-size: 1.1rem;
+    color: #8A2BE2;
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(218, 112, 214, 0.2));
+    padding: 10px 20px;
+    border-radius: 15px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 25px;
+    border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+.success-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 16px 40px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 
+        0 4px 20px rgba(52, 199, 89, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.success-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(52, 199, 89, 0.6);
+}
+
 /* Адаптация для очень маленьких экранов */
 @media (max-width: 360px) {
     body {
@@ -1614,6 +1826,10 @@ p {
     
     .result-title {
         font-size: 1.5rem;
+    }
+    
+    .promo-container {
+        flex-direction: column;
     }
 }
 
