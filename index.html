@@ -66,7 +66,7 @@
                 <!-- Новые кейсы с картинками -->
                 <div class="cases-grid">
                     <!-- Бесплатный кейс -->
-                    <div class="case-square free" onclick="openCaseModal(0, 'open')">
+                    <div class="case-square free" onclick="openCaseModal(0, 'free')">
                         <div class="case-image">
                             <img src="images/result_free.PNG" alt="Бесплатный кейс">
                         </div>
@@ -79,7 +79,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn free-case-btn" id="freeCaseBtn" onclick="event.stopPropagation(); openCaseModal(0, 'open')">
+                        <button class="buy-case-btn free-case-btn" id="freeCaseBtn" onclick="event.stopPropagation(); openCaseModal(0, 'free')">
                             Открыть
                         </button>
                         <div class="timer-container" id="freeCaseTimer" style="display: none;">
@@ -89,7 +89,7 @@
                     </div>
                     
                     <!-- Кейс Бомж -->
-                    <div class="case-square bomj" onclick="openCaseModal(50, 'open')">
+                    <div class="case-square bomj" onclick="openCaseModal(50, 'bomj')">
                         <div class="case-image">
                             <img src="images/result_bomg.PNG" alt="Кейс Бомж">
                         </div>
@@ -102,13 +102,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(50, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(50, 'bomj')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Чемпион -->
-                    <div class="case-square champion" onclick="openCaseModal(100, 'open')">
+                    <div class="case-square champion" onclick="openCaseModal(100, 'champion')">
                         <div class="case-image">
                             <img src="images/result_chem.PNG" alt="Кейс Чемпион">
                         </div>
@@ -121,13 +121,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100, 'champion')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Эконом -->
-                    <div class="case-square economy" onclick="openCaseModal(180, 'open')">
+                    <div class="case-square economy" onclick="openCaseModal(180, 'economy')">
                         <div class="case-image">
                             <img src="images/result_IMG_4282.PNG" alt="Кейс Эконом">
                         </div>
@@ -140,13 +140,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(180, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(180, 'economy')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Pepe фарм -->
-                    <div class="case-square pepe" onclick="openCaseModal(200, 'open')">
+                    <div class="case-square pepe" onclick="openCaseModal(200, 'pepe')">
                         <div class="case-image">
                             <img src="images/result_pepe.PNG" alt="Pepe фарм">
                         </div>
@@ -159,13 +159,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'pepe')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Cap фарм -->
-                    <div class="case-square cap" onclick="openCaseModal(200, 'open')">
+                    <div class="case-square cap" onclick="openCaseModal(200, 'cap')">
                         <div class="case-image">
                             <img src="images/result_cap.PNG" alt="Cap фарм">
                         </div>
@@ -178,13 +178,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(200, 'cap')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс БизнесМем -->
-                    <div class="case-square business" onclick="openCaseModal(350, 'open')">
+                    <div class="case-square business" onclick="openCaseModal(350, 'business')">
                         <div class="case-image">
                             <img src="images/result_biznes mem.PNG" alt="Кейс БизнесМем">
                         </div>
@@ -197,13 +197,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(350, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(350, 'business')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Рабочий -->
-                    <div class="case-square worker" onclick="openCaseModal(500, 'open')">
+                    <div class="case-square worker" onclick="openCaseModal(500, 'worker')">
                         <div class="case-image">
                             <img src="images/result_rab.PNG" alt="Кейс Рабочий">
                         </div>
@@ -216,13 +216,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(500, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(500, 'worker')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Элита -->
-                    <div class="case-square elite" onclick="openCaseModal(1000, 'open')">
+                    <div class="case-square elite" onclick="openCaseModal(1000, 'elite')">
                         <div class="case-image">
                             <img src="images/result_elita.PNG" alt="Кейс Элита">
                         </div>
@@ -235,13 +235,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'elite')">
                             Купить
                         </button>
                     </div>
                     
                     <!-- Кейс Премиум -->
-                    <div class="case-square premium" onclick="openCaseModal(1000, 'open')">
+                    <div class="case-square premium" onclick="openCaseModal(1000, 'premium')">
                         <div class="case-image">
                             <img src="images/result_IMG_4162 (2).PNG" alt="Кейс Премиум">
                         </div>
@@ -254,7 +254,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'premium')">
                             Купить
                         </button>
                     </div>
@@ -396,6 +396,12 @@
                     <input type="text" id="promoCodeInput" placeholder="Введите промокод" class="promo-input">
                     <button class="promo-button" onclick="activatePromoCode()">Активировать</button>
                 </div>
+
+                <!-- Консоль -->
+                <button class="console-button" onclick="openConsole()">
+                    <span>💻</span>
+                    Открыть консоль
+                </button>
 
                 <!-- Кнопка инвентаря -->
                 <button class="inventory-button" onclick="openInventory()">
@@ -541,6 +547,68 @@
                 </div>
             </div>
             <button class="close-modal" onclick="closeWithdrawModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно консоли -->
+    <div class="console-modal" id="consoleModal">
+        <div class="console-modal-content">
+            <div class="console-header">
+                <h2 class="console-title">💻 Консоль администратора</h2>
+            </div>
+            <div class="console-input-container">
+                <input type="text" id="consoleInput" placeholder="Введите команду..." class="console-input">
+                <button class="console-execute-btn" onclick="executeConsoleCommand()">Выполнить</button>
+            </div>
+            <div class="console-output" id="consoleOutput">
+                <!-- Вывод консоли будет здесь -->
+            </div>
+            <button class="close-modal" onclick="closeConsole()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно админ панели -->
+    <div class="admin-modal" id="adminModal">
+        <div class="admin-modal-content">
+            <div class="admin-header">
+                <h2 class="admin-title">⚙️ Панель администратора</h2>
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn" onclick="openWithdrawRequests()">📤 Подтвердить вывод</button>
+                <button class="admin-btn" onclick="openUserSearch()">👤 Найти пользователя</button>
+                <button class="admin-btn" onclick="addStarsToUser()">⭐ Добавить звёзды</button>
+            </div>
+            <button class="close-modal" onclick="closeAdminPanel()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно заявок на вывод -->
+    <div class="withdraw-requests-modal" id="withdrawRequestsModal">
+        <div class="withdraw-requests-content">
+            <div class="withdraw-requests-header">
+                <h2 class="withdraw-requests-title">📋 Заявки на вывод</h2>
+            </div>
+            <div class="withdraw-requests-list" id="withdrawRequestsList">
+                <!-- Заявки будут загружены здесь -->
+            </div>
+            <button class="close-modal" onclick="closeWithdrawRequests()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно поиска пользователя -->
+    <div class="user-search-modal" id="userSearchModal">
+        <div class="user-search-content">
+            <div class="user-search-header">
+                <h2 class="user-search-title">👤 Поиск пользователя</h2>
+            </div>
+            <div class="user-search-form">
+                <input type="text" id="userIdInput" placeholder="Введите ID пользователя" class="user-id-input">
+                <button class="user-search-btn" onclick="searchUser()">Найти</button>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- Информация о пользователе будет здесь -->
+            </div>
+            <button class="close-modal" onclick="closeUserSearch()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
