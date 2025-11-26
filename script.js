@@ -17,7 +17,7 @@ class UserDatabase {
             // Начальные данные для нового пользователя - ПУСТОЙ ИНВЕНТАРЬ
             this.userData = {
                 balance: 100,
-                inventory: [], // ПУСТОЙ ИНВЕНТАРЬ - массив объектов
+                inventory: {}, // ПУСТОЙ ИНВЕНТАРЬ
                 casesOpened: 0,
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
@@ -32,18 +32,33 @@ class UserDatabase {
                     'fast_start': { completed: false, progress: 0 },
                     'rare_hunter': { completed: false, progress: 0 },
                     'legend': { completed: false, progress: 0 },
-                    'saver': { completed: false, progress: 0 },
-                    'opener': { completed: false, progress: 0 }
+                    'saver': { completed: false, progress: 0 }
                 },
                 usedPromoCodes: [],
-                totalValue: 0
+                dailyCasesOpened: 0,
+                lastDailyReset: Date.now()
             };
             this.saveUserData();
         }
+        
+        // Сброс дневного счетчика если прошел день
+        this.resetDailyCounter();
     }
 
     saveUserData() {
         localStorage.setItem(this.storageKey, JSON.stringify(this.userData));
+    }
+
+    resetDailyCounter() {
+        const now = Date.now();
+        const lastReset = this.userData.lastDailyReset;
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        if (now - lastReset >= twentyFourHours) {
+            this.userData.dailyCasesOpened = 0;
+            this.userData.lastDailyReset = now;
+            this.saveUserData();
+        }
     }
 
     getBalance() {
@@ -61,26 +76,28 @@ class UserDatabase {
         return this.userData.inventory;
     }
 
-    addToInventory(item) {
-        this.userData.inventory.push(item);
-        this.userData.totalValue += item.sellPrice;
+    addToInventory(item, image, sellPrice) {
+        if (!this.userData.inventory[item]) {
+            this.userData.inventory[item] = {
+                quantity: 0,
+                image: image,
+                sellPrice: sellPrice
+            };
+        }
+        this.userData.inventory[item].quantity += 1;
         this.saveUserData();
     }
 
-    removeFromInventory(itemId) {
-        const itemIndex = this.userData.inventory.findIndex(item => item.id === itemId);
-        if (itemIndex !== -1) {
-            const item = this.userData.inventory[itemIndex];
-            this.userData.totalValue -= item.sellPrice;
-            this.userData.inventory.splice(itemIndex, 1);
+    removeFromInventory(item) {
+        if (this.userData.inventory[item] && this.userData.inventory[item].quantity > 0) {
+            this.userData.inventory[item].quantity -= 1;
+            if (this.userData.inventory[item].quantity <= 0) {
+                delete this.userData.inventory[item];
+            }
             this.saveUserData();
             return true;
         }
         return false;
-    }
-
-    getInventoryItem(itemId) {
-        return this.userData.inventory.find(item => item.id === itemId);
     }
 
     canOpenFreeCase() {
@@ -110,11 +127,13 @@ class UserDatabase {
     openFreeCase() {
         this.userData.lastFreeCase = Date.now();
         this.userData.casesOpened++;
+        this.userData.dailyCasesOpened++;
         this.saveUserData();
     }
 
-    openCase() {
+    openPaidCase() {
         this.userData.casesOpened++;
+        this.userData.dailyCasesOpened++;
         this.saveUserData();
     }
 
@@ -127,8 +146,7 @@ class UserDatabase {
             userId: this.userId,
             username: this.userData.username,
             firstName: this.userData.firstName,
-            inventoryCount: this.userData.inventory.length,
-            totalValue: this.userData.totalValue
+            inventoryCount: Object.keys(this.userData.inventory).length
         };
     }
 
@@ -139,9 +157,6 @@ class UserDatabase {
     updateTaskProgress(taskId, progress) {
         if (this.userData.tasks[taskId]) {
             this.userData.tasks[taskId].progress = Math.min(progress, 100);
-            if (this.userData.tasks[taskId].progress >= 100) {
-                this.userData.tasks[taskId].completed = true;
-            }
             this.saveUserData();
         }
     }
@@ -170,35 +185,11 @@ class UserDatabase {
 
     usePromoCode(code) {
         if (this.userData.usedPromoCodes.includes(code)) {
-            return { success: false, message: 'Промокод уже использован' };
+            return false;
         }
-        
-        const promo = promoCodes[code];
-        if (promo) {
-            this.userData.usedPromoCodes.push(code);
-            this.updateBalance(promo.reward);
-            this.saveUserData();
-            return { success: true, message: `Промокод активирован! Получено ${promo.reward} ⭐`, reward: promo.reward };
-        }
-        
-        return { success: false, message: 'Неверный промокод' };
-    }
-
-    getUsedPromoCodes() {
-        return this.userData.usedPromoCodes;
-    }
-
-    addExperience(amount) {
-        this.userData.experience += amount;
-        const expNeeded = this.userData.level * 100;
-        if (this.userData.experience >= expNeeded) {
-            this.userData.level++;
-            this.userData.experience = 0;
-            this.saveUserData();
-            return true; // Уровень повышен
-        }
+        this.userData.usedPromoCodes.push(code);
         this.saveUserData();
-        return false;
+        return true;
     }
 }
 
@@ -214,20 +205,12 @@ tg.setBackgroundColor('#000000');
 // Инициализация базы данных
 const userDB = new UserDatabase();
 
-// Промокоды
-const promoCodes = {
-    'FREE2025': { reward: 10, name: 'Бесплатные звезды 2025' },
-    'WELCOME': { reward: 50, name: 'Приветственный бонус' },
-    'NFTGAME': { reward: 100, name: 'NFT Игра' }
-};
-
 // Текущая активная страница
 let currentPage = 'home';
 let isAnimating = false;
 let currentCaseModal = null;
 let freeCaseTimerInterval = null;
-let currentSelectedItem = null;
-let currentInventoryFilter = 'all';
+let currentWithdrawItem = null;
 
 // Кэшируем элементы для производительности
 const elements = {
@@ -235,211 +218,217 @@ const elements = {
     rouletteContent: document.getElementById('roulette-content'),
     tasksContent: document.getElementById('tasks-content'),
     profileContent: document.getElementById('profile-content'),
-    newsModal: document.getElementById('newsModal'),
+    newsModal1: document.getElementById('newsModal1'),
+    newsModal2: document.getElementById('newsModal2'),
     caseModal: document.getElementById('caseModal'),
     inventoryModal: document.getElementById('inventoryModal'),
-    itemModal: document.getElementById('itemModal'),
-    withdrawModal: document.getElementById('withdrawModal'),
     resultModal: document.getElementById('resultModal'),
-    promoInfoModal: document.getElementById('promoInfoModal'),
+    withdrawModal: document.getElementById('withdrawModal'),
     starsBalance: document.getElementById('starsBalance'),
-    openedCases: document.getElementById('openedCases'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
     caseModalPrice: document.getElementById('caseModalPrice'),
     caseModalActions: document.getElementById('caseModalActions'),
-    casePreview: document.getElementById('casePreview'),
     inventoryItems: document.getElementById('inventoryItems'),
-    inventoryCount: document.getElementById('inventoryCount'),
-    inventoryValue: document.getElementById('inventoryValue'),
-    resultGift: document.getElementById('resultGift'),
+    resultItemImg: document.getElementById('resultItemImg'),
     resultItemName: document.getElementById('resultItemName'),
-    resultItemRarity: document.getElementById('resultItemRarity'),
-    resultItemQuantity: document.getElementById('resultItemQuantity'),
+    resultItemPrice: document.getElementById('resultItemPrice'),
+    withdrawItemImage: document.getElementById('withdrawItemImage'),
+    withdrawItemName: document.getElementById('withdrawItemName'),
+    withdrawItemPrice: document.getElementById('withdrawItemPrice'),
+    usernameInput: document.getElementById('usernameInput'),
     buttons: document.querySelectorAll('.nav-button'),
     freeCaseBtn: document.getElementById('freeCaseBtn'),
     freeCaseTimer: document.getElementById('freeCaseTimer'),
     freeCaseTimerDisplay: document.getElementById('freeCaseTimerDisplay'),
-    tasksList: document.getElementById('tasksList'),
     promoCodeInput: document.getElementById('promoCodeInput'),
-    activePromos: document.getElementById('activePromos'),
-    withdrawItemIcon: document.getElementById('withdrawItemIcon'),
-    withdrawItemName: document.getElementById('withdrawItemName'),
-    withdrawItemValue: document.getElementById('withdrawItemValue'),
-    usernameInput: document.getElementById('usernameInput'),
     // Элементы профиля
     profileName: document.getElementById('profileName'),
     profileLevel: document.getElementById('profileLevel'),
-    profileExp: document.getElementById('profileExp'),
-    profileExpNeeded: document.getElementById('profileExpNeeded'),
     profileAvatar: document.getElementById('profileAvatar'),
     statBalance: document.getElementById('statBalance'),
     statCases: document.getElementById('statCases'),
     statExperience: document.getElementById('statExperience'),
     statItems: document.getElementById('statItems'),
     achievementsGrid: document.getElementById('achievementsGrid'),
-    // Элементы модальных окон
-    newsModalTitle: document.getElementById('newsModalTitle'),
-    newsModalDate: document.getElementById('newsModalDate'),
-    newsModalText: document.getElementById('newsModalText'),
-    itemModalIcon: document.getElementById('itemModalIcon'),
-    itemModalName: document.getElementById('itemModalName'),
-    itemModalValue: document.getElementById('itemModalValue'),
-    itemModalRarity: document.getElementById('itemModalRarity')
+    // Прогресс заданий
+    firstStepsProgress: document.getElementById('firstStepsProgress'),
+    saverProgress: document.getElementById('saverProgress'),
+    collectorProgress: document.getElementById('collectorProgress'),
+    fastStartProgress: document.getElementById('fastStartProgress'),
+    rareHunterProgress: document.getElementById('rareHunterProgress'),
+    legendProgress: document.getElementById('legendProgress'),
+    firstStepsBtn: document.getElementById('firstStepsBtn'),
+    saverBtn: document.getElementById('saverBtn'),
+    collectorBtn: document.getElementById('collectorBtn'),
+    fastStartBtn: document.getElementById('fastStartBtn'),
+    rareHunterBtn: document.getElementById('rareHunterBtn'),
+    legendBtn: document.getElementById('legendBtn')
 };
 
-// Данные кейсов с реальными призами (исправленные эмодзи)
+// Данные кейсов с реальными призами
 const casesData = {
     0: {
         name: "Бесплатный кейс",
         price: 0,
         rewards: [
-            { item: "💰 Игровая валюта", quantity: 50, chance: 100, icon: "💰", sellPrice: 50, type: "currency", rarity: "common" },
-            { item: "⚡ Бустеры", quantity: 1, chance: 70, icon: "⚡", sellPrice: 30, type: "booster", rarity: "common" },
-            { item: "💎 Редкие кристаллы", quantity: 1, chance: 30, icon: "💎", sellPrice: 80, type: "crystal", rarity: "rare" },
-            { item: "🔑 Ключи", quantity: 1, chance: 15, icon: "🔑", sellPrice: 100, type: "key", rarity: "rare" },
-            { item: "🏆 Трофеи", quantity: 1, chance: 5, icon: "🏆", sellPrice: 200, type: "trophy", rarity: "epic" }
+            { item: "Шампанское", image: "nft/шампанское.png", sellPrice: 50, chance: 25 },
+            { item: "Тортик", image: "nft/торт.png", sellPrice: 50, chance: 25 },
+            { item: "Сердце", image: "nft/сердечко.png", sellPrice: 15, chance: 25 },
+            { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 25 }
         ]
     },
     50: {
         name: "Кейс Бомж",
         price: 50,
         rewards: [
-            { item: "🍾 Шампанское", quantity: 1, chance: 9.88, icon: "🍾", sellPrice: 50, type: "champagne", rarity: "common" },
-            { item: "🎂 Тортик", quantity: 1, chance: 9.88, icon: "🎂", sellPrice: 50, type: "cake", rarity: "common" },
-            { item: "💖 Сердце", quantity: 1, chance: 32.95, icon: "💖", sellPrice: 15, type: "heart", rarity: "common" },
-            { item: "🧸 Мишка", quantity: 1, chance: 32.95, icon: "🧸", sellPrice: 15, type: "bear", rarity: "common" },
-            { item: "💎 Алмаз", quantity: 1, chance: 4.94, icon: "💎", sellPrice: 100, type: "diamond", rarity: "rare" },
-            { item: "💍 Кольцо", quantity: 1, chance: 4.94, icon: "💍", sellPrice: 100, type: "ring", rarity: "rare" },
-            { item: "🍭 Lollipop", quantity: 1, chance: 1.98, icon: "🍭", sellPrice: 250, type: "lollipop", rarity: "epic" },
-            { item: "📅 Календарь", quantity: 1, chance: 2.47, icon: "📅", sellPrice: 200, type: "calendar", rarity: "epic" }
+            { item: "Шампанское", image: "nft/шампанское.png", sellPrice: 50, chance: 9.88 },
+            { item: "Тортик", image: "nft/торт.png", sellPrice: 50, chance: 9.88 },
+            { item: "Сердце", image: "nft/сердечко.png", sellPrice: 15, chance: 32.95 },
+            { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 32.95 },
+            { item: "Алмаз", image: "nft/алмаз.png", sellPrice: 100, chance: 4.94 },
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 4.94 },
+            { item: "Hypno Lollipop", image: "nft/лолипоп.png", sellPrice: 250, chance: 1.98 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 2.47 }
         ]
     },
     100: {
         name: "Кейс Чемпион",
         price: 100,
         rewards: [
-            { item: "🍾 Шампанское", quantity: 1, chance: 12.89, icon: "🍾", sellPrice: 50, type: "champagne", rarity: "common" },
-            { item: "🎂 Тортик", quantity: 1, chance: 12.89, icon: "🎂", sellPrice: 50, type: "cake", rarity: "common" },
-            { item: "💖 Сердце", quantity: 1, chance: 17.28, icon: "💖", sellPrice: 15, type: "heart", rarity: "common" },
-            { item: "🧸 Мишка", quantity: 1, chance: 17.28, icon: "🧸", sellPrice: 15, type: "bear", rarity: "common" },
-            { item: "💎 Алмаз", quantity: 1, chance: 10.89, icon: "💎", sellPrice: 100, type: "diamond", rarity: "rare" },
-            { item: "💍 Кольцо", quantity: 1, chance: 10.89, icon: "💍", sellPrice: 100, type: "ring", rarity: "rare" },
-            { item: "🍭 Lollipop", quantity: 1, chance: 8.71, icon: "🍭", sellPrice: 250, type: "lollipop", rarity: "epic" },
-            { item: "📅 Календарь", quantity: 1, chance: 9.19, icon: "📅", sellPrice: 200, type: "calendar", rarity: "epic" }
+            { item: "Шампанское", image: "nft/шампанское.png", sellPrice: 50, chance: 12.89 },
+            { item: "Тортик", image: "nft/торт.png", sellPrice: 50, chance: 12.89 },
+            { item: "Сердце", image: "nft/сердечко.png", sellPrice: 15, chance: 17.28 },
+            { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 17.28 },
+            { item: "Алмаз", image: "nft/алмаз.png", sellPrice: 100, chance: 10.89 },
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 10.89 },
+            { item: "Hypno Lollipop", image: "nft/лолипоп.png", sellPrice: 250, chance: 8.71 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 9.19 }
         ]
     },
     180: {
         name: "Кейс Эконом",
         price: 180,
         rewards: [
-            { item: "🐕 Snoop Dog", quantity: 1, chance: 25.685, icon: "🐕", sellPrice: 300, type: "snoop", rarity: "rare" },
-            { item: "📅 Календарь", quantity: 1, chance: 16.843, icon: "📅", sellPrice: 200, type: "calendar", rarity: "rare" },
-            { item: "🍦 Ice Cream", quantity: 1, chance: 15.255, icon: "🍦", sellPrice: 180, type: "icecream", rarity: "common" },
-            { item: "💍 Кольцо", quantity: 1, chance: 8.601, icon: "💍", sellPrice: 100, type: "ring", rarity: "common" },
-            { item: "💎 Алмаз", quantity: 1, chance: 8.601, icon: "💎", sellPrice: 100, type: "diamond", rarity: "common" },
-            { item: "🎂 Тортик", quantity: 1, chance: 8.130, icon: "🎂", sellPrice: 50, type: "cake", rarity: "common" },
-            { item: "🧸 Мишка", quantity: 1, chance: 16.885, icon: "🧸", sellPrice: 15, type: "bear", rarity: "common" }
+            { item: "Snoop Dog", image: "nft/снуп дог.png", sellPrice: 300, chance: 25.685 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 16.843 },
+            { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 15.255 },
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 8.601 },
+            { item: "Алмаз", image: "nft/алмаз.png", sellPrice: 100, chance: 8.601 },
+            { item: "Тортик", image: "nft/торт.png", sellPrice: 50, chance: 8.130 },
+            { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 16.885 }
         ]
     },
     200: {
         name: "Pepe фарм",
         price: 200,
         rewards: [
-            { item: "💍 Кольцо", quantity: 1, chance: 99.9, icon: "💍", sellPrice: 100, type: "ring", rarity: "common" },
-            { item: "🐸 Plush Pepe", quantity: 1, chance: 0.1, icon: "🐸", sellPrice: 1000000, type: "pepe", rarity: "legendary" }
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 99.9 },
+            { item: "Plush Pepe", image: "nft/пепе.png", sellPrice: 1000000, chance: 0.1 }
         ]
     },
     350: {
         name: "БизнесМем",
         price: 350,
         rewards: [
-            { item: "🎂 Торт", quantity: 1, chance: 18.75, icon: "🎂", sellPrice: 50, type: "cake", rarity: "common" },
-            { item: "💍 Кольцо", quantity: 1, chance: 18.75, icon: "💍", sellPrice: 100, type: "ring", rarity: "common" },
-            { item: "🏆 Кубок", quantity: 1, chance: 18.75, icon: "🏆", sellPrice: 100, type: "cup", rarity: "common" },
-            { item: "🍦 Ice Cream", quantity: 1, chance: 18.75, icon: "🍦", sellPrice: 180, type: "icecream", rarity: "rare" },
-            { item: "📅 Календарь", quantity: 1, chance: 3.00, icon: "📅", sellPrice: 200, type: "calendar", rarity: "rare" },
-            { item: "🐕 Snoop Dogg", quantity: 1, chance: 3.00, icon: "🐕", sellPrice: 300, type: "snoop", rarity: "epic" },
-            { item: "🚀 Ракета", quantity: 1, chance: 3.00, icon: "🚀", sellPrice: 300, type: "rocket", rarity: "epic" },
-            { item: "🧁 Мафин", quantity: 1, chance: 3.00, icon: "🧁", sellPrice: 400, type: "muffin", rarity: "epic" },
-            { item: "🐰 Желешка", quantity: 1, chance: 3.00, icon: "🐰", sellPrice: 500, type: "jelly", rarity: "epic" },
-            { item: "🌺 Цветок", quantity: 1, chance: 3.00, icon: "🌺", sellPrice: 600, type: "flower", rarity: "epic" },
-            { item: "🎩 Шляпа", quantity: 1, chance: 1.00, icon: "🎩", sellPrice: 900, type: "hat", rarity: "legendary" },
-            { item: "💨 Сигара", quantity: 1, chance: 1.00, icon: "💨", sellPrice: 900, type: "cigar", rarity: "legendary" },
-            { item: "💨 Фен", quantity: 1, chance: 1.00, icon: "💨", sellPrice: 1300, type: "dryer", rarity: "legendary" },
-            { item: "🧪 Зелье", quantity: 1, chance: 1.00, icon: "🧪", sellPrice: 1200, type: "potion", rarity: "legendary" },
-            { item: "👠 Каблуки", quantity: 1, chance: 1.00, icon: "👠", sellPrice: 800, type: "shoes", rarity: "legendary" },
-            { item: "🪆 Вуду", quantity: 1, chance: 0.50, icon: "🪆", sellPrice: 2300, type: "voodoo", rarity: "mythic" },
-            { item: "💀 Череп", quantity: 1, chance: 0.50, icon: "💀", sellPrice: 2800, type: "skull", rarity: "mythic" },
-            { item: "🌹 Роза", quantity: 1, chance: 0.50, icon: "🌹", sellPrice: 1800, type: "rose", rarity: "mythic" },
-            { item: "💎 Кольцо VIP", quantity: 1, chance: 0.50, icon: "💎", sellPrice: 2000, type: "diamond_ring", rarity: "mythic" }
+            { item: "Торт", image: "nft/торт.png", sellPrice: 50, chance: 18.75 },
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 18.75 },
+            { item: "Кубок", image: "nft/кубок.png", sellPrice: 100, chance: 18.75 },
+            { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 18.75 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 3.00 },
+            { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 3.00 },
+            { item: "Stellar Rocket", image: "nft/ракета нфт.png", sellPrice: 300, chance: 3.00 },
+            { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 3.00 },
+            { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 3.00 },
+            { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 3.00 },
+            { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 1.00 },
+            { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 1.00 },
+            { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 1.00 },
+            { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 1.00 },
+            { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 1.00 },
+            { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 0.50 },
+            { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 0.50 },
+            { item: "Eternal Rose", image: "nft/роза в стекле.png", sellPrice: 1800, chance: 0.50 },
+            { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 0.50 }
         ]
     },
     500: {
         name: "Кейс Рабочий",
         price: 500,
         rewards: [
-            { item: "💎 Алмаз", quantity: 1, chance: 12.02, icon: "💎", sellPrice: 100, type: "diamond", rarity: "common" },
-            { item: "💍 Кольцо", quantity: 1, chance: 12.02, icon: "💍", sellPrice: 100, type: "ring", rarity: "common" },
-            { item: "🍭 Lollipop", quantity: 1, chance: 7.71, icon: "🍭", sellPrice: 250, type: "lollipop", rarity: "rare" },
-            { item: "📅 Календарь", quantity: 1, chance: 8.59, icon: "📅", sellPrice: 200, type: "calendar", rarity: "rare" },
-            { item: "🍦 Ice Cream", quantity: 1, chance: 9.04, icon: "🍦", sellPrice: 180, type: "icecream", rarity: "rare" },
-            { item: "🐕 Snoop Dogg", quantity: 1, chance: 7.06, icon: "🐕", sellPrice: 300, type: "snoop", rarity: "epic" },
-            { item: "🚀 Ракета", quantity: 1, chance: 7.06, icon: "🚀", sellPrice: 300, type: "rocket", rarity: "epic" },
-            { item: "🎩 Шляпа", quantity: 1, chance: 4.15, icon: "🎩", sellPrice: 900, type: "hat", rarity: "epic" },
-            { item: "🧁 Мафин", quantity: 1, chance: 6.14, icon: "🧁", sellPrice: 400, type: "muffin", rarity: "epic" },
-            { item: "🌺 Цветок", quantity: 1, chance: 5.05, icon: "🌺", sellPrice: 600, type: "flower", rarity: "epic" },
-            { item: "🐰 Желешка", quantity: 1, chance: 5.52, icon: "🐰", sellPrice: 500, type: "jelly", rarity: "epic" },
-            { item: "💨 Сигара", quantity: 1, chance: 4.15, icon: "💨", sellPrice: 900, type: "cigar", rarity: "legendary" },
-            { item: "💨 Фен", quantity: 1, chance: 3.47, icon: "💨", sellPrice: 1300, type: "dryer", rarity: "legendary" },
-            { item: "🧪 Зелье", quantity: 1, chance: 3.61, icon: "🧪", sellPrice: 1200, type: "potion", rarity: "legendary" },
-            { item: "👠 Каблуки", quantity: 1, chance: 4.39, icon: "👠", sellPrice: 800, type: "shoes", rarity: "legendary" }
+            { item: "Алмаз", image: "nft/алмаз.png", sellPrice: 100, chance: 12.02 },
+            { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 12.02 },
+            { item: "Hypno Lollipop", image: "nft/лолипоп.png", sellPrice: 250, chance: 7.71 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 8.59 },
+            { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 9.04 },
+            { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 7.06 },
+            { item: "Stellar Rocket", image: "nft/ракета.png", sellPrice: 300, chance: 7.06 },
+            { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 4.15 },
+            { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 6.14 },
+            { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 5.05 },
+            { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 5.52 },
+            { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 4.15 },
+            { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 3.47 },
+            { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 3.61 },
+            { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 4.39 }
         ]
     },
     1000: {
         name: "Кейс Элита",
         price: 1000,
         rewards: [
-            { item: "🍦 Ice Cream", quantity: 1, chance: 7.38, icon: "🍦", sellPrice: 180, type: "icecream", rarity: "rare" },
-            { item: "📅 Календарь", quantity: 1, chance: 7.22, icon: "📅", sellPrice: 200, type: "calendar", rarity: "rare" },
-            { item: "🐕 Snoop Dogg", quantity: 1, chance: 7.00, icon: "🐕", sellPrice: 300, type: "snoop", rarity: "epic" },
-            { item: "🚀 Ракета", quantity: 1, chance: 7.00, icon: "🚀", sellPrice: 300, type: "rocket", rarity: "epic" },
-            { item: "🧁 Мафин", quantity: 1, chance: 6.74, icon: "🧁", sellPrice: 400, type: "muffin", rarity: "epic" },
-            { item: "🐰 Желешка", quantity: 1, chance: 6.55, icon: "🐰", sellPrice: 500, type: "jelly", rarity: "epic" },
-            { item: "🌺 Цветок", quantity: 1, chance: 6.39, icon: "🌺", sellPrice: 600, type: "flower", rarity: "epic" },
-            { item: "👠 Каблуки", quantity: 1, chance: 6.16, icon: "👠", sellPrice: 800, type: "shoes", rarity: "legendary" },
-            { item: "🎩 Шляпа", quantity: 1, chance: 6.06, icon: "🎩", sellPrice: 900, type: "hat", rarity: "legendary" },
-            { item: "💨 Сигара", quantity: 1, chance: 6.06, icon: "💨", sellPrice: 900, type: "cigar", rarity: "legendary" },
-            { item: "🧪 Зелье", quantity: 1, chance: 5.84, icon: "🧪", sellPrice: 1200, type: "potion", rarity: "legendary" },
-            { item: "💨 Фен", quantity: 1, chance: 5.78, icon: "💨", sellPrice: 1300, type: "dryer", rarity: "legendary" },
-            { item: "🌹 Роза", quantity: 1, chance: 5.53, icon: "🌹", sellPrice: 1800, type: "rose", rarity: "mythic" },
-            { item: "💎 Кольцо VIP", quantity: 1, chance: 5.46, icon: "💎", sellPrice: 2000, type: "diamond_ring", rarity: "mythic" },
-            { item: "🪆 Вуду", quantity: 1, chance: 5.36, icon: "🪆", sellPrice: 2300, type: "voodoo", rarity: "mythic" },
-            { item: "💀 Череп", quantity: 1, chance: 5.22, icon: "💀", sellPrice: 2800, type: "skull", rarity: "mythic" }
-        ]
-    },
-    1000: {
-        name: "Кейс Премиум",
-        price: 1000,
-        rewards: [
-            { item: "🍦 Ice Cream", quantity: 1, chance: 13.75, icon: "🍦", sellPrice: 180, type: "icecream", rarity: "rare" },
-            { item: "🐕 Snoop Dogg", quantity: 1, chance: 10.44, icon: "🐕", sellPrice: 300, type: "snoop", rarity: "epic" },
-            { item: "🎩 Шляпа", quantity: 1, chance: 5.78, icon: "🎩", sellPrice: 900, type: "hat", rarity: "legendary" },
-            { item: "🧁 Мафин", quantity: 1, chance: 8.94, icon: "🧁", sellPrice: 400, type: "muffin", rarity: "epic" },
-            { item: "🌺 Цветок", quantity: 1, chance: 7.19, icon: "🌺", sellPrice: 600, type: "flower", rarity: "epic" },
-            { item: "🐰 Желешка", quantity: 1, chance: 7.93, icon: "🐰", sellPrice: 500, type: "jelly", rarity: "epic" },
-            { item: "💨 Сигара", quantity: 1, chance: 5.78, icon: "💨", sellPrice: 900, type: "cigar", rarity: "legendary" },
-            { item: "💨 Фен", quantity: 1, chance: 4.74, icon: "💨", sellPrice: 1300, type: "dryer", rarity: "legendary" },
-            { item: "🧪 Зелье", quantity: 1, chance: 4.95, icon: "🧪", sellPrice: 1200, type: "potion", rarity: "legendary" },
-            { item: "👠 Каблуки", quantity: 1, chance: 6.16, icon: "👠", sellPrice: 800, type: "shoes", rarity: "legendary" },
-            { item: "🪆 Вуду", quantity: 1, chance: 3.49, icon: "🪆", sellPrice: 2300, type: "voodoo", rarity: "mythic" },
-            { item: "💀 Череп", quantity: 1, chance: 3.13, icon: "💀", sellPrice: 2800, type: "skull", rarity: "mythic" },
-            { item: "🌹 Роза", quantity: 1, chance: 3.98, icon: "🌹", sellPrice: 1800, type: "rose", rarity: "mythic" },
-            { item: "💎 Кольцо VIP", quantity: 1, chance: 3.76, icon: "💎", sellPrice: 2000, type: "diamond_ring", rarity: "mythic" },
-            { item: "🚗 Машина", quantity: 1, chance: 2.78, icon: "🚗", sellPrice: 3500, type: "car", rarity: "mythic" },
-            { item: "🧸 Медведь", quantity: 1, chance: 3.00, icon: "🧸", sellPrice: 3000, type: "toy_bear", rarity: "mythic" }
+            { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 7.38 },
+            { item: "Desk Calendar", image: "nft/календарь.png", sellPrice: 200, chance: 7.22 },
+            { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 7.00 },
+            { item: "Stellar Rocket", image: "nft/ракета нфт.png", sellPrice: 300, chance: 7.00 },
+            { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 6.74 },
+            { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 6.55 },
+            { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 6.39 },
+            { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 6.16 },
+            { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 6.06 },
+            { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 6.06 },
+            { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 5.84 },
+            { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 5.78 },
+            { item: "Eternal Rose", image: "nft/роза в стекле.png", sellPrice: 1800, chance: 5.53 },
+            { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 5.46 },
+            { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 5.36 },
+            { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 5.22 }
         ]
     }
+};
+
+// Кейс Премиум (отдельный, тоже за 1000)
+const premiumCaseData = {
+    name: "Кейс Премиум",
+    price: 1000,
+    rewards: [
+        { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 13.75 },
+        { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 10.44 },
+        { item: "Top Hat", image: "nft/шляпа.png", sellPrice: 900, chance: 5.78 },
+        { item: "Bunny Muffin", image: "nft/мафин.png", sellPrice: 400, chance: 8.94 },
+        { item: "Skull Flower", image: "nft/цветок.png", sellPrice: 600, chance: 7.19 },
+        { item: "Jelly Bunny", image: "nft/желешка.png", sellPrice: 500, chance: 7.93 },
+        { item: "Snoop Cigar", image: "nft/сигара.png", sellPrice: 900, chance: 5.78 },
+        { item: "Ionic Dryer", image: "nft/фен.png", sellPrice: 1300, chance: 4.74 },
+        { item: "Love Potion", image: "nft/зелье любви.png", sellPrice: 1200, chance: 4.95 },
+        { item: "Sky Stilettos", image: "nft/каблуки.png", sellPrice: 800, chance: 6.16 },
+        { item: "Voodoo Doll", image: "nft/вуду.png", sellPrice: 2300, chance: 3.49 },
+        { item: "Electric Skull", image: "nft/череп.png", sellPrice: 2800, chance: 3.13 },
+        { item: "Eternal Rose", image: "nft/роза в стекле.png", sellPrice: 1800, chance: 3.98 },
+        { item: "Diamond Ring", image: "nft/кольцо в стекле.png", sellPrice: 2000, chance: 3.76 },
+        { item: "Low Rider", image: "nft/снуп машина.png", sellPrice: 3500, chance: 2.78 },
+        { item: "Toy Bear", image: "nft/Медведь нфт.png", sellPrice: 3000, chance: 3.00 }
+    ]
+};
+
+// Cap фарм кейс (отдельный)
+const capFarmCaseData = {
+    name: "Cap фарм",
+    price: 200,
+    rewards: [
+        { item: "Кольцо", image: "nft/кольцо.png", sellPrice: 100, chance: 99.9 },
+        { item: "Durov's Cap", image: "nft/кепка.png", sellPrice: 100000, chance: 0.1 }
+    ]
 };
 
 // Данные достижений
@@ -449,70 +438,12 @@ const achievementsData = [
     { name: "Коллекционер", icon: "🏆", description: "Соберите 5 предметов" },
     { name: "Богач", icon: "💰", description: "Накопите 1000 звезд" },
     { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
-    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" },
-    { name: "Ветеран", icon: "🎖️", description: "Откройте 50 кейсов" },
-    { name: "Миллионер", icon: "💎", description: "Накопите 5000 звезд" }
+    { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" }
 ];
 
-// Данные заданий
-const tasksData = [
-    { id: 'first_steps', title: '🎯 Первые шаги', reward: 50, description: 'Откройте свой первый кейс в игре', target: 1, type: 'cases' },
-    { id: 'saver', title: '💰 Накопитель', reward: 100, description: 'Накопите 500 звёзд на балансе', target: 500, type: 'balance' },
-    { id: 'collector', title: '🏆 Коллекционер', reward: 200, description: 'Соберите 10 различных предметов', target: 10, type: 'inventory' },
-    { id: 'fast_start', title: '🚀 Быстрый старт', reward: 150, description: 'Откройте 5 кейсов за один день', target: 5, type: 'cases' },
-    { id: 'rare_hunter', title: '💎 Редкий охотник', reward: 300, description: 'Получите 3 редких предмета', target: 3, type: 'inventory' },
-    { id: 'legend', title: '🌟 Легенда', reward: 500, description: 'Достигните 10 уровня', target: 10, type: 'level' },
-    { id: 'opener', title: '🎁 Открыватель', reward: 100, description: 'Откройте 10 кейсов', target: 10, type: 'cases' }
-];
-
-// Новости
-const newsData = {
-    'new_cases': {
-        title: 'Новые NFT кейсы уже доступны! V2.0',
-        date: '26.11.2025',
-        text: `
-            <p><strong>В нашем боте начали выходить новые кейсы с уникальными NFT предметами.</strong> Начиная от мишек заканчивая редкими Пепе. При нажатие на кнопку показать текст полностью написанно тоже самое но в конце Предложение Спасибо за использование нашего бота!</p>
-            
-            <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
-                🎁 Открывайте кейсы и получайте уникальные NFT предметы! 🎁
-            </p>
-            
-            <p style="margin-top: 15px; text-align: center;">
-                <strong>Не забудьте активировать промокод FREE2025 для получения бонусных звёзд!</strong>
-            </p>
-            
-            <p style="margin-top: 20px; text-align: center; font-style: italic;">
-                Спасибо за использование нашего бота!
-            </p>
-        `
-    },
-    'development': {
-        title: 'Запуск NFT платформы V1.0',
-        date: '23.11.2025',
-        text: `
-            <p><strong>Мы запустили первую версию нашей NFT платформы!</strong> Теперь вы можете собирать, продавать и выводить уникальные предметы.</p>
-            
-            <p>Мы надеемся что платформа подарит вам много впечатлений как и нам. Спасибо за ваше использование.</p>
-            
-            <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
-                🚀 Следите за обновлениями! 🚀
-            </p>
-            
-            <p style="margin-top: 15px; text-align: center;">
-                <strong>Промокод FREE2025 уже активен - используйте его для получения бонуса!</strong>
-            </p>
-        `
-    }
-};
-
-// Редкости предметов
-const rarityData = {
-    'common': { name: 'Обычный', color: '#8A2BE2', emoji: '⚪' },
-    'rare': { name: 'Редкий', color: '#007AFF', emoji: '🔵' },
-    'epic': { name: 'Эпический', color: '#5856D6', emoji: '🟣' },
-    'legendary': { name: 'Легендарный', color: '#FF2D55', emoji: '🔴' },
-    'mythic': { name: 'Мифический', color: '#FF9500', emoji: '🟠' },
-    'legendary': { name: 'Легендарный', color: '#FFCC00', emoji: '🟡' }
+// Промокоды
+const promoCodes = {
+    "FREE2025": { stars: 10, used: false }
 };
 
 // Функция для форматирования времени
@@ -598,12 +529,11 @@ function switchContent(page) {
             break;
         case 'tasks':
             elements.tasksContent.style.display = 'block';
-            loadTasks();
+            updateTasksProgress();
             break;
         case 'profile':
             elements.profileContent.style.display = 'block';
             updateProfile();
-            loadActivePromos();
             break;
     }
 }
@@ -611,9 +541,7 @@ function switchContent(page) {
 // Обновление отображения баланса
 function updateBalanceDisplay() {
     const balance = userDB.getBalance();
-    const stats = userDB.getStats();
     elements.starsBalance.textContent = balance.toLocaleString();
-    elements.openedCases.textContent = stats.casesOpened;
 }
 
 // Функция пополнения баланса
@@ -622,6 +550,7 @@ function addBalance() {
     userDB.updateBalance(amount);
     updateBalanceDisplay();
     updateProfile();
+    updateTasksProgress();
     
     tg.showPopup({
         title: '💰 Баланс пополнен!',
@@ -634,70 +563,60 @@ function addBalance() {
     }
 }
 
-// Загрузка заданий
-function loadTasks() {
-    elements.tasksList.innerHTML = '';
-    const userTasks = userDB.getTasks();
-    
-    tasksData.forEach(task => {
-        const taskData = userTasks[task.id] || { completed: false, progress: 0 };
-        const progress = taskData.progress || 0;
-        const progressPercent = Math.min((progress / task.target) * 100, 100);
-        
-        const taskElement = document.createElement('div');
-        taskElement.className = 'task-item';
-        taskElement.innerHTML = `
-            <div class="task-header">
-                <div class="task-title">${task.title}</div>
-                <div class="task-reward">⭐ +${task.reward}</div>
-            </div>
-            <div class="task-description">
-                ${task.description}
-            </div>
-            <div class="task-progress">
-                <div class="task-progress-bar" style="width: ${progressPercent}%"></div>
-            </div>
-            <button class="task-button ${taskData.completed ? 'completed' : ''}" 
-                    onclick="completeTask('${task.id}', ${task.reward})"
-                    ${taskData.completed ? 'disabled' : ''}>
-                ${taskData.completed ? '✅ Выполнено' : `Получить ${task.reward} ⭐`}
-            </button>
-        `;
-        
-        elements.tasksList.appendChild(taskElement);
-    });
-}
-
 // Обновление прогресса заданий
-function updateTaskProgress() {
-    const stats = userDB.getStats();
+function updateTasksProgress() {
+    const userData = userDB.userData;
+    const tasks = userDB.getTasks();
     const inventory = userDB.getInventory();
-    const userTasks = userDB.getTasks();
     
-    // Первые шаги
-    if (stats.casesOpened > 0) {
-        userDB.updateTaskProgress('first_steps', 100);
-    }
+    // Первые шаги - открыть 1 кейс
+    const firstStepsProgress = Math.min(userData.casesOpened * 100, 100);
+    userDB.updateTaskProgress('first_steps', firstStepsProgress);
+    elements.firstStepsProgress.style.width = `${firstStepsProgress}%`;
+    elements.firstStepsBtn.disabled = !tasks.first_steps.completed;
+    elements.firstStepsBtn.textContent = tasks.first_steps.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.first_steps.completed) elements.firstStepsBtn.classList.add('completed');
     
-    // Накопитель
-    const balance = userDB.getBalance();
-    userDB.updateTaskProgress('saver', (balance / 500) * 100);
+    // Накопитель - 500 звезд
+    const saverProgress = Math.min((userData.balance / 500) * 100, 100);
+    userDB.updateTaskProgress('saver', saverProgress);
+    elements.saverProgress.style.width = `${saverProgress}%`;
+    elements.saverBtn.disabled = !tasks.saver.completed;
+    elements.saverBtn.textContent = tasks.saver.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.saver.completed) elements.saverBtn.classList.add('completed');
     
-    // Коллекционер
-    userDB.updateTaskProgress('collector', (inventory.length / 10) * 100);
+    // Коллекционер - 5 предметов
+    const collectorProgress = Math.min(Object.keys(inventory).length * 20, 100);
+    userDB.updateTaskProgress('collector', collectorProgress);
+    elements.collectorProgress.style.width = `${collectorProgress}%`;
+    elements.collectorBtn.disabled = !tasks.collector.completed;
+    elements.collectorBtn.textContent = tasks.collector.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.collector.completed) elements.collectorBtn.classList.add('completed');
     
-    // Быстрый старт (упрощенная версия)
-    userDB.updateTaskProgress('fast_start', (stats.casesOpened / 5) * 100);
+    // Быстрый старт - 3 кейса в день
+    const fastStartProgress = Math.min((userData.dailyCasesOpened / 3) * 100, 100);
+    userDB.updateTaskProgress('fast_start', fastStartProgress);
+    elements.fastStartProgress.style.width = `${fastStartProgress}%`;
+    elements.fastStartBtn.disabled = !tasks.fast_start.completed;
+    elements.fastStartBtn.textContent = tasks.fast_start.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.fast_start.completed) elements.fastStartBtn.classList.add('completed');
     
-    // Редкий охотник
-    const rareItems = inventory.filter(item => item.rarity === 'rare' || item.rarity === 'epic' || item.rarity === 'legendary' || item.rarity === 'mythic').length;
-    userDB.updateTaskProgress('rare_hunter', (rareItems / 3) * 100);
+    // Редкий охотник - 1 редкий предмет (стоимость > 500)
+    const hasRareItem = Object.values(inventory).some(item => item.sellPrice > 500);
+    const rareHunterProgress = hasRareItem ? 100 : 0;
+    userDB.updateTaskProgress('rare_hunter', rareHunterProgress);
+    elements.rareHunterProgress.style.width = `${rareHunterProgress}%`;
+    elements.rareHunterBtn.disabled = !tasks.rare_hunter.completed;
+    elements.rareHunterBtn.textContent = tasks.rare_hunter.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.rare_hunter.completed) elements.rareHunterBtn.classList.add('completed');
     
-    // Легенда
-    userDB.updateTaskProgress('legend', (stats.level / 10) * 100);
-    
-    // Открыватель
-    userDB.updateTaskProgress('opener', (stats.casesOpened / 10) * 100);
+    // Легенда - 3 уровень
+    const legendProgress = Math.min((userData.level / 3) * 100, 100);
+    userDB.updateTaskProgress('legend', legendProgress);
+    elements.legendProgress.style.width = `${legendProgress}%`;
+    elements.legendBtn.disabled = !tasks.legend.completed;
+    elements.legendBtn.textContent = tasks.legend.completed ? 'Выполнено' : 'Выполнить';
+    if (tasks.legend.completed) elements.legendBtn.classList.add('completed');
 }
 
 // Выполнение задания
@@ -706,7 +625,7 @@ function completeTask(taskId, reward) {
         userDB.updateBalance(reward);
         updateBalanceDisplay();
         updateProfile();
-        loadTasks();
+        updateTasksProgress();
         
         tg.showPopup({
             title: '🎉 Задание выполнено!',
@@ -730,19 +649,17 @@ function completeTask(taskId, reward) {
 function updateProfile() {
     const stats = userDB.getStats();
     const userData = userDB.userData;
-    const expNeeded = userData.level * 100;
+    const achievements = userDB.getAchievements();
     
     elements.profileName.textContent = stats.firstName;
     elements.profileLevel.textContent = stats.level;
-    elements.profileExp.textContent = userData.experience;
-    elements.profileExpNeeded.textContent = expNeeded;
     elements.statBalance.textContent = userData.balance.toLocaleString();
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
     elements.statItems.textContent = stats.inventoryCount;
     
     updateProfileAvatar(stats.level);
-    loadAchievements(userData.achievements);
+    loadAchievements(achievements);
 }
 
 // Обновление аватара профиля
@@ -778,44 +695,6 @@ function loadAchievements(userAchievements) {
     });
 }
 
-// Загрузка активных промокодов
-function loadActivePromos() {
-    const usedPromos = userDB.getUsedPromoCodes();
-    elements.activePromos.innerHTML = '';
-    
-    if (usedPromos.length === 0) {
-        elements.activePromos.innerHTML = `
-            <div style="text-align: center; color: #888; padding: 20px;">
-                <div>🎁 Активируйте первый промокод!</div>
-            </div>
-        `;
-        return;
-    }
-    
-    usedPromos.forEach(promoCode => {
-        const promo = promoCodes[promoCode];
-        if (promo) {
-            const promoElement = document.createElement('div');
-            promoElement.className = 'promo-active-item';
-            promoElement.innerHTML = `
-                <span class="promo-active-code">${promoCode}</span>
-                <span class="promo-active-reward">+${promo.reward} ⭐</span>
-            `;
-            elements.activePromos.appendChild(promoElement);
-        }
-    });
-}
-
-// Показать информацию о промокодах
-function showPromoInfo() {
-    elements.promoInfoModal.style.display = 'block';
-}
-
-// Закрыть информацию о промокодах
-function closePromoInfo() {
-    elements.promoInfoModal.style.display = 'none';
-}
-
 // Активация промокода
 function activatePromoCode() {
     const code = elements.promoCodeInput.value.trim().toUpperCase();
@@ -829,25 +708,72 @@ function activatePromoCode() {
         return;
     }
     
-    const result = userDB.usePromoCode(code);
-    
-    tg.showPopup({
-        title: result.success ? '🎉 Успех!' : '❌ Ошибка',
-        message: result.message,
-        buttons: [{ type: 'ok' }]
-    });
-    
-    if (result.success) {
-        elements.promoCodeInput.value = '';
-        updateBalanceDisplay();
-        updateProfile();
-        loadActivePromos();
+    if (code === 'FREE2025') {
+        if (userDB.usePromoCode(code)) {
+            userDB.updateBalance(10);
+            updateBalanceDisplay();
+            updateProfile();
+            elements.promoCodeInput.value = '';
+            
+            tg.showPopup({
+                title: '🎉 Промокод активирован!',
+                message: 'Вы получили 10 ⭐',
+                buttons: [{ type: 'ok' }]
+            });
+        } else {
+            tg.showPopup({
+                title: '❌ Ошибка',
+                message: 'Промокод уже использован',
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    } else {
+        tg.showPopup({
+            title: '❌ Ошибка',
+            message: 'Неверный промокод',
+            buttons: [{ type: 'ok' }]
+        });
     }
 }
 
 // Открытие инвентаря
 function openInventory() {
-    updateInventory();
+    const inventory = userDB.getInventory();
+    elements.inventoryItems.innerHTML = '';
+    
+    if (Object.keys(inventory).length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'empty-inventory';
+        emptyMessage.innerHTML = `
+            <div style="text-align: center; color: #888; padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">📦</div>
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
+                <div style="font-size: 0.9rem; opacity: 0.7;">Открывайте кейсы чтобы получить предметы!</div>
+            </div>
+        `;
+        elements.inventoryItems.appendChild(emptyMessage);
+    } else {
+        Object.entries(inventory).forEach(([itemName, itemData]) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'inventory-item';
+            itemElement.innerHTML = `
+                <div class="inventory-item-image">
+                    <img src="${itemData.image}" alt="${itemName}" onerror="this.src='nft/placeholder.png'">
+                </div>
+                <div class="inventory-item-info">
+                    <div class="inventory-item-name">${itemName}</div>
+                    <div class="inventory-item-price">Цена: ${itemData.sellPrice} ⭐</div>
+                    <div class="inventory-item-quantity">Количество: ${itemData.quantity} шт.</div>
+                </div>
+                <div class="inventory-item-actions">
+                    <button class="withdraw-btn" onclick="openWithdrawModal('${itemName}')">Вывести</button>
+                    <button class="sell-btn" onclick="sellItem('${itemName}')">Продать</button>
+                </div>
+            `;
+            elements.inventoryItems.appendChild(itemElement);
+        });
+    }
+    
     elements.inventoryModal.style.display = 'block';
     
     if (navigator.vibrate) {
@@ -855,112 +781,64 @@ function openInventory() {
     }
 }
 
-// Обновление инвентаря
-function updateInventory() {
+// Продажа предмета
+function sellItem(itemName) {
     const inventory = userDB.getInventory();
-    const stats = userDB.getStats();
+    const itemData = inventory[itemName];
     
-    elements.inventoryCount.textContent = inventory.length;
-    elements.inventoryValue.textContent = stats.totalValue.toLocaleString();
-    
-    elements.inventoryItems.innerHTML = '';
-    
-    if (inventory.length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.className = 'empty-inventory';
-        emptyMessage.innerHTML = `
-            <div style="text-align: center; color: #888; padding: 40px 20px;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">📦</div>
-                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
-                <div style="font-size: 0.9rem; opacity: 0.7;">Открывайте кейсы чтобы получить NFT предметы!</div>
-            </div>
-        `;
-        elements.inventoryItems.appendChild(emptyMessage);
-    } else {
-        let filteredInventory = inventory;
+    if (itemData && itemData.quantity > 0) {
+        const sellPrice = itemData.sellPrice;
         
-        if (currentInventoryFilter !== 'all') {
-            filteredInventory = inventory.filter(item => item.rarity === currentInventoryFilter);
-        }
-        
-        filteredInventory.forEach((item) => {
-            const rarityInfo = rarityData[item.rarity] || rarityData.common;
-            
-            const itemElement = document.createElement('div');
-            itemElement.className = 'inventory-item';
-            itemElement.onclick = () => openItemModal(item);
-            itemElement.innerHTML = `
-                <div class="inventory-item-icon">${item.icon}</div>
-                <div class="inventory-item-info">
-                    <div class="inventory-item-name">${item.name}</div>
-                    <div class="inventory-item-value">${item.sellPrice} ⭐</div>
-                    <div class="inventory-item-rarity">${rarityInfo.emoji} ${rarityInfo.name}</div>
-                </div>
-            `;
-            elements.inventoryItems.appendChild(itemElement);
+        tg.showPopup({
+            title: '💰 Продажа предмета',
+            message: `Вы уверены, что хотите продать "${itemName}" за ${sellPrice} ⭐?`,
+            buttons: [
+                { type: 'ok', text: 'Продать' },
+                { type: 'cancel', text: 'Отмена' }
+            ]
+        }).then((result) => {
+            if (result === 'ok') {
+                if (userDB.removeFromInventory(itemName)) {
+                    userDB.updateBalance(sellPrice);
+                    updateBalanceDisplay();
+                    updateProfile();
+                    updateTasksProgress();
+                    
+                    tg.showPopup({
+                        title: '✅ Предмет продан!',
+                        message: `Вы получили ${sellPrice} ⭐`,
+                        buttons: [{ type: 'ok' }]
+                    });
+                    
+                    // Обновляем инвентарь если он открыт
+                    if (elements.inventoryModal.style.display === 'block') {
+                        openInventory();
+                    }
+                }
+            }
         });
     }
 }
 
-// Фильтрация инвентаря
-function filterInventory(filter) {
-    currentInventoryFilter = filter;
+// Открытие модального окна вывода
+function openWithdrawModal(itemName) {
+    const inventory = userDB.getInventory();
+    const itemData = inventory[itemName];
     
-    // Обновляем активные кнопки фильтров
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    updateInventory();
-}
-
-// Закрытие инвентаря
-function closeInventory() {
-    elements.inventoryModal.style.display = 'none';
-    currentInventoryFilter = 'all';
-    
-    if (navigator.vibrate) {
-        navigator.vibrate(5);
+    if (itemData && itemData.quantity > 0) {
+        currentWithdrawItem = itemName;
+        elements.withdrawItemImage.src = itemData.image;
+        elements.withdrawItemName.textContent = itemName;
+        elements.withdrawItemPrice.textContent = `Цена: ${itemData.sellPrice} ⭐`;
+        elements.usernameInput.value = '';
+        elements.withdrawModal.style.display = 'block';
     }
-}
-
-// Открытие модального окна предмета
-function openItemModal(item) {
-    currentSelectedItem = item;
-    const rarityInfo = rarityData[item.rarity] || rarityData.common;
-    
-    elements.itemModalIcon.textContent = item.icon;
-    elements.itemModalName.textContent = item.name;
-    elements.itemModalValue.textContent = `Стоимость: ${item.sellPrice} ⭐`;
-    elements.itemModalRarity.textContent = `Редкость: ${rarityInfo.name}`;
-    elements.itemModalRarity.style.color = rarityInfo.color;
-    
-    elements.itemModal.style.display = 'block';
-}
-
-// Закрытие модального окна предмета
-function closeItemModal() {
-    elements.itemModal.style.display = 'none';
-    currentSelectedItem = null;
-}
-
-// Вывод предмета
-function withdrawItem() {
-    if (!currentSelectedItem) return;
-    
-    elements.withdrawItemIcon.textContent = currentSelectedItem.icon;
-    elements.withdrawItemName.textContent = currentSelectedItem.name;
-    elements.withdrawItemValue.textContent = `Стоимость: ${currentSelectedItem.sellPrice} ⭐`;
-    
-    elements.withdrawModal.style.display = 'block';
-    elements.itemModal.style.display = 'none';
 }
 
 // Закрытие модального окна вывода
 function closeWithdrawModal() {
     elements.withdrawModal.style.display = 'none';
-    elements.usernameInput.value = '';
+    currentWithdrawItem = null;
 }
 
 // Подтверждение вывода
@@ -970,7 +848,7 @@ function confirmWithdraw() {
     if (!username) {
         tg.showPopup({
             title: '❌ Ошибка',
-            message: 'Введите username',
+            message: 'Введите ваш @username',
             buttons: [{ type: 'ok' }]
         });
         return;
@@ -985,60 +863,50 @@ function confirmWithdraw() {
         return;
     }
     
-    if (!currentSelectedItem) return;
+    // Здесь должна быть логика отправки запроса админу
+    // В демо-версии просто удаляем предмет и показываем сообщение
     
-    // Отправка запроса на вывод (в реальном приложении здесь был бы запрос к серверу)
     tg.showPopup({
         title: '📤 Запрос на вывод отправлен',
-        message: `NFT "${currentSelectedItem.name}" будет передан на аккаунт ${username} после подтверждения админом`,
+        message: `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`,
         buttons: [{ type: 'ok' }]
+    }).then(() => {
+        // В реальном приложении предмет удаляется только после подтверждения админа
+        // В демо-версии удаляем сразу для тестирования
+        userDB.removeFromInventory(currentWithdrawItem);
+        closeWithdrawModal();
+        
+        // Обновляем инвентарь если он открыт
+        if (elements.inventoryModal.style.display === 'block') {
+            openInventory();
+        }
+        
+        updateProfile();
     });
-    
-    // Удаляем предмет из инвентаря
-    userDB.removeFromInventory(currentSelectedItem.id);
-    
-    closeWithdrawModal();
-    closeInventory();
-    updateInventory();
-    updateProfile();
 }
 
-// Продажа предмета
-function sellItem() {
-    if (!currentSelectedItem) return;
+// Закрытие инвентаря
+function closeInventory() {
+    elements.inventoryModal.style.display = 'none';
     
-    const sellPrice = currentSelectedItem.sellPrice;
-    
-    tg.showPopup({
-        title: '💰 Продажа NFT',
-        message: `Вы уверены, что хотите продать "${currentSelectedItem.name}" за ${sellPrice} ⭐?`,
-        buttons: [
-            { type: 'ok', text: 'Да, продать' },
-            { type: 'cancel', text: 'Отмена' }
-        ]
-    }).then((result) => {
-        if (result === 'ok') {
-            userDB.updateBalance(sellPrice);
-            userDB.removeFromInventory(currentSelectedItem.id);
-            
-            updateBalanceDisplay();
-            updateProfile();
-            closeItemModal();
-            closeInventory();
-            updateInventory();
-            
-            tg.showPopup({
-                title: '✅ NFT продан',
-                message: `Вы получили ${sellPrice} ⭐`,
-                buttons: [{ type: 'ok' }]
-            });
-        }
-    });
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
 }
 
 // Открытие модального окна кейса
-function openCaseModal(price) {
-    const caseData = casesData[price];
+function openCaseModal(price, action) {
+    let caseData;
+    
+    // Определяем какой кейс открываем
+    if (price === 1000 && action === 'premium') {
+        caseData = premiumCaseData;
+    } else if (price === 200 && action === 'cap') {
+        caseData = capFarmCaseData;
+    } else {
+        caseData = casesData[price];
+    }
+    
     if (!caseData) return;
     
     // Для бесплатного кейса проверяем кулдаун
@@ -1051,35 +919,23 @@ function openCaseModal(price) {
         return;
     }
     
-    currentCaseModal = { price };
+    currentCaseModal = { price, action, caseData };
     
     elements.caseModalTitle.textContent = caseData.name;
     elements.caseModalPrice.textContent = `Цена: ${price} ⭐`;
-    
-    // Превью предметов
-    elements.casePreview.innerHTML = '';
-    const previewItems = caseData.rewards.slice(0, 4); // Показываем первые 4 предмета
-    previewItems.forEach(reward => {
-        const previewElement = document.createElement('div');
-        previewElement.className = 'preview-item';
-        previewElement.innerHTML = `
-            <div class="preview-item-icon">${reward.icon}</div>
-            <div class="preview-item-name">${reward.item}</div>
-        `;
-        elements.casePreview.appendChild(previewElement);
-    });
     
     // Заполняем трек предметами
     elements.caseItemsTrack.innerHTML = '';
     for (let i = 0; i < 5; i++) { // 5 кругов для плавной анимации
         caseData.rewards.forEach(reward => {
-            const rarityInfo = rarityData[reward.rarity] || rarityData.common;
             const itemElement = document.createElement('div');
             itemElement.className = 'case-item';
             itemElement.innerHTML = `
-                <div class="case-item-icon">${reward.icon}</div>
+                <div class="case-item-image">
+                    <img src="${reward.image}" alt="${reward.item}" onerror="this.src='nft/placeholder.png'">
+                </div>
                 <div class="case-item-name">${reward.item}</div>
-                <div class="case-item-quantity" style="color: ${rarityInfo.color}">${rarityInfo.emoji}</div>
+                <div class="case-item-price">${reward.sellPrice} ⭐</div>
             `;
             elements.caseItemsTrack.appendChild(itemElement);
         });
@@ -1090,20 +946,20 @@ function openCaseModal(price) {
     if (price === 0) {
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
-        openButton.textContent = '🎁 Открыть кейс';
-        openButton.onclick = () => openCase(price);
+        openButton.textContent = 'Открыть кейс';
+        openButton.onclick = () => openCase(price, action);
         elements.caseModalActions.appendChild(openButton);
     } else {
         const openButton = document.createElement('button');
         openButton.className = 'case-action-btn open-btn';
-        openButton.textContent = `🎁 Открыть за ${price} ⭐`;
-        openButton.onclick = () => openCase(price);
+        openButton.textContent = `Открыть за ${price} ⭐`;
+        openButton.onclick = () => openCase(price, action);
         elements.caseModalActions.appendChild(openButton);
     }
     
     const cancelButton = document.createElement('button');
     cancelButton.className = 'case-action-btn cancel-btn';
-    cancelButton.textContent = '❌ Отмена';
+    cancelButton.textContent = 'Отмена';
     cancelButton.onclick = closeCaseModal;
     elements.caseModalActions.appendChild(cancelButton);
     
@@ -1117,8 +973,17 @@ function closeCaseModal() {
 }
 
 // Открытие кейса
-function openCase(price) {
-    const caseData = casesData[price];
+function openCase(price, action) {
+    let caseData;
+    
+    if (price === 1000 && action === 'premium') {
+        caseData = premiumCaseData;
+    } else if (price === 200 && action === 'cap') {
+        caseData = capFarmCaseData;
+    } else {
+        caseData = casesData[price];
+    }
+    
     const balance = userDB.getBalance();
     
     // Проверяем баланс для платных кейсов
@@ -1145,68 +1010,50 @@ function openCase(price) {
     if (price > 0) {
         userDB.updateBalance(-price);
         updateBalanceDisplay();
-    }
-    
-    // Для бесплатного кейса записываем время открытия
-    if (price === 0) {
+        userDB.openPaidCase();
+    } else {
         userDB.openFreeCase();
         startFreeCaseTimer();
-    } else {
-        userDB.openCase();
     }
     
     // Отключаем кнопки во время анимации
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Запускаем анимацию вращения
+    // Запускаем анимацию вращения - 8 СЕКУНД
     elements.caseItemsTrack.classList.add('spinning');
     
     // Выбираем случайную награду
     const reward = getRandomReward(caseData.rewards);
     
-    // Останавливаем анимацию и показываем результат через 6 секунд
+    // Останавливаем анимацию и показываем результат через 8 секунд
     setTimeout(() => {
         elements.caseItemsTrack.classList.remove('spinning');
         
-        // Создаем уникальный ID для предмета
-        const itemId = Date.now() + Math.random().toString(36).substr(2, 9);
-        const inventoryItem = {
-            id: itemId,
-            name: reward.item,
-            icon: reward.icon,
-            sellPrice: reward.sellPrice,
-            type: reward.type,
-            quantity: reward.quantity,
-            rarity: reward.rarity,
-            case: caseData.name,
-            obtainedAt: new Date().toISOString()
-        };
+        // Добавляем награду в инвентарь
+        userDB.addToInventory(reward.item, reward.image, reward.sellPrice);
+        userDB.userData.experience += 10;
         
-        userDB.addToInventory(inventoryItem);
-        
-        // Добавляем опыт
-        const expGained = 10;
-        const levelUp = userDB.addExperience(expGained);
-        
-        updateTaskProgress();
+        checkLevelUp();
         userDB.saveUserData();
         
+        // Закрываем модальное окно кейса
         closeCaseModal();
-        showResultModal(reward, levelUp);
         
-    }, 6000); // 6 секунд анимации
+        // Показываем красивое окно результата
+        showResultModal(reward);
+        
+        // Обновляем прогресс заданий
+        updateTasksProgress();
+        
+    }, 8000); // 8 секунд анимации
 }
 
 // Показ красивого окна результата
-function showResultModal(reward, levelUp = false) {
-    const rarityInfo = rarityData[reward.rarity] || rarityData.common;
-    
-    elements.resultGift.textContent = reward.icon;
+function showResultModal(reward) {
+    elements.resultItemImg.src = reward.image;
     elements.resultItemName.textContent = reward.item;
-    elements.resultItemRarity.textContent = `${rarityInfo.emoji} ${rarityInfo.name}`;
-    elements.resultItemRarity.style.color = rarityInfo.color;
-    elements.resultItemQuantity.textContent = `Стоимость: ${reward.sellPrice} ⭐`;
+    elements.resultItemPrice.textContent = `Цена при продаже: ${reward.sellPrice} ⭐`;
     
     // Активируем фейерверки
     const fireworks = document.querySelectorAll('.firework');
@@ -1219,16 +1066,6 @@ function showResultModal(reward, levelUp = false) {
     
     elements.resultModal.style.display = 'block';
     
-    if (levelUp) {
-        setTimeout(() => {
-            tg.showPopup({
-                title: '🎉 Уровень повышен!',
-                message: `Поздравляем! Вы достигли ${userDB.userData.level} уровня!`,
-                buttons: [{ type: 'ok' }]
-            });
-        }, 1000);
-    }
-    
     if (navigator.vibrate) {
         navigator.vibrate([100, 50, 100, 50, 100]);
     }
@@ -1239,10 +1076,27 @@ function closeResultModal() {
     elements.resultModal.style.display = 'none';
     updateProfile();
     updateBalanceDisplay();
-    loadTasks();
 }
 
-// Проверка повышения уровня (теперь в методе addExperience)
+// Проверка повышения уровня
+function checkLevelUp() {
+    const userData = userDB.userData;
+    const expNeeded = userData.level * 100;
+    
+    if (userData.experience >= expNeeded) {
+        userData.level++;
+        userData.experience = 0;
+        userDB.addAchievement(achievementsData[userData.level]?.name || 'Новый уровень');
+        
+        tg.showPopup({
+            title: '🎉 Уровень повышен!',
+            message: `Поздравляем! Вы достигли ${userData.level} уровня!`,
+            buttons: [{ type: 'ok' }]
+        });
+        
+        updateTasksProgress();
+    }
+}
 
 // Выбор случайной награды
 function getRandomReward(rewards) {
@@ -1261,15 +1115,11 @@ function getRandomReward(rewards) {
 
 // Функции для модального окна новости
 function openNewsModal(newsId) {
-    const news = newsData[newsId];
-    if (!news) return;
-    
-    elements.newsModalTitle.textContent = news.title;
-    elements.newsModalDate.textContent = news.date;
-    elements.newsModalText.innerHTML = news.text;
-    
-    elements.newsModal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    const modal = document.getElementById(`newsModal${newsId.slice(-1)}`);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
     
     if (navigator.vibrate) {
         navigator.vibrate(10);
@@ -1277,7 +1127,9 @@ function openNewsModal(newsId) {
 }
 
 function closeNewsModal() {
-    elements.newsModal.classList.remove('show');
+    document.querySelectorAll('.news-modal').forEach(modal => {
+        modal.classList.remove('show');
+    });
     document.body.style.overflow = '';
     
     if (navigator.vibrate) {
@@ -1286,10 +1138,12 @@ function closeNewsModal() {
 }
 
 // Закрытие модальных окон по клику на фон
-elements.newsModal.addEventListener('click', function(e) {
-    if (e.target === elements.newsModal) {
-        closeNewsModal();
-    }
+document.querySelectorAll('.news-modal').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeNewsModal();
+        }
+    });
 });
 
 elements.caseModal.addEventListener('click', function(e) {
@@ -1304,9 +1158,9 @@ elements.inventoryModal.addEventListener('click', function(e) {
     }
 });
 
-elements.itemModal.addEventListener('click', function(e) {
-    if (e.target === elements.itemModal) {
-        closeItemModal();
+elements.resultModal.addEventListener('click', function(e) {
+    if (e.target === elements.resultModal) {
+        closeResultModal();
     }
 });
 
@@ -1316,22 +1170,10 @@ elements.withdrawModal.addEventListener('click', function(e) {
     }
 });
 
-elements.resultModal.addEventListener('click', function(e) {
-    if (e.target === elements.resultModal) {
-        closeResultModal();
-    }
-});
-
-elements.promoInfoModal.addEventListener('click', function(e) {
-    if (e.target === elements.promoInfoModal) {
-        closePromoInfo();
-    }
-});
-
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        if (elements.newsModal.classList.contains('show')) {
+        if (document.querySelector('.news-modal.show')) {
             closeNewsModal();
         }
         if (elements.caseModal.style.display === 'block') {
@@ -1340,17 +1182,11 @@ document.addEventListener('keydown', function(e) {
         if (elements.inventoryModal.style.display === 'block') {
             closeInventory();
         }
-        if (elements.itemModal.style.display === 'block') {
-            closeItemModal();
-        }
-        if (elements.withdrawModal.style.display === 'block') {
-            closeWithdrawModal();
-        }
         if (elements.resultModal.style.display === 'block') {
             closeResultModal();
         }
-        if (elements.promoInfoModal.style.display === 'block') {
-            closePromoInfo();
+        if (elements.withdrawModal.style.display === 'block') {
+            closeWithdrawModal();
         }
     }
 });
@@ -1366,14 +1202,12 @@ if (tg.initDataUnsafe.user) {
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 NFT мини-приложение полностью загружено и готово!');
+    console.log('🚀 Мини-приложение полностью загружено и готово!');
     
     updateBalanceDisplay();
     updateProfile();
-    updateTaskProgress();
-    loadTasks();
-    loadActivePromos();
+    updateTasksProgress();
     startFreeCaseTimer();
 });
 
-console.log('✅ NFT игровое мини-приложение запущено!');
+console.log('✅ Игровое мини-приложение запущено!');
