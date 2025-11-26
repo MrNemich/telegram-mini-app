@@ -20,13 +20,26 @@
             <div class="news-container">
                 <div class="news-card">
                     <div class="news-header">
+                        <h3 class="news-title">Новые кейсы уже доступны! V1.1</h3>
+                        <span class="news-date">26.11.2025</span>
+                    </div>
+                    <div class="news-preview">
+                        В нашем боте начали выходить новые кейсы, где доступны разнообразные подарки. Начиная от мишек заканчивая до Пепе...
+                    </div>
+                    <button class="read-more-btn" onclick="openNewsModal('new_cases')">
+                        Показать полный текст
+                    </button>
+                </div>
+
+                <div class="news-card">
+                    <div class="news-header">
                         <h3 class="news-title">Разработка бота началась. V1.0</h3>
                         <span class="news-date">23.11.2025</span>
                     </div>
                     <div class="news-preview">
-                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.
+                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ...
                     </div>
-                    <button class="read-more-btn" onclick="openNewsModal()">
+                    <button class="read-more-btn" onclick="openNewsModal('development')">
                         Показать полный текст
                     </button>
                 </div>
@@ -109,6 +122,25 @@
                             </div>
                         </div>
                         <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(100, 'open')">
+                            Купить
+                        </button>
+                    </div>
+                    
+                    <!-- Кейс Эконом -->
+                    <div class="case-square econom" onclick="openCaseModal(180, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_IMG_4282.PNG" alt="Кейс Эконом">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Кейс Эконом</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">180</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(180, 'open')">
                             Купить
                         </button>
                     </div>
@@ -207,6 +239,25 @@
                             Купить
                         </button>
                     </div>
+                    
+                    <!-- Кейс Премиум -->
+                    <div class="case-square premium" onclick="openCaseModal(1000, 'open')">
+                        <div class="case-image">
+                            <img src="images/result_IMG_4162 (2).PNG" alt="Кейс Премиум">
+                        </div>
+                        <div class="case-info">
+                            <div class="case-name">Кейс Премиум</div>
+                            <div class="case-price-container">
+                                <div class="case-price-oval">
+                                    <span class="star-icon">⭐</span>
+                                    <span class="case-price">1000</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'open')">
+                            Купить
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -217,90 +268,8 @@
             <p>Выполняйте задания и получайте награды</p>
             
             <div class="tasks-container">
-                <div class="tasks-list">
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🎯 Первые шаги</div>
-                            <div class="task-reward">⭐ +50</div>
-                        </div>
-                        <div class="task-description">
-                            Откройте свой первый кейс в игре
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 30%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('first_steps', 50)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">💰 Накопитель</div>
-                            <div class="task-reward">⭐ +100</div>
-                        </div>
-                        <div class="task-description">
-                            Накопите 500 звёзд на балансе
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 10%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('saver', 100)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🏆 Коллекционер</div>
-                            <div class="task-reward">⭐ +200</div>
-                        </div>
-                        <div class="task-description">
-                            Соберите 10 различных предметов
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 60%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('collector', 200)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🚀 Быстрый старт</div>
-                            <div class="task-reward">⭐ +150</div>
-                        </div>
-                        <div class="task-description">
-                            Откройте 5 кейсов за один день
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 40%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('fast_start', 150)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">💎 Редкий охотник</div>
-                            <div class="task-reward">⭐ +300</div>
-                        </div>
-                        <div class="task-description">
-                            Получите 3 редких предмета
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 20%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
-                    </div>
-                    
-                    <div class="task-item">
-                        <div class="task-header">
-                            <div class="task-title">🌟 Легенда</div>
-                            <div class="task-reward">⭐ +500</div>
-                        </div>
-                        <div class="task-description">
-                            Достигните 10 уровня
-                        </div>
-                        <div class="task-progress">
-                            <div class="task-progress-bar" style="width: 5%"></div>
-                        </div>
-                        <button class="task-button" onclick="completeTask('legend', 500)">Выполнить</button>
-                    </div>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Задания будут загружены через JavaScript -->
                 </div>
             </div>
         </div>
@@ -340,6 +309,12 @@
                     </div>
                 </div>
 
+                <!-- Промокод -->
+                <div class="promo-container">
+                    <input type="text" id="promoCodeInput" placeholder="Введите промокод" class="promo-input">
+                    <button class="promo-button" onclick="activatePromoCode()">Активировать</button>
+                </div>
+
                 <!-- Кнопка инвентаря -->
                 <button class="inventory-button" onclick="openInventory()">
                     <span>📦</span>
@@ -363,18 +338,12 @@
         <div class="modal-content">
             <button class="close-modal" onclick="closeNewsModal()">×</button>
             <div class="modal-header">
-                <h2 class="modal-title">Разработка бота началась. V1.0</h2>
-                <div class="modal-date">23.11.2025</div>
+                <h2 class="modal-title" id="newsModalTitle">Заголовок новости</h2>
+                <div class="modal-date" id="newsModalDate">дата</div>
             </div>
             <div class="modal-body">
-                <div class="modal-text">
-                    <p><strong>Разработка нашего бота началась.</strong> Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.</p>
-                    
-                    <p>Мы надеемся что бот подарит вам много впечатлений как и нам. Спасибо за ваше будущее использование.</p>
-                    
-                    <p style="margin-top: 20px; color: #8A2BE2; font-weight: 600; text-align: center;">
-                        🚀 Следите за обновлениями! 🚀
-                    </p>
+                <div class="modal-text" id="newsModalText">
+                    <!-- Текст новости -->
                 </div>
             </div>
         </div>
@@ -390,6 +359,42 @@
                 <!-- Предметы будут загружены через JavaScript -->
             </div>
             <button class="close-modal" onclick="closeInventory()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно предмета -->
+    <div class="item-modal" id="itemModal">
+        <div class="item-modal-content">
+            <div class="item-modal-header">
+                <div class="item-icon" id="itemModalIcon">🎁</div>
+                <div class="item-info">
+                    <h3 id="itemModalName">Название предмета</h3>
+                    <p id="itemModalValue">Стоимость: 0 ⭐</p>
+                </div>
+            </div>
+            <div class="item-modal-actions">
+                <button class="item-action-btn withdraw-btn" onclick="withdrawItem()">Вывести</button>
+                <button class="item-action-btn sell-btn" onclick="sellItem()">Продать</button>
+                <button class="item-action-btn cancel-btn" onclick="closeItemModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно вывода -->
+    <div class="withdraw-modal" id="withdrawModal">
+        <div class="withdraw-modal-content">
+            <div class="withdraw-modal-header">
+                <h2>📤 Вывод предмета</h2>
+            </div>
+            <div class="withdraw-modal-body">
+                <p>Введите ваш username для вывода:</p>
+                <input type="text" id="usernameInput" placeholder="@username" class="username-input">
+                <p class="withdraw-info">После подтверждения админом предмет будет передан вам</p>
+            </div>
+            <div class="withdraw-modal-actions">
+                <button class="withdraw-confirm-btn" onclick="confirmWithdraw()">Подтвердить вывод</button>
+                <button class="withdraw-cancel-btn" onclick="closeWithdrawModal()">Отмена</button>
+            </div>
         </div>
     </div>
 
