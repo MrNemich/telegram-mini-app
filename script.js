@@ -14,11 +14,12 @@ class UserDatabase {
         if (savedData) {
             this.userData = JSON.parse(savedData);
         } else {
-            // Начальные данные для нового пользователя - ПУСТОЙ ИНВЕНТАРЬ
+            // Начальные данные для нового пользователя
             this.userData = {
                 balance: 100,
-                inventory: {}, // ПУСТОЙ ИНВЕНТАРЬ
+                inventory: {},
                 casesOpened: 0,
+                paidCasesOpened: 0,
                 lastFreeCase: 0,
                 achievements: ['Новичок'],
                 level: 1,
@@ -37,13 +38,19 @@ class UserDatabase {
                 usedPromoCodes: [],
                 dailyCasesOpened: 0,
                 lastDailyReset: Date.now(),
-                uniqueItemsCollected: 0
+                uniqueItemsCollected: 0,
+                ip: this.getUserIP()
             };
             this.saveUserData();
         }
         
         // Сброс дневного счетчика если прошел день
         this.resetDailyCounter();
+    }
+
+    getUserIP() {
+        // В реальном приложении IP будет получаться с сервера
+        return 'user_ip_' + this.userId;
     }
 
     saveUserData() {
@@ -146,24 +153,13 @@ class UserDatabase {
         this.userData.lastFreeCase = Date.now();
         this.userData.casesOpened++;
         this.userData.dailyCasesOpened++;
-        
-        // Проверяем достижение первых шагов
-        if (this.userData.casesOpened === 1) {
-            this.addAchievement('Первые шаги');
-        }
-        
         this.saveUserData();
     }
 
     openPaidCase() {
         this.userData.casesOpened++;
+        this.userData.paidCasesOpened++;
         this.userData.dailyCasesOpened++;
-        
-        // Проверяем достижение первых шагов
-        if (this.userData.casesOpened === 1) {
-            this.addAchievement('Первые шаги');
-        }
-        
         this.saveUserData();
     }
 
@@ -189,6 +185,7 @@ class UserDatabase {
     getStats() {
         return {
             casesOpened: this.userData.casesOpened,
+            paidCasesOpened: this.userData.paidCasesOpened,
             level: this.userData.level,
             experience: this.userData.experience,
             achievements: this.userData.achievements,
@@ -276,13 +273,17 @@ class WithdrawDatabase {
             timestamp: Date.now(),
             status: 'pending'
         };
-        this.requests.unshift(request); // Добавляем в начало
+        this.requests.unshift(request);
         this.saveData();
         return request;
     }
 
     getRequests() {
         return this.requests.filter(request => request.status === 'pending');
+    }
+
+    getAllRequests() {
+        return this.requests;
     }
 
     completeRequest(requestId) {
@@ -296,13 +297,45 @@ class WithdrawDatabase {
     }
 
     getUserById(userId) {
-        // В реальном приложении здесь был бы запрос к серверу
-        // Для демо версии просто возвращаем тестовые данные
+        // Получаем данные пользователя из localStorage
+        const userData = localStorage.getItem(`user_data_${userId}`);
+        if (userData) {
+            const user = JSON.parse(userData);
+            return {
+                userId: userId,
+                username: user.username || `@user${userId}`,
+                firstName: user.firstName || `User ${userId}`,
+                balance: user.balance || 0,
+                level: user.level || 1
+            };
+        }
         return {
             userId: userId,
             username: `@user${userId}`,
-            firstName: `User ${userId}`
+            firstName: `User ${userId}`,
+            balance: 0,
+            level: 1
         };
+    }
+
+    getAllUsers() {
+        const users = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('user_data_')) {
+                const userData = JSON.parse(localStorage.getItem(key));
+                users.push({
+                    userId: userData.userId,
+                    username: userData.username,
+                    firstName: userData.firstName,
+                    balance: userData.balance,
+                    level: userData.level,
+                    casesOpened: userData.casesOpened,
+                    inventory: userData.inventory
+                });
+            }
+        }
+        return users;
     }
 }
 
@@ -343,6 +376,7 @@ const elements = {
     adminModal: document.getElementById('adminModal'),
     withdrawRequestsModal: document.getElementById('withdrawRequestsModal'),
     userSearchModal: document.getElementById('userSearchModal'),
+    allUsersModal: document.getElementById('allUsersModal'),
     starsBalance: document.getElementById('starsBalance'),
     caseItemsTrack: document.getElementById('caseItemsTrack'),
     caseModalTitle: document.getElementById('caseModalTitle'),
@@ -361,6 +395,7 @@ const elements = {
     withdrawRequestsList: document.getElementById('withdrawRequestsList'),
     userIdInput: document.getElementById('userIdInput'),
     userInfo: document.getElementById('userInfo'),
+    allUsersList: document.getElementById('allUsersList'),
     buttons: document.querySelectorAll('.nav-button'),
     freeCaseBtn: document.getElementById('freeCaseBtn'),
     freeCaseTimer: document.getElementById('freeCaseTimer'),
@@ -554,18 +589,13 @@ const casesData = {
 // Данные достижений
 const achievementsData = [
     { name: "Новичок", icon: "🎯", description: "Начните играть" },
-    { name: "Первые шаги", icon: "🚶", description: "Откройте первый кейс" },
+    { name: "Первые шаги", icon: "🚶", description: "Откройте первый платный кейс" },
     { name: "Коллекционер", icon: "🏆", description: "Соберите 5 предметов" },
     { name: "Богач", icon: "💰", description: "Накопите 1000 звезд" },
     { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
     { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" },
     { name: "Редкий охотник", icon: "💎", description: "Получите редкий предмет" }
 ];
-
-// Промокоды
-const promoCodes = {
-    "FREE2025": { stars: 10, used: false }
-};
 
 // Функция для форматирования времени
 function formatTime(ms) {
@@ -690,8 +720,8 @@ function updateTasksProgress() {
     const tasks = userDB.getTasks();
     const inventory = userDB.getInventory();
     
-    // Первые шаги - открыть 1 кейс
-    const firstStepsProgress = Math.min(userData.casesOpened * 100, 100);
+    // Первые шаги - открыть 1 платный кейс
+    const firstStepsProgress = Math.min(userData.paidCasesOpened * 100, 100);
     userDB.updateTaskProgress('first_steps', firstStepsProgress);
     elements.firstStepsProgress.style.width = `${firstStepsProgress}%`;
     elements.firstStepsBtn.disabled = tasks.first_steps.completed || firstStepsProgress < 100;
@@ -1066,7 +1096,7 @@ function openCaseModal(price, caseType) {
     elements.caseModalTitle.textContent = caseData.name;
     elements.caseModalPrice.textContent = `Цена: ${price} ⭐`;
     
-    // Заполняем трек предметами - ВСЕ ПОДАРКИ ВИДНЫ
+    // Заполняем трек предметами
     elements.caseItemsTrack.innerHTML = '';
     
     // Создаем 10 кругов для плавной анимации
@@ -1293,7 +1323,7 @@ function closeAdminPanel() {
 
 // Заявки на вывод
 function openWithdrawRequests() {
-    const requests = withdrawDB.getRequests();
+    const requests = withdrawDB.getAllRequests();
     elements.withdrawRequestsList.innerHTML = '';
     
     if (requests.length === 0) {
@@ -1315,7 +1345,11 @@ function openWithdrawRequests() {
                     </div>
                 </div>
                 <div class="request-user-id">ID: ${request.userId}</div>
-                <button class="request-confirm-btn" onclick="confirmWithdrawRequest('${request.id}')">Подтвердить вывод</button>
+                <div class="request-status ${request.status}">Статус: ${request.status === 'pending' ? 'Ожидание' : 'Завершено'}</div>
+                ${request.status === 'pending' ? 
+                    `<button class="request-confirm-btn" onclick="confirmWithdrawRequest('${request.id}')">Подтвердить вывод</button>` : 
+                    '<div class="request-completed">✅ Заявка обработана</div>'
+                }
             `;
             elements.withdrawRequestsList.appendChild(requestElement);
         });
@@ -1364,17 +1398,72 @@ function searchUser() {
             <div class="user-info-item"><strong>ID:</strong> ${user.userId}</div>
             <div class="user-info-item"><strong>Username:</strong> ${user.username}</div>
             <div class="user-info-item"><strong>Имя:</strong> ${user.firstName}</div>
+            <div class="user-info-item"><strong>Баланс:</strong> ${user.balance} ⭐</div>
+            <div class="user-info-item"><strong>Уровень:</strong> ${user.level}</div>
         </div>
     `;
 }
 
-// Добавление звезд пользователю (заглушка)
+// Все пользователи
+function showAllUsers() {
+    const users = withdrawDB.getAllUsers();
+    elements.allUsersList.innerHTML = '';
+    
+    if (users.length === 0) {
+        elements.allUsersList.innerHTML = '<div class="no-requests">Нет зарегистрированных пользователей</div>';
+    } else {
+        users.forEach(user => {
+            const userElement = document.createElement('div');
+            userElement.className = 'user-list-item';
+            userElement.innerHTML = `
+                <div class="user-list-header">
+                    <div class="user-list-name">${user.firstName}</div>
+                    <div class="user-list-id">ID: ${user.userId}</div>
+                </div>
+                <div class="user-list-stats">
+                    <div class="user-list-stat">Баланс: ${user.balance} ⭐</div>
+                    <div class="user-list-stat">Уровень: ${user.level}</div>
+                    <div class="user-list-stat">Кейсы: ${user.casesOpened}</div>
+                    <div class="user-list-stat">Предметы: ${Object.keys(user.inventory || {}).length}</div>
+                </div>
+            `;
+            elements.allUsersList.appendChild(userElement);
+        });
+    }
+    
+    elements.allUsersModal.style.display = 'block';
+}
+
+function closeAllUsers() {
+    elements.allUsersModal.style.display = 'none';
+}
+
+// Добавление звезд пользователю
 function addStarsToUser() {
-    tg.showPopup({
-        title: '⭐ Добавление звезд',
-        message: 'Функция в разработке',
-        buttons: [{ type: 'ok' }]
-    });
+    const userId = prompt("Введите ID пользователя:");
+    if (!userId) return;
+    
+    const amount = prompt("Введите количество звезд:");
+    if (!amount || isNaN(amount)) return;
+    
+    const userData = localStorage.getItem(`user_data_${userId}`);
+    if (userData) {
+        const user = JSON.parse(userData);
+        user.balance += parseInt(amount);
+        localStorage.setItem(`user_data_${userId}`, JSON.stringify(user));
+        
+        tg.showPopup({
+            title: '✅ Звезды добавлены',
+            message: `Пользователю ${userId} добавлено ${amount} ⭐`,
+            buttons: [{ type: 'ok' }]
+        });
+    } else {
+        tg.showPopup({
+            title: '❌ Пользователь не найден',
+            message: 'Пользователь с таким ID не найден',
+            buttons: [{ type: 'ok' }]
+        });
+    }
 }
 
 // Закрытие модальных окон по клику на фон
@@ -1434,6 +1523,12 @@ elements.userSearchModal.addEventListener('click', function(e) {
     }
 });
 
+elements.allUsersModal.addEventListener('click', function(e) {
+    if (e.target === elements.allUsersModal) {
+        closeAllUsers();
+    }
+});
+
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -1463,6 +1558,9 @@ document.addEventListener('keydown', function(e) {
         }
         if (elements.userSearchModal.style.display === 'block') {
             closeUserSearch();
+        }
+        if (elements.allUsersModal.style.display === 'block') {
+            closeAllUsers();
         }
     }
 });
