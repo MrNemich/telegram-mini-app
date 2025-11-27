@@ -20,19 +20,6 @@
             <div class="news-container">
                 <div class="news-card">
                     <div class="news-header">
-                        <h3 class="news-title">Разработка бота началась. V1.0</h3>
-                        <span class="news-date">23.11.2025</span>
-                    </div>
-                    <div class="news-preview">
-                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.
-                    </div>
-                    <button class="read-more-btn" onclick="openNewsModal('news1')">
-                        Показать полный текст
-                    </button>
-                </div>
-
-                <div class="news-card">
-                    <div class="news-header">
                         <h3 class="news-title">Новые кейсы уже доступны!</h3>
                         <span class="news-date">26.11.2025</span>
                     </div>
@@ -40,6 +27,19 @@
                         В нашем боте начали выходить новые кейсы, где доступны разнообразные подарки. Начиная от мишек заканчивая до Пепе.
                     </div>
                     <button class="read-more-btn" onclick="openNewsModal('news2')">
+                        Показать полный текст
+                    </button>
+                </div>
+
+                <div class="news-card">
+                    <div class="news-header">
+                        <h3 class="news-title">Разработка бота началась. V1.0</h3>
+                        <span class="news-date">23.11.2025</span>
+                    </div>
+                    <div class="news-preview">
+                        Разработка нашего бота началась. Мы надеемся что наш бот в скором времени выйдет в открытый доступ и будет работать в штатном режиме. Возможно скоро будет бета тест.
+                    </div>
+                    <button class="read-more-btn" onclick="openNewsModal('news1')">
                         Показать полный текст
                     </button>
                 </div>
@@ -264,15 +264,15 @@
 
         <!-- Контент для Заданий -->
         <div class="content" id="tasks-content" style="display: none;">
-            <h1>✅ Задания</h1>
+            <h1>🎯 Задания</h1>
             <p>Выполняйте задания и получайте награды</p>
             
             <div class="tasks-container">
                 <div class="tasks-list">
                     <div class="task-item">
                         <div class="task-header">
-                            <div class="task-title">🎯 Первые шаги</div>
-                            <div class="task-reward">⭐ +50</div>
+                            <div class="task-title">🚀 Первые шаги</div>
+                            <div class="task-reward">⭐ +20</div>
                         </div>
                         <div class="task-description">
                             Откройте свой первый платный кейс в игре
@@ -280,55 +280,55 @@
                         <div class="task-progress">
                             <div class="task-progress-bar" id="firstStepsProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="firstStepsBtn" onclick="completeTask('first_steps', 50)">Выполнить</button>
+                        <button class="task-button" id="firstStepsBtn" onclick="completeTask('first_steps', 20)">Выполнить</button>
                     </div>
                     
                     <div class="task-item">
                         <div class="task-header">
                             <div class="task-title">💰 Накопитель</div>
-                            <div class="task-reward">⭐ +100</div>
+                            <div class="task-reward">⭐ +30</div>
                         </div>
                         <div class="task-description">
-                            Накопите 500 звёзд на балансе
+                            Накопите 300 звёзд на балансе
                         </div>
                         <div class="task-progress">
                             <div class="task-progress-bar" id="saverProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="saverBtn" onclick="completeTask('saver', 100)">Выполнить</button>
+                        <button class="task-button" id="saverBtn" onclick="completeTask('saver', 30)">Выполнить</button>
                     </div>
                     
                     <div class="task-item">
                         <div class="task-header">
                             <div class="task-title">🏆 Коллекционер</div>
-                            <div class="task-reward">⭐ +200</div>
+                            <div class="task-reward">⭐ +40</div>
                         </div>
                         <div class="task-description">
-                            Соберите 5 различных предметов
+                            Соберите 3 различных предмета
                         </div>
                         <div class="task-progress">
                             <div class="task-progress-bar" id="collectorProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="collectorBtn" onclick="completeTask('collector', 200)">Выполнить</button>
+                        <button class="task-button" id="collectorBtn" onclick="completeTask('collector', 40)">Выполнить</button>
                     </div>
                     
                     <div class="task-item">
                         <div class="task-header">
-                            <div class="task-title">🚀 Быстрый старт</div>
-                            <div class="task-reward">⭐ +150</div>
+                            <div class="task-title">⚡ Быстрый старт</div>
+                            <div class="task-reward">⭐ +25</div>
                         </div>
                         <div class="task-description">
-                            Откройте 3 кейса за один день
+                            Откройте 2 кейса за один день
                         </div>
                         <div class="task-progress">
                             <div class="task-progress-bar" id="fastStartProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="fastStartBtn" onclick="completeTask('fast_start', 150)">Выполнить</button>
+                        <button class="task-button" id="fastStartBtn" onclick="completeTask('fast_start', 25)">Выполнить</button>
                     </div>
                     
                     <div class="task-item">
                         <div class="task-header">
                             <div class="task-title">💎 Редкий охотник</div>
-                            <div class="task-reward">⭐ +300</div>
+                            <div class="task-reward">⭐ +50</div>
                         </div>
                         <div class="task-description">
                             Получите 1 редкий предмет
@@ -336,21 +336,21 @@
                         <div class="task-progress">
                             <div class="task-progress-bar" id="rareHunterProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="rareHunterBtn" onclick="completeTask('rare_hunter', 300)">Выполнить</button>
+                        <button class="task-button" id="rareHunterBtn" onclick="completeTask('rare_hunter', 50)">Выполнить</button>
                     </div>
                     
                     <div class="task-item">
                         <div class="task-header">
                             <div class="task-title">🌟 Легенда</div>
-                            <div class="task-reward">⭐ +500</div>
+                            <div class="task-reward">⭐ +60</div>
                         </div>
                         <div class="task-description">
-                            Достигните 3 уровня
+                            Достигните 2 уровня
                         </div>
                         <div class="task-progress">
                             <div class="task-progress-bar" id="legendProgress" style="width: 0%"></div>
                         </div>
-                        <button class="task-button" id="legendBtn" onclick="completeTask('legend', 500)">Выполнить</button>
+                        <button class="task-button" id="legendBtn" onclick="completeTask('legend', 60)">Выполнить</button>
                     </div>
                 </div>
             </div>
@@ -367,6 +367,7 @@
                         <div class="profile-avatar" id="profileAvatar">👤</div>
                         <div class="profile-info">
                             <h3 id="profileName">Игрок</h3>
+                            <p>ID: <span id="profileId">8000001</span></p>
                             <p>Уровень: <span id="profileLevel">1</span></p>
                         </div>
                     </div>
@@ -391,22 +392,93 @@
                     </div>
                 </div>
 
+                <!-- Ежедневный бонус -->
+                <div class="bonus-container">
+                    <div class="bonus-header">
+                        <h3>📅 Ежедневный бонус</h3>
+                        <div class="bonus-timer" id="dailyBonusTimer">00:00:00</div>
+                    </div>
+                    <button class="bonus-button" id="dailyBonusBtn" onclick="claimDailyBonus()">
+                        <span>🎁</span>
+                        Забрать 1 ⭐
+                    </button>
+                </div>
+
+                <!-- Батл-пасс -->
+                <div class="battlepass-container">
+                    <div class="battlepass-header">
+                        <h3>🎪 Батл-пасс</h3>
+                        <div class="battlepass-level">Уровень <span id="battlepassCurrentLevel">1</span></div>
+                    </div>
+                    <div class="battlepass-progress">
+                        <div class="battlepass-progress-bar">
+                            <div class="battlepass-progress-fill" id="battlepassProgressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="battlepass-exp">
+                            <span id="battlepassCurrentExp">0</span>/<span id="battlepassRequiredExp">100</span> EXP
+                        </div>
+                    </div>
+                    <div class="battlepass-reward">
+                        Следующая награда: <span class="reward-stars">+5 ⭐</span>
+                    </div>
+                </div>
+
+                <!-- Колесо фортуны -->
+                <div class="fortune-container">
+                    <div class="fortune-header">
+                        <h3>🎡 Колесо фортуны</h3>
+                        <div class="fortune-cost">Стоимость: 20 ⭐</div>
+                    </div>
+                    <button class="fortune-button" id="fortuneBtn" onclick="openFortuneWheel()">
+                        <span>🎰</span>
+                        Крутить колесо
+                    </button>
+                </div>
+
+                <!-- Реферальная система -->
+                <div class="referral-container">
+                    <div class="referral-header">
+                        <h3>👥 Реферальная система</h3>
+                        <div class="referral-bonus">+5% от пополнений друга</div>
+                    </div>
+                    <div class="referral-link-container">
+                        <input type="text" id="referralLinkInput" readonly class="referral-link-input">
+                        <button class="referral-copy-btn" onclick="copyReferralLink()">Копировать</button>
+                    </div>
+                    <div class="referral-stats">
+                        <div class="referral-stat">
+                            <div class="referral-stat-value" id="referralsCount">0</div>
+                            <div class="referral-stat-label">Приглашено</div>
+                        </div>
+                        <div class="referral-stat">
+                            <div class="referral-stat-value" id="referralEarnings">0</div>
+                            <div class="referral-stat-label">Заработано</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Промокод -->
                 <div class="promo-container">
                     <input type="text" id="promoCodeInput" placeholder="Введите промокод" class="promo-input">
                     <button class="promo-button" onclick="activatePromoCode()">Активировать</button>
                 </div>
 
-                <!-- Консоль -->
-                <button class="console-button" onclick="openConsole()">
-                    <span>💻</span>
-                    Открыть консоль
-                </button>
-
                 <!-- Кнопка инвентаря -->
                 <button class="inventory-button" onclick="openInventory()">
                     <span>📦</span>
                     Открыть инвентарь
+                </button>
+
+                <!-- Кнопка трейдинга -->
+                <button class="trading-button" onclick="openTrading()">
+                    <span>🔄</span>
+                    Обмен с игроком
+                </button>
+
+                <!-- Консоль -->
+                <button class="console-button" onclick="openConsole()">
+                    <span>💻</span>
+                    Открыть консоль
                 </button>
 
                 <div class="profile-card">
@@ -550,6 +622,87 @@
         </div>
     </div>
 
+    <!-- Модальное окно колеса фортуны -->
+    <div class="fortune-modal" id="fortuneModal">
+        <div class="fortune-modal-content">
+            <div class="fortune-modal-header">
+                <h2 class="fortune-modal-title">🎡 Колесо фортуны</h2>
+                <div class="fortune-modal-cost">Стоимость: 20 ⭐</div>
+            </div>
+            
+            <div class="fortune-wheel-container">
+                <div class="fortune-wheel" id="fortuneWheel">
+                    <div class="wheel-section" style="--i:1; --clr:#ff6b6b;">1⭐</div>
+                    <div class="wheel-section" style="--i:2; --clr:#4ecdc4;">5⭐</div>
+                    <div class="wheel-section" style="--i:3; --clr:#45b7d1;">15⭐</div>
+                    <div class="wheel-section" style="--i:4; --clr:#96ceb4;">20⭐</div>
+                    <div class="wheel-section" style="--i:5; --clr:#feca57;">30⭐</div>
+                    <div class="wheel-section" style="--i:6; --clr:#ff9ff3;">50⭐</div>
+                    <div class="wheel-section" style="--i:7; --clr:#54a0ff;">80⭐</div>
+                    <div class="wheel-section" style="--i:8; --clr:#5f27cd;">100⭐</div>
+                </div>
+                <div class="wheel-pointer"></div>
+            </div>
+            
+            <div class="fortune-modal-actions">
+                <button class="fortune-spin-btn" id="fortuneSpinBtn" onclick="spinFortuneWheel()">Крутить за 20 ⭐</button>
+                <button class="fortune-cancel-btn" onclick="closeFortuneWheel()">Отмена</button>
+            </div>
+            
+            <button class="close-modal" onclick="closeFortuneWheel()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно результата колеса -->
+    <div class="fortune-result-modal" id="fortuneResultModal">
+        <div class="fortune-result-content">
+            <div class="fortune-result-header">
+                <h2 class="fortune-result-title">🎉 Поздравляем!</h2>
+            </div>
+            <div class="fortune-result-wheel">
+                <div class="wheel-prize" id="fortunePrize">0 ⭐</div>
+            </div>
+            <div class="fortune-result-message">Вы выиграли:</div>
+            <div class="fortune-result-amount" id="fortuneResultAmount">0 ⭐</div>
+            <button class="fortune-ok-btn" onclick="closeFortuneResult()">Отлично!</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно трейдинга -->
+    <div class="trading-modal" id="tradingModal">
+        <div class="trading-modal-content">
+            <div class="trading-modal-header">
+                <h2 class="trading-modal-title">🔄 Обмен с игроком</h2>
+            </div>
+            
+            <div class="trading-tabs">
+                <button class="trading-tab active" onclick="openTradingTab('create')">Создать обмен</button>
+                <button class="trading-tab" onclick="openTradingTab('active')">Активные обмены</button>
+            </div>
+            
+            <div class="trading-tab-content" id="createTradeTab">
+                <div class="trade-form">
+                    <input type="text" id="targetUserId" placeholder="ID игрока для обмена" class="trade-input">
+                    <div class="trade-items-selection">
+                        <h4>Ваши предметы для обмена:</h4>
+                        <div class="trade-items-list" id="myTradeItems">
+                            <!-- Предметы для обмена -->
+                        </div>
+                    </div>
+                    <button class="create-trade-btn" onclick="createTrade()">Создать обмен</button>
+                </div>
+            </div>
+            
+            <div class="trading-tab-content" id="activeTradeTab" style="display: none;">
+                <div class="active-trades-list" id="activeTradesList">
+                    <!-- Активные обмены -->
+                </div>
+            </div>
+            
+            <button class="close-modal" onclick="closeTrading()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
     <!-- Модальное окно консоли -->
     <div class="console-modal" id="consoleModal">
         <div class="console-modal-content">
@@ -577,7 +730,11 @@
                 <button class="admin-btn" onclick="openWithdrawRequests()">📤 Подтвердить вывод</button>
                 <button class="admin-btn" onclick="openUserSearch()">👤 Найти пользователя</button>
                 <button class="admin-btn" onclick="addStarsToUser()">⭐ Добавить звёзды</button>
+                <button class="admin-btn" onclick="removeStarsFromUser()">⭐ Забрать звёзды</button>
+                <button class="admin-btn" onclick="banUser()">🔒 Заблокировать</button>
+                <button class="admin-btn" onclick="unbanUser()">🔓 Разблокировать</button>
                 <button class="admin-btn" onclick="showAllUsers()">👥 Все пользователи</button>
+                <button class="admin-btn" onclick="resetAllData()">🔄 Сбросить все данные</button>
             </div>
             <button class="close-modal" onclick="closeAdminPanel()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
@@ -639,7 +796,7 @@
         </button>
         
         <button class="nav-button" onclick="changePage('tasks')" data-page="tasks">
-            <div class="nav-icon">✅</div>
+            <div class="nav-icon">🎯</div>
             <div class="nav-text">Задания</div>
         </button>
         
