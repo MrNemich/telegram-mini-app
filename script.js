@@ -1585,3 +1585,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
+
