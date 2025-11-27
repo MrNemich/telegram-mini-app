@@ -1,798 +1,3 @@
-/* Все стили остаются такими же, только меняем анимацию вращения */
-
-/* Анимация вращения - 8 СЕКУНД */
-.case-items-track.spinning {
-    animation: spinAnimation 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes spinAnimation {
-    0% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(calc(-33.333% * 10));
-    }
-    40% {
-        transform: translateX(calc(-33.333% * 20));
-    }
-    60% {
-        transform: translateX(calc(-33.333% * 30));
-    }
-    80% {
-        transform: translateX(calc(-33.333% * 40));
-    }
-    95% {
-        transform: translateX(calc(-33.333% * 48));
-    }
-    100% {
-        transform: translateX(calc(-33.333% * 50));
-    }
-}
-
-/* Стили для картинок кейсов и предметов */
-.case-image img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    margin-bottom: 10px;
-}
-
-.case-item-image img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.inventory-item-image img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.result-item-image img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 15px;
-    border: 3px solid rgba(255, 215, 0, 0.5);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    margin-bottom: 15px;
-}
-
-.withdraw-item-info img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Таймер для бесплатного кейса */
-.timer-container {
-    text-align: center;
-    padding: 10px;
-    background: rgba(255, 0, 0, 0.2);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 0, 0, 0.4);
-    margin-top: 8px;
-}
-
-.timer-text {
-    font-size: 0.8rem;
-    color: #ff6b6b;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.timer {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 1px;
-}
-
-/* Промокод контейнер */
-.promo-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border-radius: 15px;
-    padding: 15px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-}
-
-.promo-input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-}
-
-.promo-input::placeholder {
-    color: #888;
-}
-
-.promo-button {
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.promo-button:active {
-    transform: scale(0.95);
-}
-
-/* Кнопка консоли */
-.console-button {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    color: white;
-    padding: 16px 24px;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.console-button:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
-}
-
-/* Карточки предметов в инвентаре */
-.inventory-item-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-}
-
-.inventory-item-info {
-    flex: 1;
-    text-align: center;
-}
-
-.inventory-item-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 5px;
-}
-
-.inventory-item-price {
-    font-size: 0.9rem;
-    color: #FFD700;
-    font-weight: 600;
-    margin-bottom: 3px;
-}
-
-.inventory-item-quantity {
-    font-size: 0.8rem;
-    color: #8A2BE2;
-}
-
-/* Кнопки действий в инвентаре */
-.inventory-item-actions {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-}
-
-.inventory-action-btn {
-    flex: 1;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.withdraw-action-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.sell-action-btn {
-    background: linear-gradient(45deg, #FF6B35, #FF8E53);
-    color: white;
-}
-
-.inventory-action-btn:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно вывода */
-.withdraw-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 3000;
-    backdrop-filter: blur(15px);
-}
-
-.withdraw-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.withdraw-modal-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.withdraw-modal-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.withdraw-item-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-}
-
-.withdraw-item-details {
-    flex: 1;
-}
-
-.withdraw-item-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 5px;
-}
-
-.withdraw-item-price {
-    font-size: 1rem;
-    color: #FFD700;
-    font-weight: 600;
-}
-
-.username-input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-    margin-bottom: 20px;
-}
-
-.username-input::placeholder {
-    color: #888;
-}
-
-.withdraw-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.withdraw-confirm-btn, .withdraw-cancel-btn {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.withdraw-confirm-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.withdraw-cancel-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.withdraw-confirm-btn:active, .withdraw-cancel-btn:active {
-    transform: scale(0.95);
-}
-
-/* Цена в результате */
-.result-price {
-    font-size: 1.1rem;
-    color: #FFD700;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 107, 53, 0.2));
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 215, 0, 0.4);
-}
-
-/* Консоль администратора */
-.console-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.console-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 95%;
-    height: 80%;
-    max-width: 500px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-}
-
-.console-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.console-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.console-input-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.console-input {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-}
-
-.console-execute-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.console-output {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    overflow-y: auto;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    color: #00ff00;
-}
-
-.console-message {
-    color: #888;
-}
-
-.console-error {
-    color: #ff6b6b;
-}
-
-/* Админ панель */
-.admin-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.admin-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.admin-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.admin-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.admin-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.admin-btn {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    color: white;
-    padding: 15px 20px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.admin-btn:active {
-    transform: scale(0.95);
-}
-
-/* Заявки на вывод */
-.withdraw-requests-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.withdraw-requests-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 95%;
-    height: 80%;
-    max-width: 500px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.withdraw-requests-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.withdraw-requests-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.withdraw-requests-list {
-    height: calc(100% - 60px);
-    overflow-y: auto;
-}
-
-.no-requests {
-    text-align: center;
-    color: #888;
-    padding: 40px 20px;
-    font-size: 1.1rem;
-}
-
-.withdraw-request-item {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.request-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.request-user {
-    font-weight: 600;
-    color: white;
-}
-
-.request-date {
-    font-size: 0.8rem;
-    color: #888;
-}
-
-.request-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.request-item img {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.request-item-info {
-    flex: 1;
-}
-
-.request-item-name {
-    font-weight: 600;
-    color: white;
-    margin-bottom: 2px;
-}
-
-.request-item-price {
-    font-size: 0.8rem;
-    color: #FFD700;
-}
-
-.request-user-id {
-    font-size: 0.8rem;
-    color: #8A2BE2;
-    margin-bottom: 10px;
-}
-
-.request-confirm-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    border: none;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-}
-
-.request-confirm-btn:active {
-    transform: scale(0.95);
-}
-
-/* Поиск пользователя */
-.user-search-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.user-search-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.user-search-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.user-search-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.user-search-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.user-id-input {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-}
-
-.user-search-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.user-info {
-    min-height: 100px;
-}
-
-.user-info-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.user-info-item {
-    margin-bottom: 8px;
-    color: white;
-}
-
-.user-info-item:last-child {
-    margin-bottom: 0;
-}
-
-.user-info-error {
-    text-align: center;
-    color: #ff6b6b;
-    padding: 20px;
-}
-
-/* Градиенты для новых кейсов */
-.case-square.free {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-}
-
-.case-square.bomj {
-    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
-    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
-}
-
-.case-square.champion {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
-}
-
-.case-square.economy {
-    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
-    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
-}
-
-.case-square.pepe {
-    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
-    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
-}
-
-.case-square.cap {
-    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
-    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
-}
-
-.case-square.business {
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
-    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
-}
-
-.case-square.worker {
-    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-}
-
-.case-square.elite {
-    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
-}
-
-.case-square.premium {
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.9), rgba(255, 167, 38, 0.8));
-    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
-}
-
-/* Остальные стили остаются без изменений */
 * {
     margin: 0;
     padding: 0;
@@ -1264,6 +469,18 @@ p {
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+.result-price {
+    font-size: 1.1rem;
+    color: #FFD700;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 107, 53, 0.2));
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
 .success-btn {
     background: linear-gradient(45deg, #34C759, #30D158);
     border: none;
@@ -1679,6 +896,7 @@ p {
     transition: all 0.3s ease;
     width: 100%;
     box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
+    pointer-events: auto !important;
 }
 
 .task-button:active {
@@ -1689,6 +907,7 @@ p {
 .task-button.completed {
     background: linear-gradient(45deg, #34C759, #30D158);
     box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);
+    pointer-events: none;
 }
 
 .task-button:disabled {
@@ -1697,6 +916,7 @@ p {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    pointer-events: none;
 }
 
 /* Стили для страницы профиля */
@@ -2331,4 +1551,909 @@ p {
     .selection-line::after {
         animation: none;
     }
+}
+
+/* Стили для картинок кейсов и предметов */
+.case-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 10px;
+}
+
+.case-item-image img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.inventory-item-image img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.result-item-image img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 3px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    margin-bottom: 15px;
+}
+
+.withdraw-item-info img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Таймер для бесплатного кейса */
+.timer-container {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 0, 0, 0.4);
+    margin-top: 8px;
+}
+
+.timer-text {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timer {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+/* Промокод контейнер */
+.promo-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    background: rgba(30, 30, 30, 0.8);
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.promo-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+}
+
+.promo-input::placeholder {
+    color: #888;
+}
+
+.promo-button {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.promo-button:active {
+    transform: scale(0.95);
+}
+
+/* Кнопка консоли */
+.console-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(106, 13, 173, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.console-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.5);
+}
+
+/* Карточки предметов в инвентаре */
+.inventory-item-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+}
+
+.inventory-item-info {
+    flex: 1;
+    text-align: center;
+}
+
+.inventory-item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.inventory-item-price {
+    font-size: 0.9rem;
+    color: #FFD700;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.inventory-item-quantity {
+    font-size: 0.8rem;
+    color: #8A2BE2;
+}
+
+/* Кнопки действий в инвентаре */
+.inventory-item-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.inventory-action-btn {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.withdraw-action-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.sell-action-btn {
+    background: linear-gradient(45deg, #FF6B35, #FF8E53);
+    color: white;
+}
+
+.inventory-action-btn:active {
+    transform: scale(0.95);
+}
+
+/* Модальное окно вывода */
+.withdraw-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 3000;
+    backdrop-filter: blur(15px);
+}
+
+.withdraw-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.withdraw-modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.withdraw-modal-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.withdraw-item-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+}
+
+.withdraw-item-details {
+    flex: 1;
+}
+
+.withdraw-item-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.withdraw-item-price {
+    font-size: 1rem;
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.username-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.username-input::placeholder {
+    color: #888;
+}
+
+.withdraw-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.withdraw-confirm-btn, .withdraw-cancel-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.withdraw-confirm-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.withdraw-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.withdraw-confirm-btn:active, .withdraw-cancel-btn:active {
+    transform: scale(0.95);
+}
+
+/* Консоль администратора */
+.console-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.console-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 80%;
+    max-width: 500px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.console-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.console-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.console-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.console-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+}
+
+.console-execute-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.console-output {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #00ff00;
+}
+
+.console-message {
+    color: #888;
+}
+
+.console-error {
+    color: #ff6b6b;
+}
+
+/* Админ панель */
+.admin-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.admin-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.admin-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.admin-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.admin-btn {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:active {
+    transform: scale(0.95);
+}
+
+/* Заявки на вывод */
+.withdraw-requests-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.withdraw-requests-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 80%;
+    max-width: 500px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.withdraw-requests-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.withdraw-requests-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.withdraw-requests-list {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
+
+.no-requests {
+    text-align: center;
+    color: #888;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+}
+
+.withdraw-request-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.request-user {
+    font-weight: 600;
+    color: white;
+}
+
+.request-date {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.request-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.request-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.request-item-info {
+    flex: 1;
+}
+
+.request-item-name {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.request-item-price {
+    font-size: 0.8rem;
+    color: #FFD700;
+}
+
+.request-user-id {
+    font-size: 0.8rem;
+    color: #8A2BE2;
+    margin-bottom: 10px;
+}
+
+.request-confirm-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
+
+.request-confirm-btn:active {
+    transform: scale(0.95);
+}
+
+/* Поиск пользователя */
+.user-search-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.user-search-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.user-search-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.user-search-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.user-search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.user-id-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+}
+
+.user-search-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.user-info {
+    min-height: 100px;
+}
+
+.user-info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info-item {
+    margin-bottom: 8px;
+    color: white;
+}
+
+.user-info-item:last-child {
+    margin-bottom: 0;
+}
+
+.user-info-error {
+    text-align: center;
+    color: #ff6b6b;
+    padding: 20px;
+}
+
+/* Все пользователи */
+.all-users-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.all-users-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 80%;
+    max-width: 500px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.all-users-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.all-users-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.all-users-list {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
+
+.user-list-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.user-list-name {
+    font-weight: 600;
+    color: white;
+}
+
+.user-list-id {
+    font-size: 0.8rem;
+    color: #8A2BE2;
+}
+
+.user-list-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+.user-list-stat {
+    color: #cccccc;
+}
+
+/* Градиенты для новых кейсов */
+.case-square.free {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.case-square.bomj {
+    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
+    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
+}
+
+.case-square.champion {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.case-square.economy {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.case-square.pepe {
+    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
+    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+}
+
+.case-square.cap {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.case-square.business {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
+    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+}
+
+.case-square.worker {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.case-square.elite {
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+}
+
+.case-square.premium {
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.9), rgba(255, 167, 38, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+/* Исправленная анимация вращения - плавная вправо */
+.case-items-track.spinning {
+    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes spinAnimationRight {
+    0% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(calc(-33.333% * 5));
+    }
+    40% {
+        transform: translateX(calc(-33.333% * 10));
+    }
+    60% {
+        transform: translateX(calc(-33.333% * 15));
+    }
+    80% {
+        transform: translateX(calc(-33.333% * 20));
+    }
+    95% {
+        transform: translateX(calc(-33.333% * 24));
+    }
+    100% {
+        transform: translateX(calc(-33.333% * 25));
+    }
+}
+
+/* Стили для статусов заявок */
+.request-status {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.request-status.pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.request-status.completed {
+    background: rgba(52, 199, 89, 0.2);
+    color: #34C759;
+    border: 1px solid rgba(52, 199, 89, 0.4);
+}
+
+.request-completed {
+    text-align: center;
+    color: #34C759;
+    font-weight: 600;
+    padding: 10px;
+    background: rgba(52, 199, 89, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(52, 199, 89, 0.3);
+}
+
+/* Убедимся, что кнопки навигации работают правильно */
+.nav-button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+.nav-button:active {
+    transform: scale(0.92) !important;
 }
