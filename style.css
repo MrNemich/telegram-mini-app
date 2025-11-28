@@ -2313,84 +2313,123 @@ p {
     color: #cccccc;
 }
 
-/* Градиенты для новых кейсов */
-.case-square.free {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+/* Магазин Stars */
+.stars-shop-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
 }
 
-.case-square.bomj {
-    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
-    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
+.stars-shop-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
 }
 
-.case-square.champion {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+.stars-shop-header {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-.case-square.economy {
-    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
-    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+.stars-shop-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.case-square.pepe {
-    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
-    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+.stars-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
-.case-square.cap {
-    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
-    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+.stars-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
 }
 
-.case-square.business {
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
-    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+.stars-option:hover {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: rgba(138, 43, 226, 0.5);
 }
 
-.case-square.worker {
-    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+.stars-option.selected {
+    background: rgba(138, 43, 226, 0.3);
+    border: 2px solid #8A2BE2;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
 }
 
-.case-square.elite {
-    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+.stars-amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #FFD700;
+    margin-bottom: 5px;
 }
 
-.case-square.premium {
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.9), rgba(255, 167, 38, 0.8));
-    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+.stars-price {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 600;
 }
 
-/* Исправленная анимация вращения - плавная вправо */
-.case-items-track.spinning {
-    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+.stars-shop-actions {
+    display: flex;
+    gap: 12px;
 }
 
-@keyframes spinAnimationRight {
-    0% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(calc(-33.333% * 5));
-    }
-    40% {
-        transform: translateX(calc(-33.333% * 10));
-    }
-    60% {
-        transform: translateX(calc(-33.333% * 15));
-    }
-    80% {
-        transform: translateX(calc(-33.333% * 20));
-    }
-    95% {
-        transform: translateX(calc(-33.333% * 24));
-    }
-    100% {
-        transform: translateX(calc(-33.333% * 25));
-    }
+.stars-buy-btn, .stars-cancel-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stars-buy-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.stars-buy-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #888;
+    cursor: not-allowed;
+}
+
+.stars-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.stars-buy-btn:active, .stars-cancel-btn:active {
+    transform: scale(0.95);
 }
 
 /* Стили для статусов заявок */
@@ -2508,156 +2547,6 @@ p {
 .bonus-note {
     font-size: 0.8rem;
     color: #888;
-}
-
-/* Стили для колеса фортуны */
-.wheel-info {
-    color: white;
-    text-align: center;
-}
-
-.wheel-cost, .wheel-prizes {
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-}
-
-.wheel-button {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-    transition: all 0.3s ease;
-}
-
-.wheel-button:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно колеса фортуны */
-.wheel-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.wheel-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-    text-align: center;
-}
-
-.wheel-header {
-    margin-bottom: 20px;
-}
-
-.wheel-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.wheel-container {
-    position: relative;
-    margin: 20px 0;
-}
-
-#wheelCanvas {
-    border-radius: 50%;
-    border: 3px solid #8A2BE2;
-    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
-}
-
-.wheel-result {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    border-radius: 15px;
-    border: 2px solid #FFD700;
-    color: white;
-    text-align: center;
-}
-
-.wheel-result-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #FFD700;
-    margin-bottom: 10px;
-}
-
-.wheel-result-amount {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #FFD700;
-    margin-bottom: 10px;
-}
-
-.wheel-result-message {
-    font-size: 1rem;
-    color: white;
-}
-
-.wheel-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.spin-wheel-btn, .close-wheel-btn {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.spin-wheel-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.close-wheel-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.spin-wheel-btn:active, .close-wheel-btn:active {
-    transform: scale(0.95);
-}
-
-.spin-wheel-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
 }
 
 /* Стили для реферальной системы */
@@ -2879,14 +2768,9 @@ p {
         flex-direction: column;
     }
     
-    .wheel-modal-content {
+    .stars-shop-content {
         width: 95%;
         padding: 20px;
-    }
-    
-    #wheelCanvas {
-        width: 250px;
-        height: 250px;
     }
     
     .trade-modal-content {
@@ -2907,5 +2791,85 @@ p {
     
     .trade-actions {
         flex-direction: row;
+    }
+}
+
+/* Градиенты для кейсов */
+.case-square.free {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.case-square.bomj {
+    background: linear-gradient(135deg, rgba(141, 110, 99, 0.9), rgba(161, 136, 127, 0.8));
+    box-shadow: 0 6px 20px rgba(141, 110, 99, 0.4);
+}
+
+.case-square.champion {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 202, 40, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.case-square.economy {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.case-square.pepe {
+    background: linear-gradient(135deg, rgba(56, 142, 60, 0.9), rgba(102, 187, 106, 0.8));
+    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+}
+
+.case-square.cap {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.9), rgba(41, 182, 246, 0.8));
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.case-square.business {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.9), rgba(186, 104, 200, 0.8));
+    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+}
+
+.case-square.worker {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(239, 83, 80, 0.8));
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.case-square.elite {
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.9), rgba(240, 98, 146, 0.8));
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+}
+
+.case-square.premium {
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.9), rgba(255, 167, 38, 0.8));
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+/* Исправленная анимация вращения - плавная вправо */
+.case-items-track.spinning {
+    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes spinAnimationRight {
+    0% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(calc(-33.333% * 5));
+    }
+    40% {
+        transform: translateX(calc(-33.333% * 10));
+    }
+    60% {
+        transform: translateX(calc(-33.333% * 15));
+    }
+    80% {
+        transform: translateX(calc(-33.333% * 20));
+    }
+    95% {
+        transform: translateX(calc(-33.333% * 24));
+    }
+    100% {
+        transform: translateX(calc(-33.333% * 25));
     }
 }
