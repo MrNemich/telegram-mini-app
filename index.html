@@ -392,68 +392,95 @@
                     </div>
                 </div>
 
-                <!-- Ежедневный бонус -->
-                <div class="bonus-container">
-                    <div class="bonus-header">
-                        <h3>📅 Ежедневный бонус</h3>
-                        <div class="bonus-timer" id="dailyBonusTimer">00:00:00</div>
+                <!-- Батл пасс -->
+                <div class="profile-card">
+                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎮 Батл Пасс</h3>
+                    <div class="battle-pass-info">
+                        <div class="battle-pass-level">
+                            <span>Уровень:</span>
+                            <strong id="battlePassLevel">1</strong>
+                        </div>
+                        <div class="battle-pass-exp">
+                            <span>Опыт:</span>
+                            <span id="battlePassExp">0/50</span>
+                        </div>
+                        <div class="battle-pass-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="battlePassProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="battle-pass-reward">
+                            🎁 Награда за уровень: +5 ⭐
+                        </div>
                     </div>
-                    <button class="bonus-button" id="dailyBonusBtn" onclick="claimDailyBonus()">
-                        <span>🎁</span>
-                        Забрать 1 ⭐
-                    </button>
                 </div>
 
-                <!-- Батл-пасс -->
-                <div class="battlepass-container">
-                    <div class="battlepass-header">
-                        <h3>🎪 Батл-пасс</h3>
-                        <div class="battlepass-level">Уровень <span id="battlepassCurrentLevel">1</span></div>
-                    </div>
-                    <div class="battlepass-progress">
-                        <div class="battlepass-progress-bar">
-                            <div class="battlepass-progress-fill" id="battlepassProgressFill" style="width: 0%"></div>
+                <!-- Ежедневный бонус -->
+                <div class="profile-card">
+                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎁 Ежедневный бонус</h3>
+                    <div class="daily-bonus-info">
+                        <div class="bonus-streak">
+                            <span>Текущий стрик:</span>
+                            <strong id="dailyBonusStreak">0</strong>
+                            <span>дней</span>
                         </div>
-                        <div class="battlepass-exp">
-                            <span id="battlepassCurrentExp">0</span>/<span id="battlepassRequiredExp">100</span> EXP
+                        <button class="daily-bonus-btn" id="dailyBonusBtn" onclick="claimDailyBonus()">
+                            🎁 Получить 1 ⭐
+                        </button>
+                        <div class="bonus-note">
+                            Заходите каждый день чтобы увеличить стрик!
                         </div>
-                    </div>
-                    <div class="battlepass-reward">
-                        Следующая награда: <span class="reward-stars">+5 ⭐</span>
                     </div>
                 </div>
 
                 <!-- Колесо фортуны -->
-                <div class="fortune-container">
-                    <div class="fortune-header">
-                        <h3>🎡 Колесо фортуны</h3>
-                        <div class="fortune-cost">Стоимость: 20 ⭐</div>
+                <div class="profile-card">
+                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎡 Колесо Фортуны</h3>
+                    <div class="wheel-info">
+                        <div class="wheel-cost">
+                            Стоимость вращения: <strong>20 ⭐</strong>
+                        </div>
+                        <div class="wheel-prizes">
+                            Возможные призы: 1, 5, 15, 20, 30, 50, 80, 100 ⭐
+                        </div>
+                        <button class="wheel-button" onclick="openWheelModal()">
+                            🎡 Крутить колесо
+                        </button>
                     </div>
-                    <button class="fortune-button" id="fortuneBtn" onclick="openFortuneWheel()">
-                        <span>🎰</span>
-                        Крутить колесо
-                    </button>
                 </div>
 
                 <!-- Реферальная система -->
-                <div class="referral-container">
-                    <div class="referral-header">
-                        <h3>👥 Реферальная система</h3>
-                        <div class="referral-bonus">+5% от пополнений друга</div>
-                    </div>
-                    <div class="referral-link-container">
-                        <input type="text" id="referralLinkInput" readonly class="referral-link-input">
-                        <button class="referral-copy-btn" onclick="copyReferralLink()">Копировать</button>
-                    </div>
-                    <div class="referral-stats">
-                        <div class="referral-stat">
-                            <div class="referral-stat-value" id="referralsCount">0</div>
-                            <div class="referral-stat-label">Приглашено</div>
+                <div class="profile-card">
+                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">👥 Реферальная система</h3>
+                    <div class="referral-info">
+                        <div class="referral-code">
+                            <span>Ваш код:</span>
+                            <strong id="referralCode">XXXXXX</strong>
+                            <button class="copy-btn" onclick="copyReferralCode()">📋</button>
                         </div>
-                        <div class="referral-stat">
-                            <div class="referral-stat-value" id="referralEarnings">0</div>
-                            <div class="referral-stat-label">Заработано</div>
+                        <div class="referral-earnings">
+                            <span>Заработано:</span>
+                            <strong id="referralEarnings">0</strong>
+                            <span>⭐</span>
                         </div>
+                        <div class="referral-input-container">
+                            <input type="text" id="referralInput" placeholder="Введите код друга" class="referral-input">
+                            <button class="referral-btn" onclick="useReferralCode()">Активировать</button>
+                        </div>
+                        <div class="referral-note">
+                            Получайте 5% от пополнений ваших рефералов!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Трейдинг -->
+                <div class="profile-card">
+                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🔄 Трейдинг</h3>
+                    <div class="trading-info">
+                        <p>Обменивайтесь предметами с другими игроками</p>
+                        <button class="trade-button" onclick="openTradeModal()">
+                            🔄 Открыть трейдинг
+                        </button>
                     </div>
                 </div>
 
@@ -467,12 +494,6 @@
                 <button class="inventory-button" onclick="openInventory()">
                     <span>📦</span>
                     Открыть инвентарь
-                </button>
-
-                <!-- Кнопка трейдинга -->
-                <button class="trading-button" onclick="openTrading()">
-                    <span>🔄</span>
-                    Обмен с игроком
                 </button>
 
                 <!-- Консоль -->
@@ -622,87 +643,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно колеса фортуны -->
-    <div class="fortune-modal" id="fortuneModal">
-        <div class="fortune-modal-content">
-            <div class="fortune-modal-header">
-                <h2 class="fortune-modal-title">🎡 Колесо фортуны</h2>
-                <div class="fortune-modal-cost">Стоимость: 20 ⭐</div>
-            </div>
-            
-            <div class="fortune-wheel-container">
-                <div class="fortune-wheel" id="fortuneWheel">
-                    <div class="wheel-section" style="--i:1; --clr:#ff6b6b;">1⭐</div>
-                    <div class="wheel-section" style="--i:2; --clr:#4ecdc4;">5⭐</div>
-                    <div class="wheel-section" style="--i:3; --clr:#45b7d1;">15⭐</div>
-                    <div class="wheel-section" style="--i:4; --clr:#96ceb4;">20⭐</div>
-                    <div class="wheel-section" style="--i:5; --clr:#feca57;">30⭐</div>
-                    <div class="wheel-section" style="--i:6; --clr:#ff9ff3;">50⭐</div>
-                    <div class="wheel-section" style="--i:7; --clr:#54a0ff;">80⭐</div>
-                    <div class="wheel-section" style="--i:8; --clr:#5f27cd;">100⭐</div>
-                </div>
-                <div class="wheel-pointer"></div>
-            </div>
-            
-            <div class="fortune-modal-actions">
-                <button class="fortune-spin-btn" id="fortuneSpinBtn" onclick="spinFortuneWheel()">Крутить за 20 ⭐</button>
-                <button class="fortune-cancel-btn" onclick="closeFortuneWheel()">Отмена</button>
-            </div>
-            
-            <button class="close-modal" onclick="closeFortuneWheel()" style="position: absolute; top: 16px; right: 16px;">×</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно результата колеса -->
-    <div class="fortune-result-modal" id="fortuneResultModal">
-        <div class="fortune-result-content">
-            <div class="fortune-result-header">
-                <h2 class="fortune-result-title">🎉 Поздравляем!</h2>
-            </div>
-            <div class="fortune-result-wheel">
-                <div class="wheel-prize" id="fortunePrize">0 ⭐</div>
-            </div>
-            <div class="fortune-result-message">Вы выиграли:</div>
-            <div class="fortune-result-amount" id="fortuneResultAmount">0 ⭐</div>
-            <button class="fortune-ok-btn" onclick="closeFortuneResult()">Отлично!</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно трейдинга -->
-    <div class="trading-modal" id="tradingModal">
-        <div class="trading-modal-content">
-            <div class="trading-modal-header">
-                <h2 class="trading-modal-title">🔄 Обмен с игроком</h2>
-            </div>
-            
-            <div class="trading-tabs">
-                <button class="trading-tab active" onclick="openTradingTab('create')">Создать обмен</button>
-                <button class="trading-tab" onclick="openTradingTab('active')">Активные обмены</button>
-            </div>
-            
-            <div class="trading-tab-content" id="createTradeTab">
-                <div class="trade-form">
-                    <input type="text" id="targetUserId" placeholder="ID игрока для обмена" class="trade-input">
-                    <div class="trade-items-selection">
-                        <h4>Ваши предметы для обмена:</h4>
-                        <div class="trade-items-list" id="myTradeItems">
-                            <!-- Предметы для обмена -->
-                        </div>
-                    </div>
-                    <button class="create-trade-btn" onclick="createTrade()">Создать обмен</button>
-                </div>
-            </div>
-            
-            <div class="trading-tab-content" id="activeTradeTab" style="display: none;">
-                <div class="active-trades-list" id="activeTradesList">
-                    <!-- Активные обмены -->
-                </div>
-            </div>
-            
-            <button class="close-modal" onclick="closeTrading()" style="position: absolute; top: 16px; right: 16px;">×</button>
-        </div>
-    </div>
-
     <!-- Модальное окно консоли -->
     <div class="console-modal" id="consoleModal">
         <div class="console-modal-content">
@@ -780,6 +720,58 @@
                 <!-- Список пользователей будет здесь -->
             </div>
             <button class="close-modal" onclick="closeAllUsers()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно колеса фортуны -->
+    <div class="wheel-modal" id="wheelModal">
+        <div class="wheel-modal-content">
+            <div class="wheel-header">
+                <h2 class="wheel-title">🎡 Колесо Фортуны</h2>
+            </div>
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+                <div class="wheel-result" id="wheelResult" style="display: none;">
+                    <!-- Результат будет здесь -->
+                </div>
+            </div>
+            <div class="wheel-actions">
+                <button class="spin-wheel-btn" id="spinWheelBtn" onclick="spinWheel()">🎡 Крутить за 20 ⭐</button>
+                <button class="close-wheel-btn" onclick="closeWheelModal()">Закрыть</button>
+            </div>
+            <button class="close-modal" onclick="closeWheelModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно трейдинга -->
+    <div class="trade-modal" id="tradeModal">
+        <div class="trade-modal-content">
+            <div class="trade-header">
+                <h2 class="trade-title">🔄 Обмен предметами</h2>
+            </div>
+            <div class="trade-form">
+                <div class="trade-input-group">
+                    <label>ID пользователя:</label>
+                    <input type="text" id="tradeUserId" placeholder="Введите ID пользователя" class="trade-input">
+                </div>
+                <div class="trade-input-group">
+                    <label>Отдать предмет:</label>
+                    <select id="tradeGiveItem" class="trade-select">
+                        <option value="">Выберите предмет</option>
+                    </select>
+                </div>
+                <div class="trade-input-group">
+                    <label>Получить предмет:</label>
+                    <select id="tradeReceiveItem" class="trade-select">
+                        <option value="">Выберите предмет</option>
+                    </select>
+                </div>
+            </div>
+            <div class="trade-actions">
+                <button class="trade-confirm-btn" onclick="confirmTrade()">Подтвердить обмен</button>
+                <button class="trade-cancel-btn" onclick="closeTradeModal()">Отмена</button>
+            </div>
+            <button class="close-modal" onclick="closeTradeModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
