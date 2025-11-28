@@ -2434,3 +2434,478 @@ p {
 .nav-button:active {
     transform: scale(0.92) !important;
 }
+
+/* Стили для батл пасса */
+.battle-pass-info {
+    color: white;
+    text-align: center;
+}
+
+.battle-pass-level, .battle-pass-exp {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.battle-pass-progress {
+    margin: 15px 0;
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.battle-pass-reward {
+    color: #FFD700;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Стили для ежедневного бонуса */
+.daily-bonus-info {
+    color: white;
+    text-align: center;
+}
+
+.bonus-streak {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.daily-bonus-btn {
+    background: linear-gradient(45deg, #FF6B35, #FF8E53);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.daily-bonus-btn:active {
+    transform: scale(0.95);
+}
+
+.bonus-note {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* Стили для колеса фортуны */
+.wheel-info {
+    color: white;
+    text-align: center;
+}
+
+.wheel-cost, .wheel-prizes {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.wheel-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.wheel-button:active {
+    transform: scale(0.95);
+}
+
+/* Модальное окно колеса фортуны */
+.wheel-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.wheel-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+    text-align: center;
+}
+
+.wheel-header {
+    margin-bottom: 20px;
+}
+
+.wheel-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.wheel-container {
+    position: relative;
+    margin: 20px 0;
+}
+
+#wheelCanvas {
+    border-radius: 50%;
+    border: 3px solid #8A2BE2;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+}
+
+.wheel-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #FFD700;
+    color: white;
+    text-align: center;
+}
+
+.wheel-result-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.wheel-result-amount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.wheel-result-message {
+    font-size: 1rem;
+    color: white;
+}
+
+.wheel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.spin-wheel-btn, .close-wheel-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.spin-wheel-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.close-wheel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.spin-wheel-btn:active, .close-wheel-btn:active {
+    transform: scale(0.95);
+}
+
+.spin-wheel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Стили для реферальной системы */
+.referral-info {
+    color: white;
+    text-align: center;
+}
+
+.referral-code {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.copy-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+.referral-earnings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.referral-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.referral-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.referral-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.referral-btn:active {
+    transform: scale(0.95);
+}
+
+.referral-note {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Стили для трейдинга */
+.trading-info {
+    color: white;
+    text-align: center;
+}
+
+.trading-info p {
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.trade-button {
+    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.trade-button:active {
+    transform: scale(0.95);
+}
+
+/* Модальное окно трейдинга */
+.trade-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.trade-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.trade-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.trade-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.trade-form {
+    margin-bottom: 20px;
+}
+
+.trade-input-group {
+    margin-bottom: 15px;
+}
+
+.trade-input-group label {
+    display: block;
+    color: white;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.trade-input, .trade-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+}
+
+.trade-select option {
+    background: #1a1a1a;
+    color: white;
+}
+
+.trade-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.trade-confirm-btn, .trade-cancel-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.trade-confirm-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    color: white;
+}
+
+.trade-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.trade-confirm-btn:active, .trade-cancel-btn:active {
+    transform: scale(0.95);
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 360px) {
+    .battle-pass-level, .battle-pass-exp {
+        font-size: 0.9rem;
+    }
+    
+    .referral-code {
+        font-size: 1rem;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .referral-input-container {
+        flex-direction: column;
+    }
+    
+    .wheel-modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    #wheelCanvas {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .trade-modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .trade-actions {
+        flex-direction: column;
+    }
+}
+
+/* Для планшетов */
+@media (min-width: 768px) {
+    .referral-input-container {
+        flex-direction: row;
+    }
+    
+    .trade-actions {
+        flex-direction: row;
+    }
+}
