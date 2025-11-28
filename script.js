@@ -1,26 +1,103 @@
 // Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 
+// Глобальная база данных пользователей
+class GlobalDatabase {
+    constructor() {
+        this.storageKey = 'global_users_database';
+        this.loadGlobalData();
+    }
+
+    loadGlobalData() {
+        const savedData = localStorage.getItem(this.storageKey);
+        if (savedData) {
+            this.globalData = JSON.parse(savedData);
+        } else {
+            this.globalData = {
+                users: {},
+                nextUserId: 8000001,
+                withdrawRequests: [],
+                usedReferralCodes: new Set()
+            };
+            this.saveGlobalData();
+        }
+    }
+
+    saveGlobalData() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.globalData));
+    }
+
+    generateUserId() {
+        const userId = this.globalData.nextUserId;
+        this.globalData.nextUserId++;
+        this.saveGlobalData();
+        return userId;
+    }
+
+    getUserByTelegramId(telegramId) {
+        return this.globalData.users[telegramId];
+    }
+
+    createUser(telegramId, userData) {
+        this.globalData.users[telegramId] = userData;
+        this.saveGlobalData();
+        return userData;
+    }
+
+    updateUser(telegramId, userData) {
+        this.globalData.users[telegramId] = userData;
+        this.saveGlobalData();
+    }
+
+    getAllUsers() {
+        return Object.values(this.globalData.users);
+    }
+
+    addWithdrawRequest(request) {
+        this.globalData.withdrawRequests.unshift(request);
+        this.saveGlobalData();
+    }
+
+    getWithdrawRequests() {
+        return this.globalData.withdrawRequests.filter(request => request.status === 'pending');
+    }
+
+    completeWithdrawRequest(requestId) {
+        const request = this.globalData.withdrawRequests.find(r => r.id === requestId);
+        if (request) {
+            request.status = 'completed';
+            this.saveGlobalData();
+            return true;
+        }
+        return false;
+    }
+
+    isReferralCodeUsed(code) {
+        return this.globalData.usedReferralCodes.has(code);
+    }
+
+    markReferralCodeUsed(code) {
+        this.globalData.usedReferralCodes.add(code);
+        this.saveGlobalData();
+    }
+}
+
 // База данных пользователя
 class UserDatabase {
     constructor() {
-        this.userId = tg.initDataUnsafe.user?.id || 'default_user';
-        this.storageKey = `user_data_${this.userId}`;
+        this.telegramUserId = tg.initDataUnsafe.user?.id || 'default_user';
+        this.globalDB = new GlobalDatabase();
         this.loadUserData();
     }
 
     loadUserData() {
-        const savedData = localStorage.getItem(this.storageKey);
-        if (savedData) {
-            this.userData = JSON.parse(savedData);
-        } else {
-            // Генерируем уникальный ID начиная с 8000001
-            const allUsers = this.getAllUsers();
-            const maxId = allUsers.reduce((max, user) => Math.max(max, user.userIdNumber || 8000000), 8000000);
-            const newId = maxId + 1;
+        let userData = this.globalDB.getUserByTelegramId(this.telegramUserId);
+        
+        if (!userData) {
+            // Создаем нового пользователя
+            const newUserId = this.globalDB.generateUserId();
             
-            // Начальные данные для нового пользователя
-            this.userData = {
+            userData = {
                 balance: 50,
                 inventory: {},
                 casesOpened: 0,
@@ -29,10 +106,11 @@ class UserDatabase {
                 achievements: ['Новичок'],
                 level: 1,
                 experience: 0,
-                userId: this.userId,
-                userIdNumber: newId,
-                username: tg.initDataUnsafe.user?.username || 'Игрок',
+                userId: newUserId,
+                telegramUserId: this.telegramUserId,
+                username: tg.initDataUnsafe.user?.username || '',
                 firstName: tg.initDataUnsafe.user?.first_name || 'Игрок',
+                lastName: tg.initDataUnsafe.user?.last_name || '',
                 isBanned: false,
                 tasks: {
                     'first_steps': { completed: false, progress: 0 },
@@ -46,9 +124,7 @@ class UserDatabase {
                 dailyCasesOpened: 0,
                 lastDailyReset: Date.now(),
                 uniqueItemsCollected: 0,
-                ip: this.getUserIP(),
                 registrationDate: Date.now(),
-                // Новые поля для новых функций
                 battlePassLevel: 1,
                 battlePassExp: 0,
                 lastDailyBonus: 0,
@@ -59,8 +135,11 @@ class UserDatabase {
                 referralEarnings: 0,
                 tradeHistory: []
             };
-            this.saveUserData();
+            
+            this.globalDB.createUser(this.telegramUserId, userData);
         }
+        
+        this.userData = userData;
         
         // Сброс дневного счетчика если прошел день
         this.resetDailyCounter();
@@ -68,16 +147,19 @@ class UserDatabase {
         this.checkDailyBonus();
     }
 
-    getUserIP() {
-        return 'user_ip_' + this.userId;
-    }
-
     generateReferralCode() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
+        // Генерируем уникальный код на основе ID пользователя
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        // Проверяем уникальность кода
+        if (this.globalDB.isReferralCodeUsed(code)) {
+            return this.generateReferralCode(); // Рекурсия если код уже используется
+        }
+        this.globalDB.markReferralCodeUsed(code);
+        return code;
     }
 
     saveUserData() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.userData));
+        this.globalDB.updateUser(this.telegramUserId, this.userData);
     }
 
     resetDailyCounter() {
@@ -132,24 +214,6 @@ class UserDatabase {
             success: false,
             timeRemaining: twentyFourHours - (now - lastBonus)
         };
-    }
-
-    getAllUsers() {
-        const users = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('user_data_')) {
-                try {
-                    const userData = JSON.parse(localStorage.getItem(key));
-                    if (userData && userData.userId) {
-                        users.push(userData);
-                    }
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                }
-            }
-        }
-        return users;
     }
 
     getBalance() {
@@ -306,24 +370,23 @@ class UserDatabase {
             return { success: false, message: 'Вы уже использовали реферальный код' };
         }
         
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('user_data_')) {
-                try {
-                    const userData = JSON.parse(localStorage.getItem(key));
-                    if (userData && userData.referralCode === code && userData.userId !== this.userId) {
-                        userData.referrals.push(this.userId);
-                        localStorage.setItem(key, JSON.stringify(userData));
-                        
-                        this.userData.referredBy = userData.userId;
-                        this.saveUserData();
-                        
-                        return { success: true, message: 'Реферальный код активирован!' };
-                    }
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                }
-            }
+        // Ищем пользователя с таким реферальным кодом
+        const allUsers = this.globalDB.getAllUsers();
+        const referrer = allUsers.find(user => 
+            user.referralCode === code && 
+            user.telegramUserId !== this.telegramUserId
+        );
+        
+        if (referrer) {
+            // Обновляем данные реферера
+            referrer.referrals.push(this.telegramUserId);
+            this.globalDB.updateUser(referrer.telegramUserId, referrer);
+            
+            // Обновляем данные текущего пользователя
+            this.userData.referredBy = referrer.telegramUserId;
+            this.saveUserData();
+            
+            return { success: true, message: 'Реферальный код активирован!' };
         }
         
         return { success: false, message: 'Неверный реферальный код' };
@@ -331,13 +394,12 @@ class UserDatabase {
 
     addReferralEarnings(amount) {
         if (this.userData.referredBy) {
-            const referrerData = localStorage.getItem(`user_data_${this.userData.referredBy}`);
+            const referrerData = this.globalDB.getUserByTelegramId(this.userData.referredBy);
             if (referrerData) {
-                const referrer = JSON.parse(referrerData);
                 const earnings = Math.floor(amount * 0.05);
-                referrer.balance += earnings;
-                referrer.referralEarnings += earnings;
-                localStorage.setItem(`user_data_${this.userData.referredBy}`, JSON.stringify(referrer));
+                referrerData.balance += earnings;
+                referrerData.referralEarnings += earnings;
+                this.globalDB.updateUser(this.userData.referredBy, referrerData);
             }
         }
     }
@@ -352,47 +414,45 @@ class UserDatabase {
     }
 
     tradeWithUser(targetUserId, giveItem, receiveItem) {
-        const targetUserData = localStorage.getItem(`user_data_${targetUserId}`);
+        const targetUserData = this.globalDB.getUserByTelegramId(targetUserId);
         if (!targetUserData) {
             return { success: false, message: 'Пользователь не найден' };
         }
 
-        const targetUser = JSON.parse(targetUserData);
-        
         if (!this.userData.inventory[giveItem] || this.userData.inventory[giveItem].quantity === 0) {
             return { success: false, message: 'У вас нет этого предмета' };
         }
         
-        if (!targetUser.inventory[receiveItem] || targetUser.inventory[receiveItem].quantity === 0) {
+        if (!targetUserData.inventory[receiveItem] || targetUserData.inventory[receiveItem].quantity === 0) {
             return { success: false, message: 'У пользователя нет этого предмета' };
         }
 
         this.removeFromInventory(giveItem);
-        this.addToInventory(receiveItem, targetUser.inventory[receiveItem].image, targetUser.inventory[receiveItem].sellPrice);
+        this.addToInventory(receiveItem, targetUserData.inventory[receiveItem].image, targetUserData.inventory[receiveItem].sellPrice);
         
-        targetUser.inventory[receiveItem].quantity -= 1;
-        if (!targetUser.inventory[giveItem]) {
-            targetUser.inventory[giveItem] = {
+        targetUserData.inventory[receiveItem].quantity -= 1;
+        if (!targetUserData.inventory[giveItem]) {
+            targetUserData.inventory[giveItem] = {
                 quantity: 0,
                 image: this.userData.inventory[giveItem].image,
                 sellPrice: this.userData.inventory[giveItem].sellPrice
             };
         }
-        targetUser.inventory[giveItem].quantity += 1;
+        targetUserData.inventory[giveItem].quantity += 1;
         
         const tradeRecord = {
             date: Date.now(),
-            from: this.userId,
+            from: this.telegramUserId,
             to: targetUserId,
             giveItem: giveItem,
             receiveItem: receiveItem
         };
         
         this.userData.tradeHistory.push(tradeRecord);
-        targetUser.tradeHistory = targetUser.tradeHistory || [];
-        targetUser.tradeHistory.push(tradeRecord);
+        targetUserData.tradeHistory = targetUserData.tradeHistory || [];
+        targetUserData.tradeHistory.push(tradeRecord);
         
-        localStorage.setItem(`user_data_${targetUserId}`, JSON.stringify(targetUser));
+        this.globalDB.updateUser(targetUserId, targetUserData);
         this.saveUserData();
         
         return { success: true, message: 'Обмен успешно завершен!' };
@@ -405,10 +465,11 @@ class UserDatabase {
             level: this.userData.level,
             experience: this.userData.experience,
             achievements: this.userData.achievements,
-            userId: this.userId,
-            userIdNumber: this.userData.userIdNumber,
+            userId: this.userData.userId,
+            telegramUserId: this.telegramUserId,
             username: this.userData.username,
             firstName: this.userData.firstName,
+            lastName: this.userData.lastName,
             inventoryCount: Object.keys(this.userData.inventory).length,
             uniqueItemsCollected: this.userData.uniqueItemsCollected,
             isBanned: this.userData.isBanned,
@@ -498,106 +559,6 @@ class UserDatabase {
     }
 }
 
-// Глобальная база данных для заявок на вывод
-class WithdrawDatabase {
-    constructor() {
-        this.storageKey = 'withdraw_requests';
-        this.loadData();
-    }
-
-    loadData() {
-        const savedData = localStorage.getItem(this.storageKey);
-        this.requests = savedData ? JSON.parse(savedData) : [];
-    }
-
-    saveData() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.requests));
-    }
-
-    addRequest(userId, username, itemName, itemImage, itemPrice) {
-        const request = {
-            id: Date.now().toString(),
-            userId: userId,
-            username: username,
-            itemName: itemName,
-            itemImage: itemImage,
-            itemPrice: itemPrice,
-            timestamp: Date.now(),
-            status: 'pending'
-        };
-        this.requests.unshift(request);
-        this.saveData();
-        return request;
-    }
-
-    getRequests() {
-        return this.requests.filter(request => request.status === 'pending');
-    }
-
-    getAllRequests() {
-        return this.requests;
-    }
-
-    completeRequest(requestId) {
-        const request = this.requests.find(r => r.id === requestId);
-        if (request) {
-            request.status = 'completed';
-            this.saveData();
-            return true;
-        }
-        return false;
-    }
-
-    getUserById(userId) {
-        const userData = localStorage.getItem(`user_data_${userId}`);
-        if (userData) {
-            const user = JSON.parse(userData);
-            return {
-                userId: userId,
-                userIdNumber: user.userIdNumber || 8000001,
-                username: user.username || `@user${userId}`,
-                firstName: user.firstName || `User ${userId}`,
-                balance: user.balance || 0,
-                level: user.level || 1,
-                isBanned: user.isBanned || false,
-                casesOpened: user.casesOpened || 0,
-                inventory: user.inventory || {},
-                registrationDate: user.registrationDate || Date.now()
-            };
-        }
-        return null;
-    }
-
-    getAllUsers() {
-        const users = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('user_data_')) {
-                try {
-                    const userData = JSON.parse(localStorage.getItem(key));
-                    if (userData && userData.userId) {
-                        users.push({
-                            userId: userData.userId,
-                            userIdNumber: userData.userIdNumber || 8000001,
-                            username: userData.username,
-                            firstName: userData.firstName,
-                            balance: userData.balance,
-                            level: userData.level,
-                            casesOpened: userData.casesOpened,
-                            inventory: userData.inventory,
-                            isBanned: userData.isBanned || false,
-                            registrationDate: userData.registrationDate || Date.now()
-                        });
-                    }
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                }
-            }
-        }
-        return users.sort((a, b) => (a.userIdNumber || 0) - (b.userIdNumber || 0));
-    }
-}
-
 // Инициализируем приложение
 tg.ready();
 tg.expand();
@@ -606,9 +567,9 @@ tg.enableClosingConfirmation();
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
-// Инициализация баз данных
+// Инициализация базы данных
 const userDB = new UserDatabase();
-const withdrawDB = new WithdrawDatabase();
+const globalDB = new GlobalDatabase();
 
 // Текущая активная страница
 let currentPage = 'home';
@@ -685,10 +646,6 @@ const elements = {
     battlePassProgress: document.getElementById('battlePassProgress'),
     dailyBonusBtn: document.getElementById('dailyBonusBtn'),
     dailyBonusStreak: document.getElementById('dailyBonusStreak'),
-    wheelModal: document.getElementById('wheelModal'),
-    wheelCanvas: document.getElementById('wheelCanvas'),
-    spinWheelBtn: document.getElementById('spinWheelBtn'),
-    wheelResult: document.getElementById('wheelResult'),
     referralCode: document.getElementById('referralCode'),
     referralInput: document.getElementById('referralInput'),
     referralEarnings: document.getElementById('referralEarnings'),
@@ -858,18 +815,6 @@ const casesData = {
         ]
     }
 };
-
-// Данные колеса фортуны
-const wheelData = [
-    { amount: 1, color: '#FF6B6B', probability: 30 },
-    { amount: 5, color: '#4ECDC4', probability: 25 },
-    { amount: 15, color: '#45B7D1', probability: 20 },
-    { amount: 20, color: '#96CEB4', probability: 15 },
-    { amount: 30, color: '#FFEAA7', probability: 5 },
-    { amount: 50, color: '#DDA0DD', probability: 3 },
-    { amount: 80, color: '#98D8C8', probability: 1.5 },
-    { amount: 100, color: '#F7DC6F', probability: 0.5 }
-];
 
 // Данные достижений
 const achievementsData = [
@@ -1084,9 +1029,11 @@ function updateProfile() {
     const battlePassInfo = userDB.getBattlePassInfo();
     const referralInfo = userDB.getReferralInfo();
     
-    elements.profileName.textContent = stats.firstName;
+    // Обновляем имя пользователя с учетом Telegram данных
+    const displayName = userData.firstName || 'Игрок';
+    elements.profileName.textContent = displayName;
     elements.profileLevel.textContent = stats.level;
-    elements.profileId.textContent = stats.userIdNumber;
+    elements.profileId.textContent = stats.userId;
     elements.statBalance.textContent = userData.balance.toLocaleString();
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
@@ -1212,148 +1159,6 @@ function claimDailyBonus() {
             message: `Следующий бонус через: ${timeRemaining}`,
             buttons: [{ type: 'ok' }]
         });
-    }
-}
-
-// Колесо фортуны
-function openWheelModal() {
-    elements.wheelModal.style.display = 'block';
-    drawWheel();
-    elements.wheelResult.style.display = 'none';
-}
-
-function closeWheelModal() {
-    elements.wheelModal.style.display = 'none';
-}
-
-function drawWheel() {
-    const canvas = elements.wheelCanvas;
-    const ctx = canvas.getContext('2d');
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    let startAngle = 0;
-    const totalProbability = wheelData.reduce((sum, item) => sum + item.probability, 0);
-    
-    wheelData.forEach((item, index) => {
-        const sliceAngle = (2 * Math.PI * item.probability) / totalProbability;
-        
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
-        ctx.closePath();
-        ctx.fillStyle = item.color;
-        ctx.fill();
-        ctx.stroke();
-        
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + sliceAngle / 2);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 14px Arial';
-        ctx.fillText(item.amount + '⭐', radius - 10, 5);
-        ctx.restore();
-        
-        startAngle += sliceAngle;
-    });
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = '#8A2BE2';
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY - radius - 10);
-    ctx.lineTo(centerX - 10, centerY - radius);
-    ctx.lineTo(centerX + 10, centerY - radius);
-    ctx.closePath();
-    ctx.fillStyle = '#FFD700';
-    ctx.fill();
-}
-
-function spinWheel() {
-    const balance = userDB.getBalance();
-    if (balance < 20) {
-        tg.showPopup({
-            title: '❌ Недостаточно звёзд',
-            message: 'Нужно 20 ⭐ для вращения колеса',
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
-    
-    userDB.updateBalance(-20);
-    updateBalanceDisplay();
-    
-    elements.spinWheelBtn.disabled = true;
-    
-    const canvas = elements.wheelCanvas;
-    const ctx = canvas.getContext('2d');
-    let rotation = 0;
-    const spins = 5 + Math.random() * 3;
-    const duration = 3000;
-    
-    const startTime = Date.now();
-    
-    function animate() {
-        const currentTime = Date.now();
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        rotation = spins * 2 * Math.PI * easeOut;
-        
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(rotation);
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        drawWheel();
-        ctx.restore();
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        } else {
-            const winningSlice = getWheelResult();
-            showWheelResult(winningSlice);
-        }
-    }
-    
-    animate();
-}
-
-function getWheelResult() {
-    const random = Math.random() * 100;
-    let currentProbability = 0;
-    
-    for (const slice of wheelData) {
-        currentProbability += slice.probability;
-        if (random <= currentProbability) {
-            return slice;
-        }
-    }
-    
-    return wheelData[0];
-}
-
-function showWheelResult(winningSlice) {
-    userDB.updateBalance(winningSlice.amount);
-    updateBalanceDisplay();
-    
-    elements.wheelResult.innerHTML = `
-        <div class="wheel-result-title">🎉 Поздравляем!</div>
-        <div class="wheel-result-amount">${winningSlice.amount} ⭐</div>
-        <div class="wheel-result-message">Вы выиграли ${winningSlice.amount} звёзд!</div>
-    `;
-    elements.wheelResult.style.display = 'block';
-    elements.spinWheelBtn.disabled = false;
-    
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
     }
 }
 
@@ -1618,13 +1423,16 @@ function confirmWithdraw() {
     const itemData = inventory[currentWithdrawItem];
     
     if (itemData && itemData.quantity > 0) {
-        withdrawDB.addRequest(
-            userDB.userId,
-            username,
-            currentWithdrawItem,
-            itemData.image,
-            itemData.sellPrice
-        );
+        globalDB.addWithdrawRequest({
+            id: Date.now().toString(),
+            userId: userDB.telegramUserId,
+            username: username,
+            itemName: currentWithdrawItem,
+            itemImage: itemData.image,
+            itemPrice: itemData.sellPrice,
+            timestamp: Date.now(),
+            status: 'pending'
+        });
         
         userDB.removeFromInventory(currentWithdrawItem);
         
@@ -1891,13 +1699,14 @@ function closeAdminPanel() {
 
 // Заявки на вывод
 function openWithdrawRequests() {
-    const requests = withdrawDB.getAllRequests();
+    const requests = globalDB.getWithdrawRequests();
     elements.withdrawRequestsList.innerHTML = '';
     
     if (requests.length === 0) {
         elements.withdrawRequestsList.innerHTML = '<div class="no-requests">Нет активных заявок на вывод</div>';
     } else {
         requests.forEach(request => {
+            const user = globalDB.getUserByTelegramId(request.userId);
             const requestElement = document.createElement('div');
             requestElement.className = 'withdraw-request-item';
             requestElement.innerHTML = `
@@ -1912,8 +1721,8 @@ function openWithdrawRequests() {
                         <div class="request-item-price">${request.itemPrice} ⭐</div>
                     </div>
                 </div>
-                <div class="request-user-id">ID: ${request.userId}</div>
-                <div class="request-user-number">Номер: ${withdrawDB.getUserById(request.userId)?.userIdNumber || 'N/A'}</div>
+                <div class="request-user-id">Telegram ID: ${request.userId}</div>
+                <div class="request-user-number">Игровой ID: ${user ? user.userId : 'N/A'}</div>
                 <div class="request-status ${request.status}">Статус: ${request.status === 'pending' ? 'Ожидание' : 'Завершено'}</div>
                 ${request.status === 'pending' ? 
                     `<button class="request-confirm-btn" onclick="confirmWithdrawRequest('${request.id}')">Подтвердить вывод</button>` : 
@@ -1932,7 +1741,7 @@ function closeWithdrawRequests() {
 }
 
 function confirmWithdrawRequest(requestId) {
-    if (withdrawDB.completeRequest(requestId)) {
+    if (globalDB.completeWithdrawRequest(requestId)) {
         tg.showPopup({
             title: '✅ Вывод подтвержден',
             message: 'Заявка на вывод успешно обработана',
@@ -1961,14 +1770,14 @@ function searchUser() {
         return;
     }
     
-    const user = withdrawDB.getUserById(userId);
+    const user = globalDB.getUserByTelegramId(userId);
     if (user) {
         elements.userInfo.innerHTML = `
             <div class="user-info-card">
-                <div class="user-info-item"><strong>ID:</strong> ${user.userId}</div>
-                <div class="user-info-item"><strong>Номер:</strong> ${user.userIdNumber}</div>
-                <div class="user-info-item"><strong>Username:</strong> ${user.username}</div>
-                <div class="user-info-item"><strong>Имя:</strong> ${user.firstName}</div>
+                <div class="user-info-item"><strong>Telegram ID:</strong> ${user.telegramUserId}</div>
+                <div class="user-info-item"><strong>Игровой ID:</strong> ${user.userId}</div>
+                <div class="user-info-item"><strong>Username:</strong> ${user.username || 'Не указан'}</div>
+                <div class="user-info-item"><strong>Имя:</strong> ${user.firstName} ${user.lastName || ''}</div>
                 <div class="user-info-item"><strong>Баланс:</strong> ${user.balance} ⭐</div>
                 <div class="user-info-item"><strong>Уровень:</strong> ${user.level}</div>
                 <div class="user-info-item"><strong>Кейсы:</strong> ${user.casesOpened}</div>
@@ -1984,7 +1793,7 @@ function searchUser() {
 
 // Все пользователи
 function showAllUsers() {
-    const users = withdrawDB.getAllUsers();
+    const users = globalDB.getAllUsers();
     elements.allUsersList.innerHTML = '';
     
     if (users.length === 0) {
@@ -1995,8 +1804,8 @@ function showAllUsers() {
             userElement.className = 'user-list-item';
             userElement.innerHTML = `
                 <div class="user-list-header">
-                    <div class="user-list-name">${user.firstName}</div>
-                    <div class="user-list-id">ID: ${user.userIdNumber}</div>
+                    <div class="user-list-name">${user.firstName} ${user.lastName || ''}</div>
+                    <div class="user-list-id">ID: ${user.userId}</div>
                 </div>
                 <div class="user-list-stats">
                     <div class="user-list-stat">Баланс: ${user.balance} ⭐</div>
@@ -2019,17 +1828,16 @@ function closeAllUsers() {
 
 // Добавление звезд пользователю
 function addStarsToUser() {
-    const userId = prompt("Введите ID пользователя:");
+    const userId = prompt("Введите Telegram ID пользователя:");
     if (!userId) return;
     
     const amount = prompt("Введите количество звезд:");
     if (!amount || isNaN(amount)) return;
     
-    const userData = localStorage.getItem(`user_data_${userId}`);
-    if (userData) {
-        const user = JSON.parse(userData);
+    const user = globalDB.getUserByTelegramId(userId);
+    if (user) {
         user.balance += parseInt(amount);
-        localStorage.setItem(`user_data_${userId}`, JSON.stringify(user));
+        globalDB.updateUser(userId, user);
         
         tg.showPopup({
             title: '✅ Звезды добавлены',
@@ -2047,17 +1855,16 @@ function addStarsToUser() {
 
 // Забрать звезды у пользователя
 function removeStarsFromUser() {
-    const userId = prompt("Введите ID пользователя:");
+    const userId = prompt("Введите Telegram ID пользователя:");
     if (!userId) return;
     
     const amount = prompt("Введите количество звезд для списания:");
     if (!amount || isNaN(amount)) return;
     
-    const userData = localStorage.getItem(`user_data_${userId}`);
-    if (userData) {
-        const user = JSON.parse(userData);
+    const user = globalDB.getUserByTelegramId(userId);
+    if (user) {
         user.balance = Math.max(0, user.balance - parseInt(amount));
-        localStorage.setItem(`user_data_${userId}`, JSON.stringify(user));
+        globalDB.updateUser(userId, user);
         
         tg.showPopup({
             title: '✅ Звезды списаны',
@@ -2075,14 +1882,13 @@ function removeStarsFromUser() {
 
 // Блокировка пользователя
 function banUser() {
-    const userId = prompt("Введите ID пользователя для блокировки:");
+    const userId = prompt("Введите Telegram ID пользователя для блокировки:");
     if (!userId) return;
     
-    const userData = localStorage.getItem(`user_data_${userId}`);
-    if (userData) {
-        const user = JSON.parse(userData);
+    const user = globalDB.getUserByTelegramId(userId);
+    if (user) {
         user.isBanned = true;
-        localStorage.setItem(`user_data_${userId}`, JSON.stringify(user));
+        globalDB.updateUser(userId, user);
         
         tg.showPopup({
             title: '✅ Пользователь заблокирован',
@@ -2100,14 +1906,13 @@ function banUser() {
 
 // Разблокировка пользователя
 function unbanUser() {
-    const userId = prompt("Введите ID пользователя для разблокировки:");
+    const userId = prompt("Введите Telegram ID пользователя для разблокировки:");
     if (!userId) return;
     
-    const userData = localStorage.getItem(`user_data_${userId}`);
-    if (userData) {
-        const user = JSON.parse(userData);
+    const user = globalDB.getUserByTelegramId(userId);
+    if (user) {
         user.isBanned = false;
-        localStorage.setItem(`user_data_${userId}`, JSON.stringify(user));
+        globalDB.updateUser(userId, user);
         
         tg.showPopup({
             title: '✅ Пользователь разблокирован',
@@ -2194,12 +1999,6 @@ elements.allUsersModal.addEventListener('click', function(e) {
     }
 });
 
-elements.wheelModal.addEventListener('click', function(e) {
-    if (e.target === elements.wheelModal) {
-        closeWheelModal();
-    }
-});
-
 elements.tradeModal.addEventListener('click', function(e) {
     if (e.target === elements.tradeModal) {
         closeTradeModal();
@@ -2239,9 +2038,6 @@ document.addEventListener('keydown', function(e) {
         if (elements.allUsersModal.style.display === 'block') {
             closeAllUsers();
         }
-        if (elements.wheelModal.style.display === 'block') {
-            closeWheelModal();
-        }
         if (elements.tradeModal.style.display === 'block') {
             closeTradeModal();
         }
@@ -2252,7 +2048,7 @@ document.addEventListener('keydown', function(e) {
 if (tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
     if (user.first_name) {
-        console.log('👤 Пользователь:', user.first_name, '(ID:', user.id, ')');
+        console.log('👤 Пользователь:', user.first_name, '(Telegram ID:', user.id, ')');
         document.querySelector('#home-content h1').textContent = `🏠 Привет, ${user.first_name}!`;
     }
 }
