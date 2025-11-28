@@ -11,13 +11,7 @@ class GlobalDatabase {
     loadGlobalData() {
         const savedData = localStorage.getItem(this.storageKey);
         if (savedData) {
-            const data = JSON.parse(savedData);
-            this.globalData = {
-                users: data.users || {},
-                nextUserId: data.nextUserId || 8000001,
-                withdrawRequests: data.withdrawRequests || [],
-                usedReferralCodes: new Set(data.usedReferralCodes || [])
-            };
+            this.globalData = JSON.parse(savedData);
         } else {
             this.globalData = {
                 users: {},
@@ -30,13 +24,7 @@ class GlobalDatabase {
     }
 
     saveGlobalData() {
-        const dataToSave = {
-            users: this.globalData.users,
-            nextUserId: this.globalData.nextUserId,
-            withdrawRequests: this.globalData.withdrawRequests,
-            usedReferralCodes: Array.from(this.globalData.usedReferralCodes)
-        };
-        localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
+        localStorage.setItem(this.storageKey, JSON.stringify(this.globalData));
     }
 
     generateUserId() {
@@ -74,10 +62,6 @@ class GlobalDatabase {
         return this.globalData.withdrawRequests.filter(request => request.status === 'pending');
     }
 
-    getAllWithdrawRequests() {
-        return this.globalData.withdrawRequests;
-    }
-
     completeWithdrawRequest(requestId) {
         const request = this.globalData.withdrawRequests.find(r => r.id === requestId);
         if (request) {
@@ -96,16 +80,12 @@ class GlobalDatabase {
         this.globalData.usedReferralCodes.add(code);
         this.saveGlobalData();
     }
-
-    getNextUserId() {
-        return this.globalData.nextUserId;
-    }
 }
 
 // База данных пользователя
 class UserDatabase {
     constructor() {
-        this.telegramUserId = tg.initDataUnsafe.user?.id || 'default_user_' + Date.now();
+        this.telegramUserId = tg.initDataUnsafe.user?.id || 'default_user';
         this.globalDB = new GlobalDatabase();
         this.loadUserData();
     }
@@ -114,7 +94,7 @@ class UserDatabase {
         let userData = this.globalDB.getUserByTelegramId(this.telegramUserId);
         
         if (!userData) {
-            // Создаем нового пользователя с уникальным ID
+            // Создаем нового пользователя
             const newUserId = this.globalDB.generateUserId();
             
             userData = {
@@ -149,7 +129,7 @@ class UserDatabase {
                 battlePassExp: 0,
                 lastDailyBonus: 0,
                 dailyBonusStreak: 0,
-                referralCode: this.generateUniqueReferralCode(),
+                referralCode: this.generateReferralCode(),
                 referredBy: null,
                 referrals: [],
                 referralEarnings: 0,
@@ -157,9 +137,6 @@ class UserDatabase {
             };
             
             this.globalDB.createUser(this.telegramUserId, userData);
-            console.log('🆕 Создан новый пользователь с ID:', newUserId);
-        } else {
-            console.log('👤 Загружен существующий пользователь с ID:', userData.userId);
         }
         
         this.userData = userData;
@@ -170,19 +147,13 @@ class UserDatabase {
         this.checkDailyBonus();
     }
 
-    generateUniqueReferralCode() {
-        let code;
-        let attempts = 0;
-        do {
-            code = Math.random().toString(36).substring(2, 8).toUpperCase();
-            attempts++;
-            if (attempts > 10) {
-                // Если не удалось сгенерировать уникальный код, добавляем timestamp
-                code = code + Date.now().toString(36).substring(7).toUpperCase();
-                break;
-            }
-        } while (this.globalDB.isReferralCodeUsed(code));
-        
+    generateReferralCode() {
+        // Генерируем уникальный код на основе ID пользователя
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        // Проверяем уникальность кода
+        if (this.globalDB.isReferralCodeUsed(code)) {
+            return this.generateReferralCode(); // Рекурсия если код уже используется
+        }
         this.globalDB.markReferralCodeUsed(code);
         return code;
     }
@@ -399,10 +370,6 @@ class UserDatabase {
             return { success: false, message: 'Вы уже использовали реферальный код' };
         }
         
-        if (code === this.userData.referralCode) {
-            return { success: false, message: 'Нельзя использовать собственный код' };
-        }
-        
         // Ищем пользователя с таким реферальным кодом
         const allUsers = this.globalDB.getAllUsers();
         const referrer = allUsers.find(user => 
@@ -419,11 +386,7 @@ class UserDatabase {
             this.userData.referredBy = referrer.telegramUserId;
             this.saveUserData();
             
-            // Награда за использование реферального кода
-            this.userData.balance += 10;
-            this.saveUserData();
-            
-            return { success: true, message: 'Реферальный код активирован! Вы получили 10 ⭐' };
+            return { success: true, message: 'Реферальный код активирован!' };
         }
         
         return { success: false, message: 'Неверный реферальный код' };
@@ -1217,7 +1180,6 @@ function useReferralCode() {
     if (result.success) {
         elements.referralInput.value = '';
         updateProfile();
-        updateBalanceDisplay();
         
         tg.showPopup({
             title: '🎉 Код активирован!',
@@ -1737,7 +1699,7 @@ function closeAdminPanel() {
 
 // Заявки на вывод
 function openWithdrawRequests() {
-    const requests = globalDB.getAllWithdrawRequests();
+    const requests = globalDB.getWithdrawRequests();
     elements.withdrawRequestsList.innerHTML = '';
     
     if (requests.length === 0) {
@@ -2094,8 +2056,6 @@ if (tg.initDataUnsafe.user) {
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Мини-приложение полностью загружено и готово!');
-    console.log('📊 Всего пользователей в системе:', globalDB.getAllUsers().length);
-    console.log('🆔 Следующий ID:', globalDB.getNextUserId());
     
     updateBalanceDisplay();
     updateProfile();
