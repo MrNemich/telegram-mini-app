@@ -59,7 +59,7 @@
                             <span class="balance-stars">⭐</span>
                             <span id="starsBalance">0</span>
                         </div>
-                        <button class="add-balance-btn" onclick="addBalance()">+</button>
+                        <button class="add-balance-btn" onclick="openStarsShop()">+</button>
                     </div>
                 </div>
                 
@@ -452,7 +452,7 @@
                             <button class="referral-btn" onclick="useReferralCode()">Активировать</button>
                         </div>
                         <div class="referral-note">
-                            Получайте 5% от пополнений ваших рефералов!
+                            Получайте 10% от пополнений ваших рефералов!
                         </div>
                     </div>
                 </div>
@@ -704,6 +704,42 @@
                 <!-- Список пользователей будет здесь -->
             </div>
             <button class="close-modal" onclick="closeAllUsers()" style="position: absolute; top: 16px; right: 16px;">×</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно магазина Stars -->
+    <div class="stars-shop-modal" id="starsShopModal">
+        <div class="stars-shop-content">
+            <div class="stars-shop-header">
+                <h2 class="stars-shop-title">⭐ Пополнение баланса</h2>
+            </div>
+            <div class="stars-options">
+                <div class="stars-option" onclick="selectStarsOption(100, 100)">
+                    <div class="stars-amount">100 ⭐</div>
+                    <div class="stars-price">Бесплатно</div>
+                </div>
+                <div class="stars-option" onclick="selectStarsOption(500, 500)">
+                    <div class="stars-amount">500 ⭐</div>
+                    <div class="stars-price">500 Stars</div>
+                </div>
+                <div class="stars-option" onclick="selectStarsOption(1000, 1000)">
+                    <div class="stars-amount">1000 ⭐</div>
+                    <div class="stars-price">1000 Stars</div>
+                </div>
+                <div class="stars-option" onclick="selectStarsOption(5000, 5000)">
+                    <div class="stars-amount">5000 ⭐</div>
+                    <div class="stars-price">5000 Stars</div>
+                </div>
+                <div class="stars-option" onclick="selectStarsOption(10000, 10000)">
+                    <div class="stars-amount">10000 ⭐</div>
+                    <div class="stars-price">10000 Stars</div>
+                </div>
+            </div>
+            <div class="stars-shop-actions">
+                <button class="stars-buy-btn" id="starsBuyBtn" onclick="buyStars()">Купить</button>
+                <button class="stars-cancel-btn" onclick="closeStarsShop()">Отмена</button>
+            </div>
+            <button class="close-modal" onclick="closeStarsShop()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
