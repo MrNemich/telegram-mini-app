@@ -433,22 +433,6 @@
                     </div>
                 </div>
 
-                <!-- Колесо фортуны -->
-                <div class="profile-card">
-                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎡 Колесо Фортуны</h3>
-                    <div class="wheel-info">
-                        <div class="wheel-cost">
-                            Стоимость вращения: <strong>20 ⭐</strong>
-                        </div>
-                        <div class="wheel-prizes">
-                            Возможные призы: 1, 5, 15, 20, 30, 50, 80, 100 ⭐
-                        </div>
-                        <button class="wheel-button" onclick="openWheelModal()">
-                            🎡 Крутить колесо
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Реферальная система -->
                 <div class="profile-card">
                     <h3 style="color: white; margin-bottom: 15px; text-align: center;">👥 Реферальная система</h3>
@@ -720,26 +704,6 @@
                 <!-- Список пользователей будет здесь -->
             </div>
             <button class="close-modal" onclick="closeAllUsers()" style="position: absolute; top: 16px; right: 16px;">×</button>
-        </div>
-    </div>
-
-    <!-- Модальное окно колеса фортуны -->
-    <div class="wheel-modal" id="wheelModal">
-        <div class="wheel-modal-content">
-            <div class="wheel-header">
-                <h2 class="wheel-title">🎡 Колесо Фортуны</h2>
-            </div>
-            <div class="wheel-container">
-                <canvas id="wheelCanvas" width="300" height="300"></canvas>
-                <div class="wheel-result" id="wheelResult" style="display: none;">
-                    <!-- Результат будет здесь -->
-                </div>
-            </div>
-            <div class="wheel-actions">
-                <button class="spin-wheel-btn" id="spinWheelBtn" onclick="spinWheel()">🎡 Крутить за 20 ⭐</button>
-                <button class="close-wheel-btn" onclick="closeWheelModal()">Закрыть</button>
-            </div>
-            <button class="close-modal" onclick="closeWheelModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
