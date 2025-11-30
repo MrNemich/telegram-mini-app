@@ -1,3 +1,341 @@
+/* Стили для экрана загрузки */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000000, #1a0033);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 20px;
+    max-width: 90%;
+}
+
+.loading-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+}
+
+.loading-subtitle {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+    color: #FFD700;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    letter-spacing: 2px;
+}
+
+.loading-progress-container {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 30px;
+}
+
+.loading-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.loading-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8A2BE2, #DA70D6, #FFD700);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.7);
+}
+
+.loading-quote {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    max-width: 300px;
+    margin: 0 auto;
+    line-height: 1.4;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Стили для кнопки Soon */
+.soon-card {
+    margin-top: 20px;
+}
+
+.soon-btn {
+    background: linear-gradient(135deg, rgba(106, 13, 173, 0.9), rgba(138, 43, 226, 0.8));
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    width: 100%;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(106, 13, 173, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.soon-btn:active {
+    transform: scale(0.95);
+}
+
+.soon-btn span {
+    font-size: 2rem;
+}
+
+/* Стили для модального окна активации ключа */
+.key-activation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.key-activation-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.key-activation-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.key-activation-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.key-activation-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.key-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.key-input::placeholder {
+    color: #888;
+    letter-spacing: normal;
+}
+
+.key-activation-btn {
+    background: linear-gradient(45deg, #34C759, #30D158);
+    border: none;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.key-activation-btn:active {
+    transform: scale(0.95);
+}
+
+.key-help-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.key-help-btn:active {
+    transform: scale(0.95);
+}
+
+.key-activation-info {
+    min-height: 50px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* Стили для модального окна помощи по ключам */
+.key-help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 4000;
+    backdrop-filter: blur(15px);
+}
+
+.key-help-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 25px;
+    border: 2px solid rgba(138, 43, 226, 0.4);
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+    padding: 25px;
+}
+
+.key-help-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.key-help-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.key-help-body {
+    margin-bottom: 20px;
+}
+
+.key-help-text {
+    color: #e6e6e6;
+    line-height: 1.6;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.key-help-text p {
+    margin-bottom: 15px;
+}
+
+.key-help-text strong {
+    color: #8A2BE2;
+}
+
+.key-help-close-btn {
+    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.key-help-close-btn:active {
+    transform: scale(0.95);
+}
+
+/* Остальные стили остаются без изменений, кроме указанных ниже */
+
+/* Изменение цены кейса Премиум */
+.case-square.premium .case-price {
+    color: #FFD700;
+}
+
+/* Исправление анимации вращения для правильного выпадения предметов */
+.case-items-track.spinning {
+    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes spinAnimationRight {
+    0% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(calc(-33.333% * 5));
+    }
+    40% {
+        transform: translateX(calc(-33.333% * 10));
+    }
+    60% {
+        transform: translateX(calc(-33.333% * 15));
+    }
+    80% {
+        transform: translateX(calc(-33.333% * 20));
+    }
+    95% {
+        transform: translateX(calc(-33.333% * 24));
+    }
+    100% {
+        transform: translateX(calc(-33.333% * 25));
+    }
+}
+
+/* Убираем ID пользователя из профиля */
+.profile-info p:last-child {
+    display: none;
+}
+
+/* Заменяем аватар на кошечку */
+.profile-avatar {
+    font-size: 2.5rem;
+}
+
+/* Остальные стили из предыдущего файла остаются без изменений */
 * {
     margin: 0;
     padding: 0;
@@ -2313,125 +2651,6 @@ p {
     color: #cccccc;
 }
 
-/* Магазин Stars */
-.stars-shop-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.stars-shop-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.stars-shop-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.stars-shop-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stars-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.stars-option {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 18px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-}
-
-.stars-option:hover {
-    background: rgba(138, 43, 226, 0.2);
-    border-color: rgba(138, 43, 226, 0.5);
-}
-
-.stars-option.selected {
-    background: rgba(138, 43, 226, 0.3);
-    border: 2px solid #8A2BE2;
-    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
-}
-
-.stars-amount {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #FFD700;
-    margin-bottom: 5px;
-}
-
-.stars-price {
-    font-size: 1rem;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.stars-shop-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.stars-buy-btn, .stars-cancel-btn {
-    flex: 1;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.stars-buy-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.stars-buy-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: #888;
-    cursor: not-allowed;
-}
-
-.stars-cancel-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.stars-buy-btn:active, .stars-cancel-btn:active {
-    transform: scale(0.95);
-}
-
 /* Стили для статусов заявок */
 .request-status {
     padding: 5px 10px;
@@ -2511,44 +2730,6 @@ p {
     font-size: 0.9rem;
 }
 
-/* Стили для ежедневного бонуса */
-.daily-bonus-info {
-    color: white;
-    text-align: center;
-}
-
-.bonus-streak {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
-    font-size: 1rem;
-}
-
-.daily-bonus-btn {
-    background: linear-gradient(45deg, #FF6B35, #FF8E53);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-}
-
-.daily-bonus-btn:active {
-    transform: scale(0.95);
-}
-
-.bonus-note {
-    font-size: 0.8rem;
-    color: #888;
-}
-
 /* Стили для реферальной системы */
 .referral-info {
     color: white;
@@ -2624,176 +2805,6 @@ p {
     margin-top: 10px;
 }
 
-/* Стили для трейдинга */
-.trading-info {
-    color: white;
-    text-align: center;
-}
-
-.trading-info p {
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-}
-
-.trade-button {
-    background: linear-gradient(45deg, #6A0DAD, #8A2BE2);
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.3s ease;
-}
-
-.trade-button:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно трейдинга */
-.trade-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 4000;
-    backdrop-filter: blur(15px);
-}
-
-.trade-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(20, 20, 20, 0.95);
-    border-radius: 25px;
-    border: 2px solid rgba(138, 43, 226, 0.4);
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
-    padding: 25px;
-}
-
-.trade-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.trade-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.trade-form {
-    margin-bottom: 20px;
-}
-
-.trade-input-group {
-    margin-bottom: 15px;
-}
-
-.trade-input-group label {
-    display: block;
-    color: white;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-.trade-input, .trade-select {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-}
-
-.trade-select option {
-    background: #1a1a1a;
-    color: white;
-}
-
-.trade-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.trade-confirm-btn, .trade-cancel-btn {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.trade-confirm-btn {
-    background: linear-gradient(45deg, #34C759, #30D158);
-    color: white;
-}
-
-.trade-cancel-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.trade-confirm-btn:active, .trade-cancel-btn:active {
-    transform: scale(0.95);
-}
-
-/* Адаптация для мобильных устройств */
-@media (max-width: 360px) {
-    .battle-pass-level, .battle-pass-exp {
-        font-size: 0.9rem;
-    }
-    
-    .referral-code {
-        font-size: 1rem;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .referral-input-container {
-        flex-direction: column;
-    }
-    
-    .stars-shop-content {
-        width: 95%;
-        padding: 20px;
-    }
-    
-    .trade-modal-content {
-        width: 95%;
-        padding: 20px;
-    }
-    
-    .trade-actions {
-        flex-direction: column;
-    }
-}
-
-/* Для планшетов */
-@media (min-width: 768px) {
-    .referral-input-container {
-        flex-direction: row;
-    }
-    
-    .trade-actions {
-        flex-direction: row;
-    }
-}
-
 /* Градиенты для кейсов */
 .case-square.free {
     background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.8));
@@ -2845,31 +2856,162 @@ p {
     box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
 }
 
-/* Исправленная анимация вращения - плавная вправо */
-.case-items-track.spinning {
-    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+/* Loading states */
+.loading-state {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 5000;
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
 }
 
-@keyframes spinAnimationRight {
-    0% {
-        transform: translateX(0);
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #8A2BE2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.1rem;
+    color: #8A2BE2;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Success/Error states */
+.success-message {
+    background: rgba(52, 199, 89, 0.2);
+    color: #34C759;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(52, 199, 89, 0.4);
+    margin: 10px 0;
+    text-align: center;
+}
+
+.error-message {
+    background: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 59, 48, 0.4);
+    margin: 10px 0;
+    text-align: center;
+}
+
+/* Page transitions */
+.page-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Network error states */
+.network-error {
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    text-align: center;
+    color: #FF3B30;
+}
+
+.retry-button {
+    background: linear-gradient(45deg, #FF3B30, #FF6255);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* Backup notification */
+.backup-notification {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(138, 43, 226, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 1001;
+    backdrop-filter: blur(10px);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(100%);
+        opacity: 0;
     }
-    20% {
-        transform: translateX(calc(-33.333% * 5));
-    }
-    40% {
-        transform: translateX(calc(-33.333% * 10));
-    }
-    60% {
-        transform: translateX(calc(-33.333% * 15));
-    }
-    80% {
-        transform: translateX(calc(-33.333% * 20));
-    }
-    95% {
-        transform: translateX(calc(-33.333% * 24));
-    }
-    100% {
-        transform: translateX(calc(-33.333% * 25));
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
     }
 }
