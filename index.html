@@ -9,7 +9,23 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="container">
+    <!-- Экран загрузки -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-title">Будущее начинается тут</div>
+            <div class="loading-subtitle">GiftLab</div>
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar">
+                    <div class="loading-progress-fill" id="loadingProgressFill"></div>
+                </div>
+            </div>
+            <div class="loading-quote" id="loadingQuote">
+                NFT — это тишина, проданная с молотка. — Евгений Немич
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer" style="display: none;">
         <div class="background-effect"></div>
         
         <!-- Контент для Главной страницы -->
@@ -43,6 +59,14 @@
                         Показать полный текст
                     </button>
                 </div>
+                
+                <!-- Кнопка Soon -->
+                <div class="soon-card">
+                    <button class="soon-btn" onclick="showSoonMessage()">
+                        <span>🚀</span>
+                        Soon
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -59,7 +83,7 @@
                             <span class="balance-stars">⭐</span>
                             <span id="starsBalance">0</span>
                         </div>
-                        <button class="add-balance-btn" onclick="openStarsShop()">+</button>
+                        <button class="add-balance-btn" onclick="openKeyActivationModal()">+</button>
                     </div>
                 </div>
                 
@@ -68,7 +92,7 @@
                     <!-- Бесплатный кейс -->
                     <div class="case-square free" onclick="openCaseModal(0, 'free')">
                         <div class="case-image">
-                            <img src="images/result_free.PNG" alt="Бесплатный кейс">
+                            <img src="images/result_free.PNG" alt="Бесплатный кейс" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Бесплатный кейс</div>
@@ -91,7 +115,7 @@
                     <!-- Кейс Бомж -->
                     <div class="case-square bomj" onclick="openCaseModal(50, 'bomj')">
                         <div class="case-image">
-                            <img src="images/result_bomg.PNG" alt="Кейс Бомж">
+                            <img src="images/result_bomg.PNG" alt="Кейс Бомж" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Бомж</div>
@@ -110,7 +134,7 @@
                     <!-- Кейс Чемпион -->
                     <div class="case-square champion" onclick="openCaseModal(100, 'champion')">
                         <div class="case-image">
-                            <img src="images/result_chem.PNG" alt="Кейс Чемпион">
+                            <img src="images/result_chem.PNG" alt="Кейс Чемпион" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Чемпион</div>
@@ -129,7 +153,7 @@
                     <!-- Кейс Эконом -->
                     <div class="case-square economy" onclick="openCaseModal(180, 'economy')">
                         <div class="case-image">
-                            <img src="images/result_IMG_4282.PNG" alt="Кейс Эконом">
+                            <img src="images/result_IMG_4282.PNG" alt="Кейс Эконом" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Эконом</div>
@@ -148,7 +172,7 @@
                     <!-- Pepe фарм -->
                     <div class="case-square pepe" onclick="openCaseModal(200, 'pepe')">
                         <div class="case-image">
-                            <img src="images/result_pepe.PNG" alt="Pepe фарм">
+                            <img src="images/result_pepe.PNG" alt="Pepe фарм" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Pepe фарм</div>
@@ -167,7 +191,7 @@
                     <!-- Cap фарм -->
                     <div class="case-square cap" onclick="openCaseModal(200, 'cap')">
                         <div class="case-image">
-                            <img src="images/result_cap.PNG" alt="Cap фарм">
+                            <img src="images/result_cap.PNG" alt="Cap фарм" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Cap фарм</div>
@@ -186,7 +210,7 @@
                     <!-- Кейс БизнесМем -->
                     <div class="case-square business" onclick="openCaseModal(350, 'business')">
                         <div class="case-image">
-                            <img src="images/result_biznes mem.PNG" alt="Кейс БизнесМем">
+                            <img src="images/result_biznes mem.PNG" alt="Кейс БизнесМем" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">БизнесМем</div>
@@ -205,7 +229,7 @@
                     <!-- Кейс Рабочий -->
                     <div class="case-square worker" onclick="openCaseModal(500, 'worker')">
                         <div class="case-image">
-                            <img src="images/result_rab.PNG" alt="Кейс Рабочий">
+                            <img src="images/result_rab.PNG" alt="Кейс Рабочий" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Рабочий</div>
@@ -224,7 +248,7 @@
                     <!-- Кейс Элита -->
                     <div class="case-square elite" onclick="openCaseModal(1000, 'elite')">
                         <div class="case-image">
-                            <img src="images/result_elita.PNG" alt="Кейс Элита">
+                            <img src="images/result_elita.PNG" alt="Кейс Элита" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Элита</div>
@@ -241,20 +265,20 @@
                     </div>
                     
                     <!-- Кейс Премиум -->
-                    <div class="case-square premium" onclick="openCaseModal(1000, 'premium')">
+                    <div class="case-square premium" onclick="openCaseModal(1500, 'premium')">
                         <div class="case-image">
-                            <img src="images/result_IMG_4162 (2).PNG" alt="Кейс Премиум">
+                            <img src="images/result_IMG_4162 (2).PNG" alt="Кейс Премиум" loading="lazy">
                         </div>
                         <div class="case-info">
                             <div class="case-name">Кейс Премиум</div>
                             <div class="case-price-container">
                                 <div class="case-price-oval">
                                     <span class="star-icon">⭐</span>
-                                    <span class="case-price">1000</span>
+                                    <span class="case-price">1500</span>
                                 </div>
                             </div>
                         </div>
-                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1000, 'premium')">
+                        <button class="buy-case-btn" onclick="event.stopPropagation(); openCaseModal(1500, 'premium')">
                             Купить
                         </button>
                     </div>
@@ -266,6 +290,29 @@
         <div class="content" id="tasks-content" style="display: none;">
             <h1>🎯 Задания</h1>
             <p>Выполняйте задания и получайте награды</p>
+            
+            <!-- Батл пасс -->
+            <div class="profile-card" style="margin-bottom: 20px;">
+                <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎮 Батл Пасс</h3>
+                <div class="battle-pass-info">
+                    <div class="battle-pass-level">
+                        <span>Уровень:</span>
+                        <strong id="battlePassLevel">1</strong>
+                    </div>
+                    <div class="battle-pass-exp">
+                        <span>Опыт:</span>
+                        <span id="battlePassExp">0/50</span>
+                    </div>
+                    <div class="battle-pass-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="battlePassProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="battle-pass-reward">
+                        🎁 Награда за уровень: +15 ⭐
+                    </div>
+                </div>
+            </div>
             
             <div class="tasks-container">
                 <div class="tasks-list">
@@ -364,10 +411,9 @@
             <div class="profile-container">
                 <div class="profile-card">
                     <div class="profile-header">
-                        <div class="profile-avatar" id="profileAvatar">👤</div>
+                        <div class="profile-avatar" id="profileAvatar">🐱</div>
                         <div class="profile-info">
                             <h3 id="profileName">Игрок</h3>
-                            <p>ID: <span id="profileId">8000001</span></p>
                             <p>Уровень: <span id="profileLevel">1</span></p>
                         </div>
                     </div>
@@ -392,47 +438,6 @@
                     </div>
                 </div>
 
-                <!-- Батл пасс -->
-                <div class="profile-card">
-                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎮 Батл Пасс</h3>
-                    <div class="battle-pass-info">
-                        <div class="battle-pass-level">
-                            <span>Уровень:</span>
-                            <strong id="battlePassLevel">1</strong>
-                        </div>
-                        <div class="battle-pass-exp">
-                            <span>Опыт:</span>
-                            <span id="battlePassExp">0/50</span>
-                        </div>
-                        <div class="battle-pass-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="battlePassProgress" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="battle-pass-reward">
-                            🎁 Награда за уровень: +5 ⭐
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ежедневный бонус -->
-                <div class="profile-card">
-                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🎁 Ежедневный бонус</h3>
-                    <div class="daily-bonus-info">
-                        <div class="bonus-streak">
-                            <span>Текущий стрик:</span>
-                            <strong id="dailyBonusStreak">0</strong>
-                            <span>дней</span>
-                        </div>
-                        <button class="daily-bonus-btn" id="dailyBonusBtn" onclick="claimDailyBonus()">
-                            🎁 Получить 1 ⭐
-                        </button>
-                        <div class="bonus-note">
-                            Заходите каждый день чтобы увеличить стрик!
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Реферальная система -->
                 <div class="profile-card">
                     <h3 style="color: white; margin-bottom: 15px; text-align: center;">👥 Реферальная система</h3>
@@ -449,22 +454,11 @@
                         </div>
                         <div class="referral-input-container">
                             <input type="text" id="referralInput" placeholder="Введите код друга" class="referral-input">
-                            <button class="referral-btn" onclick="useReferralCode()">Активировать</button>
                         </div>
+                        <button class="referral-btn" onclick="useReferralCode()" style="width: 100%; margin-top: 10px;">Активировать</button>
                         <div class="referral-note">
                             Получайте 10% от пополнений ваших рефералов!
                         </div>
-                    </div>
-                </div>
-
-                <!-- Трейдинг -->
-                <div class="profile-card">
-                    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🔄 Трейдинг</h3>
-                    <div class="trading-info">
-                        <p>Обменивайтесь предметами с другими игроками</p>
-                        <button class="trade-button" onclick="openTradeModal()">
-                            🔄 Открыть трейдинг
-                        </button>
                     </div>
                 </div>
 
@@ -593,7 +587,7 @@
                 <div class="firework"></div>
             </div>
             <div class="result-item-image" id="resultItemImage">
-                <img src="" alt="Выигрыш" id="resultItemImg">
+                <img src="" alt="Выигрыш" id="resultItemImg" loading="lazy">
             </div>
             <div class="result-title">🎉 Поздравляем!</div>
             <div class="result-message">Вам выпал:</div>
@@ -610,7 +604,7 @@
                 <h2 class="withdraw-modal-title">📤 Вывод предмета</h2>
             </div>
             <div class="withdraw-item-info">
-                <img src="" alt="Предмет" id="withdrawItemImage">
+                <img src="" alt="Предмет" id="withdrawItemImage" loading="lazy">
                 <div class="withdraw-item-details">
                     <div class="withdraw-item-name" id="withdrawItemName"></div>
                     <div class="withdraw-item-price" id="withdrawItemPrice"></div>
@@ -707,71 +701,40 @@
         </div>
     </div>
 
-    <!-- Модальное окно магазина Stars -->
-    <div class="stars-shop-modal" id="starsShopModal">
-        <div class="stars-shop-content">
-            <div class="stars-shop-header">
-                <h2 class="stars-shop-title">⭐ Пополнение баланса</h2>
+    <!-- Модальное окно активации ключа -->
+    <div class="key-activation-modal" id="keyActivationModal">
+        <div class="key-activation-content">
+            <div class="key-activation-header">
+                <h2 class="key-activation-title">🔑 Активация ключа</h2>
             </div>
-            <div class="stars-options">
-                <div class="stars-option" onclick="selectStarsOption(100, 100)">
-                    <div class="stars-amount">100 ⭐</div>
-                    <div class="stars-price">Бесплатно</div>
-                </div>
-                <div class="stars-option" onclick="selectStarsOption(500, 500)">
-                    <div class="stars-amount">500 ⭐</div>
-                    <div class="stars-price">500 Stars</div>
-                </div>
-                <div class="stars-option" onclick="selectStarsOption(1000, 1000)">
-                    <div class="stars-amount">1000 ⭐</div>
-                    <div class="stars-price">1000 Stars</div>
-                </div>
-                <div class="stars-option" onclick="selectStarsOption(5000, 5000)">
-                    <div class="stars-amount">5000 ⭐</div>
-                    <div class="stars-price">5000 Stars</div>
-                </div>
-                <div class="stars-option" onclick="selectStarsOption(10000, 10000)">
-                    <div class="stars-amount">10000 ⭐</div>
-                    <div class="stars-price">10000 Stars</div>
-                </div>
+            <div class="key-activation-form">
+                <input type="text" id="keyInput" placeholder="Введите ключ в формате ххххх-ххххх-ххххх-ххххх" class="key-input">
+                <button class="key-activation-btn" id="keyActivationBtn" onclick="activateKey()">Активировать</button>
+                <button class="key-help-btn" onclick="showKeyHelp()">Как получить ключ?</button>
             </div>
-            <div class="stars-shop-actions">
-                <button class="stars-buy-btn" id="starsBuyBtn" onclick="buyStars()">Купить</button>
-                <button class="stars-cancel-btn" onclick="closeStarsShop()">Отмена</button>
+            <div class="key-activation-info" id="keyActivationInfo">
+                <!-- Информация об активации будет здесь -->
             </div>
-            <button class="close-modal" onclick="closeStarsShop()" style="position: absolute; top: 16px; right: 16px;">×</button>
+            <button class="close-modal" onclick="closeKeyActivationModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
-    <!-- Модальное окно трейдинга -->
-    <div class="trade-modal" id="tradeModal">
-        <div class="trade-modal-content">
-            <div class="trade-header">
-                <h2 class="trade-title">🔄 Обмен предметами</h2>
+    <!-- Модальное окно помощи по ключам -->
+    <div class="key-help-modal" id="keyHelpModal">
+        <div class="key-help-content">
+            <div class="key-help-header">
+                <h2 class="key-help-title">❓ Как получить ключ</h2>
             </div>
-            <div class="trade-form">
-                <div class="trade-input-group">
-                    <label>ID пользователя:</label>
-                    <input type="text" id="tradeUserId" placeholder="Введите ID пользователя" class="trade-input">
-                </div>
-                <div class="trade-input-group">
-                    <label>Отдать предмет:</label>
-                    <select id="tradeGiveItem" class="trade-select">
-                        <option value="">Выберите предмет</option>
-                    </select>
-                </div>
-                <div class="trade-input-group">
-                    <label>Получить предмет:</label>
-                    <select id="tradeReceiveItem" class="trade-select">
-                        <option value="">Выберите предмет</option>
-                    </select>
+            <div class="key-help-body">
+                <div class="key-help-text">
+                    <p>Чтобы получить ключ перейдите в основного бота <strong>@GiftLabRobot</strong>.</p>
+                    <p>Затем пропишите команду <strong>/buy</strong>.</p>
+                    <p>Выберите кол-во звёзд и способ оплаты.</p>
+                    <p>Оплатите, получите ключ и введите его тут.</p>
                 </div>
             </div>
-            <div class="trade-actions">
-                <button class="trade-confirm-btn" onclick="confirmTrade()">Подтвердить обмен</button>
-                <button class="trade-cancel-btn" onclick="closeTradeModal()">Отмена</button>
-            </div>
-            <button class="close-modal" onclick="closeTradeModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
+            <button class="key-help-close-btn" onclick="closeKeyHelpModal()">Понятно</button>
+            <button class="close-modal" onclick="closeKeyHelpModal()" style="position: absolute; top: 16px; right: 16px;">×</button>
         </div>
     </div>
 
