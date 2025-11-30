@@ -293,12 +293,12 @@
 
 /* Изменение цены кейса Премиум */
 .case-square.premium .case-price {
-    color: #FFD700;
+    color: #FFFFFF !important;
 }
 
 /* Исправление анимации вращения для правильного выпадения предметов */
 .case-items-track.spinning {
-    animation: spinAnimationRight 8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+    animation: spinAnimationRight 3s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes spinAnimationRight {
@@ -325,14 +325,18 @@
     }
 }
 
-/* Убираем ID пользователя из профиля */
-.profile-info p:last-child {
+/* Убираем аватар пользователя */
+.profile-avatar {
     display: none;
 }
 
-/* Заменяем аватар на кошечку */
-.profile-avatar {
-    font-size: 2.5rem;
+.profile-header {
+    justify-content: center;
+    text-align: center;
+}
+
+.profile-info {
+    width: 100%;
 }
 
 /* Остальные стили из предыдущего файла остаются без изменений */
@@ -1258,16 +1262,9 @@ p {
     margin-bottom: 20px;
 }
 
-.profile-avatar {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(45deg, #8A2BE2, #DA70D6);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+.profile-info {
+    flex: 1;
+    text-align: center;
 }
 
 .profile-info h3 {
