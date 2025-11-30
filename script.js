@@ -1254,7 +1254,6 @@ const elements = {
     promoCodeInput: document.getElementById('promoCodeInput'),
     profileName: document.getElementById('profileName'),
     profileLevel: document.getElementById('profileLevel'),
-    profileAvatar: document.getElementById('profileAvatar'),
     statBalance: document.getElementById('statBalance'),
     statCases: document.getElementById('statCases'),
     statExperience: document.getElementById('statExperience'),
@@ -1517,26 +1516,7 @@ function updateProfile() {
     elements.referralCode.textContent = referralInfo.code;
     elements.referralEarnings.textContent = referralInfo.earnings;
     
-    updateProfileAvatar(stats.level);
     loadAchievements(achievements);
-}
-
-// Обновление аватара профиля
-function updateProfileAvatar(level) {
-    const avatars = ['🐱', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
-    let avatarIndex = 0;
-    
-    if (level >= 10) avatarIndex = 9;
-    else if (level >= 9) avatarIndex = 8;
-    else if (level >= 8) avatarIndex = 7;
-    else if (level >= 7) avatarIndex = 6;
-    else if (level >= 6) avatarIndex = 5;
-    else if (level >= 5) avatarIndex = 4;
-    else if (level >= 4) avatarIndex = 3;
-    else if (level >= 3) avatarIndex = 2;
-    else if (level >= 2) avatarIndex = 1;
-    
-    elements.profileAvatar.textContent = avatars[avatarIndex];
 }
 
 // Загрузка достижений
@@ -1906,21 +1886,21 @@ function openCase(price, caseType) {
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Спин анимация
-    elements.caseItemsTrack.classList.add('spinning');
-    
-    // Выбираем награду
+    // Выбираем награду заранее
     const reward = getRandomReward(caseData.rewards);
     selectedRewardIndex = caseData.rewards.findIndex(r => r.item === reward.item);
     
-    // Рассчитываем финальную позицию для правильной остановки
+    // Рассчитываем финальную позицию для правильной остановки на выбранном предмете
     const itemWidth = 33.333; // 33.333% ширины для каждого предмета
     const targetPosition = -(selectedRewardIndex * itemWidth) - (25 * itemWidth); // 25 полных циклов + позиция выигрыша
+    
+    // Спин анимация
+    elements.caseItemsTrack.classList.add('spinning');
+    elements.caseItemsTrack.style.transform = `translateX(${targetPosition}%)`;
     
     setTimeout(() => {
         // Останавливаем анимацию и устанавливаем финальную позицию
         elements.caseItemsTrack.classList.remove('spinning');
-        elements.caseItemsTrack.style.transform = `translateX(${targetPosition}%)`;
         elements.caseItemsTrack.style.transition = 'transform 0.5s ease-out';
         
         // Обработка оплаты и начислений
@@ -1946,7 +1926,7 @@ function openCase(price, caseType) {
             
         }, 500);
         
-    }, 8000);
+    }, 3000); // Уменьшил время анимации до 3 секунд для лучшего UX
 }
 
 // Показ красивого окна результата
