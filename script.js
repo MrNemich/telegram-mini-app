@@ -1,27 +1,122 @@
 // Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 
-// Глобальная база данных пользователей
+// Глобальная база данных пользователей с улучшенной структурой
 class GlobalDatabase {
     constructor() {
-        this.storageKey = 'global_users_database';
+        this.storageKey = 'global_users_database_v2';
+        this.backupKey = 'global_users_database_backup';
         this.loadGlobalData();
+        this.setupAutoBackup();
     }
 
     loadGlobalData() {
-        const savedData = localStorage.getItem(this.storageKey);
-        this.globalData = savedData ? JSON.parse(savedData) : {
+        try {
+            const savedData = localStorage.getItem(this.storageKey);
+            if (savedData) {
+                this.globalData = JSON.parse(savedData);
+                // Миграция данных если нужно
+                this.migrateData();
+            } else {
+                this.initializeDefaultData();
+            }
+        } catch (error) {
+            console.error('Error loading global data:', error);
+            this.restoreFromBackup();
+        }
+    }
+
+    initializeDefaultData() {
+        this.globalData = {
             users: {},
             nextUserId: 8000001,
             settings: {
                 referralBonus: 50,
-                referralCommission: 0.1 // 10%
-            }
+                referralCommission: 0.1, // 10%
+                maxKeyAttempts: 2,
+                keyCooldownHours: 24,
+                battlePassExpPerCase: 10,
+                battlePassRewardPerLevel: 15
+            },
+            usedKeys: {},
+            usedPromoCodes: {},
+            adminUsers: ['G7#gQ!j2$Lp9@wRn'],
+            version: '2.0'
         };
+        this.saveGlobalData();
+    }
+
+    migrateData() {
+        // Миграция с версии 1.0 на 2.0
+        if (!this.globalData.version) {
+            this.globalData.version = '2.0';
+            this.globalData.settings = {
+                referralBonus: 50,
+                referralCommission: 0.1,
+                maxKeyAttempts: 2,
+                keyCooldownHours: 24,
+                battlePassExpPerCase: 10,
+                battlePassRewardPerLevel: 15
+            };
+            this.globalData.adminUsers = ['G7#gQ!j2$Lp9@wRn'];
+            
+            // Миграция пользователей
+            Object.values(this.globalData.users).forEach(user => {
+                if (!user.battlePassLevel) user.battlePassLevel = 1;
+                if (!user.battlePassExp) user.battlePassExp = 0;
+                if (!user.referralEarnings) user.referralEarnings = 0;
+                if (!user.keyActivationAttempts) user.keyActivationAttempts = 0;
+                if (!user.lastKeyAttempt) user.lastKeyAttempt = 0;
+            });
+            
+            this.saveGlobalData();
+        }
+    }
+
+    setupAutoBackup() {
+        // Авто-бэкап каждые 5 минут
+        setInterval(() => {
+            this.createBackup();
+        }, 5 * 60 * 1000);
+    }
+
+    createBackup() {
+        try {
+            localStorage.setItem(this.backupKey, JSON.stringify(this.globalData));
+        } catch (error) {
+            console.error('Backup failed:', error);
+        }
+    }
+
+    restoreFromBackup() {
+        try {
+            const backup = localStorage.getItem(this.backupKey);
+            if (backup) {
+                this.globalData = JSON.parse(backup);
+                console.log('Data restored from backup');
+            } else {
+                this.initializeDefaultData();
+            }
+        } catch (error) {
+            console.error('Restore from backup failed:', error);
+            this.initializeDefaultData();
+        }
     }
 
     saveGlobalData() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.globalData));
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.globalData));
+            this.createBackup();
+        } catch (error) {
+            console.error('Save failed:', error);
+            this.showStorageError();
+        }
+    }
+
+    showStorageError() {
+        if (window.showNotification) {
+            window.showNotification('Ошибка сохранения данных', 'error');
+        }
     }
 
     getNextUserId() {
@@ -35,7 +130,7 @@ class GlobalDatabase {
         return this.globalData.users[telegramId];
     }
 
-    createUser(telegramId, userData) {
+    createUser(telegramId, userData, referralCode = null) {
         const userId = this.getNextUserId();
         const newUser = {
             userId: userId,
@@ -67,27 +162,73 @@ class GlobalDatabase {
             registrationDate: Date.now(),
             battlePassLevel: 1,
             battlePassExp: 0,
-            lastDailyBonus: 0,
-            dailyBonusStreak: 0,
             referralCode: this.generateReferralCode(),
-            referredBy: null,
+            referredBy: referralCode ? this.findUserByReferralCode(referralCode)?.telegramId : null,
             referrals: [],
             referralEarnings: 0,
-            tradeHistory: []
+            keyActivationAttempts: 0,
+            lastKeyAttempt: 0,
+            lastActive: Date.now()
         };
 
         this.globalData.users[telegramId] = newUser;
         this.saveGlobalData();
+
+        // Обработка реферала если есть
+        if (referralCode) {
+            this.processReferralRegistration(referralCode, telegramId);
+        }
+
         return newUser;
     }
 
+    findUserByReferralCode(code) {
+        return Object.values(this.globalData.users).find(user => 
+            user.referralCode === code
+        );
+    }
+
+    processReferralRegistration(referralCode, newUserTelegramId) {
+        const referrer = this.findUserByReferralCode(referralCode);
+        if (referrer && referrer.telegramId !== newUserTelegramId) {
+            referrer.referrals.push(newUserTelegramId);
+            referrer.balance += this.globalData.settings.referralBonus;
+            referrer.referralEarnings += this.globalData.settings.referralBonus;
+            this.saveGlobalData();
+            
+            // Уведомление рефереру
+            this.notifyReferralBonus(referrer.telegramId, this.globalData.settings.referralBonus);
+            return true;
+        }
+        return false;
+    }
+
+    notifyReferralBonus(telegramId, amount) {
+        // В реальном приложении здесь можно отправить уведомление через бота
+        console.log(`Реферальный бонус: ${amount} ⭐ для пользователя ${telegramId}`);
+        if (window.showNotification) {
+            window.showNotification(`🎉 Реферальный бонус! +${amount} ⭐`, 'success');
+        }
+    }
+
     generateReferralCode() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
 
     updateUser(telegramId, userData) {
-        this.globalData.users[telegramId] = { ...this.globalData.users[telegramId], ...userData };
-        this.saveGlobalData();
+        if (this.globalData.users[telegramId]) {
+            this.globalData.users[telegramId] = { 
+                ...this.globalData.users[telegramId], 
+                ...userData,
+                lastActive: Date.now()
+            };
+            this.saveGlobalData();
+        }
     }
 
     getAllUsers() {
@@ -95,21 +236,7 @@ class GlobalDatabase {
     }
 
     getUserByReferralCode(code) {
-        return Object.values(this.globalData.users).find(user => 
-            user.referralCode === code
-        );
-    }
-
-    processReferral(referrerTelegramId, newUserTelegramId) {
-        const referrer = this.globalData.users[referrerTelegramId];
-        if (referrer) {
-            referrer.referrals.push(newUserTelegramId);
-            referrer.balance += this.globalData.settings.referralBonus;
-            referrer.referralEarnings += this.globalData.settings.referralBonus;
-            this.saveGlobalData();
-            return true;
-        }
-        return false;
+        return this.findUserByReferralCode(code);
     }
 
     addReferralCommission(referrerTelegramId, amount) {
@@ -119,9 +246,102 @@ class GlobalDatabase {
             referrer.balance += commission;
             referrer.referralEarnings += commission;
             this.saveGlobalData();
+            
+            this.notifyReferralCommission(referrerTelegramId, commission);
             return commission;
         }
         return 0;
+    }
+
+    notifyReferralCommission(telegramId, commission) {
+        console.log(`Реферальная комиссия: ${commission} ⭐ для пользователя ${telegramId}`);
+        if (window.showNotification) {
+            window.showNotification(`👥 Комиссия с реферала: +${commission} ⭐`, 'success');
+        }
+    }
+
+    // Методы для работы с ключами
+    isKeyUsed(key) {
+        return !!this.globalData.usedKeys[key];
+    }
+
+    markKeyAsUsed(key, telegramId, stars) {
+        this.globalData.usedKeys[key] = {
+            telegramId: telegramId,
+            usedAt: Date.now(),
+            stars: stars
+        };
+        this.saveGlobalData();
+    }
+
+    getUserKeyAttempts(telegramId) {
+        const user = this.globalData.users[telegramId];
+        return user ? user.keyActivationAttempts : 0;
+    }
+
+    incrementKeyAttempts(telegramId) {
+        const user = this.globalData.users[telegramId];
+        if (user) {
+            user.keyActivationAttempts = (user.keyActivationAttempts || 0) + 1;
+            user.lastKeyAttempt = Date.now();
+            this.saveGlobalData();
+        }
+    }
+
+    resetKeyAttempts(telegramId) {
+        const user = this.globalData.users[telegramId];
+        if (user) {
+            user.keyActivationAttempts = 0;
+            this.saveGlobalData();
+        }
+    }
+
+    canAttemptKeyActivation(telegramId) {
+        const user = this.globalData.users[telegramId];
+        if (!user) return true;
+        
+        const maxAttempts = this.globalData.settings.maxKeyAttempts;
+        const cooldownHours = this.globalData.settings.keyCooldownHours;
+        
+        if (user.keyActivationAttempts >= maxAttempts) {
+            const cooldownMs = cooldownHours * 60 * 60 * 1000;
+            if (Date.now() - user.lastKeyAttempt < cooldownMs) {
+                return false;
+            } else {
+                this.resetKeyAttempts(telegramId);
+                return true;
+            }
+        }
+        
+        return true;
+    }
+
+    getKeyCooldownRemaining(telegramId) {
+        const user = this.globalData.users[telegramId];
+        if (!user || user.keyActivationAttempts < this.globalData.settings.maxKeyAttempts) {
+            return 0;
+        }
+        
+        const cooldownMs = this.globalData.settings.keyCooldownHours * 60 * 60 * 1000;
+        const timePassed = Date.now() - user.lastKeyAttempt;
+        return Math.max(0, cooldownMs - timePassed);
+    }
+
+    // Админ методы
+    isAdmin(userId) {
+        return this.globalData.adminUsers.includes(userId);
+    }
+
+    addAdmin(userId) {
+        if (!this.globalData.adminUsers.includes(userId)) {
+            this.globalData.adminUsers.push(userId);
+            this.saveGlobalData();
+        }
+    }
+
+    removeAdmin(userId) {
+        this.globalData.adminUsers = this.globalData.adminUsers.filter(id => id !== userId);
+        this.saveGlobalData();
     }
 }
 
@@ -135,22 +355,38 @@ class UserDatabase {
     }
 
     loadUserData() {
+        // Обработка реферального кода из start_param
+        const startParam = this.tg.initDataUnsafe.start_param;
+        let referralCode = null;
+        
+        if (startParam && startParam.startsWith('ref_')) {
+            referralCode = startParam.substring(4);
+        }
+
         let userData = this.globalDB.getUserByTelegramId(this.telegramId);
         
         if (!userData) {
-            // Создаем нового пользователя
+            // Создаем нового пользователя с реферальным кодом если есть
             userData = this.globalDB.createUser(this.telegramId, {
                 username: this.tg.initDataUnsafe.user?.username,
                 first_name: this.tg.initDataUnsafe.user?.first_name
-            });
+            }, referralCode);
+        } else if (referralCode && !userData.referredBy) {
+            // Обработка реферального кода для существующего пользователя
+            this.processReferralForExistingUser(referralCode);
         }
 
         this.userData = userData;
         
         // Сброс дневного счетчика если прошел день
         this.resetDailyCounter();
-        // Проверка ежедневного бонуса
-        this.checkDailyBonus();
+    }
+
+    processReferralForExistingUser(referralCode) {
+        const result = this.useReferralCode(referralCode);
+        if (result.success && window.showNotification) {
+            window.showNotification(result.message, 'success');
+        }
     }
 
     resetDailyCounter() {
@@ -162,19 +398,6 @@ class UserDatabase {
             this.userData.dailyCasesOpened = 0;
             this.userData.lastDailyReset = now;
             this.saveUserData();
-        }
-    }
-
-    checkDailyBonus() {
-        const now = Date.now();
-        const lastBonus = this.userData.lastDailyBonus;
-        const twentyFourHours = 24 * 60 * 60 * 1000;
-        
-        if (lastBonus === 0 || (now - lastBonus) >= twentyFourHours) {
-            if (lastBonus > 0 && (now - lastBonus) >= (twentyFourHours * 2)) {
-                this.userData.dailyBonusStreak = 0;
-                this.saveUserData();
-            }
         }
     }
 
@@ -190,7 +413,16 @@ class UserDatabase {
         this.userData.balance += amount;
         if (this.userData.balance < 0) this.userData.balance = 0;
         this.saveUserData();
+        
+        // Обновление прогресса задания "Накопитель"
+        this.updateSaverTaskProgress();
+        
         return this.userData.balance;
+    }
+
+    updateSaverTaskProgress() {
+        const saverProgress = Math.min((this.userData.balance / 300) * 100, 100);
+        this.updateTaskProgress('saver', saverProgress);
     }
 
     getInventory() {
@@ -213,13 +445,20 @@ class UserDatabase {
         this.userData.inventory[item].quantity += 1;
         this.saveUserData();
         
-        if (this.userData.uniqueItemsCollected >= 3) {
-            this.addAchievement('Коллекционер');
-        }
+        // Обновление прогресса заданий
+        this.updateCollectorTaskProgress();
         
         if (sellPrice > 500) {
             this.addAchievement('Редкий охотник');
+            this.updateTaskProgress('rare_hunter', 100);
         }
+        
+        return wasNewItem;
+    }
+
+    updateCollectorTaskProgress() {
+        const collectorProgress = Math.min((this.userData.uniqueItemsCollected / 3) * 100, 100);
+        this.updateTaskProgress('collector', collectorProgress);
     }
 
     removeFromInventory(item) {
@@ -228,6 +467,7 @@ class UserDatabase {
             if (this.userData.inventory[item].quantity <= 0) {
                 delete this.userData.inventory[item];
                 this.userData.uniqueItemsCollected--;
+                this.updateCollectorTaskProgress();
             }
             this.saveUserData();
             return true;
@@ -263,6 +503,7 @@ class UserDatabase {
         this.userData.lastFreeCase = Date.now();
         this.userData.casesOpened++;
         this.userData.dailyCasesOpened++;
+        this.updateFastStartTaskProgress();
         this.saveUserData();
     }
 
@@ -271,9 +512,21 @@ class UserDatabase {
         this.userData.paidCasesOpened++;
         this.userData.dailyCasesOpened++;
         
-        this.addBattlePassExp(10);
+        this.addBattlePassExp(this.globalDB.globalData.settings.battlePassExpPerCase);
+        this.updateFirstStepsTaskProgress();
+        this.updateFastStartTaskProgress();
         
         this.saveUserData();
+    }
+
+    updateFirstStepsTaskProgress() {
+        const firstStepsProgress = Math.min(this.userData.paidCasesOpened * 100, 100);
+        this.updateTaskProgress('first_steps', firstStepsProgress);
+    }
+
+    updateFastStartTaskProgress() {
+        const fastStartProgress = Math.min((this.userData.dailyCasesOpened / 2) * 100, 100);
+        this.updateTaskProgress('fast_start', fastStartProgress);
     }
 
     addExperience(amount) {
@@ -283,6 +536,8 @@ class UserDatabase {
         if (this.userData.experience >= expNeeded) {
             this.userData.level++;
             this.userData.experience = 0;
+            
+            this.updateLegendTaskProgress();
             
             if (this.userData.level >= 2) {
                 this.addAchievement('Легенда');
@@ -294,6 +549,11 @@ class UserDatabase {
         this.saveUserData();
     }
 
+    updateLegendTaskProgress() {
+        const legendProgress = Math.min((this.userData.level / 2) * 100, 100);
+        this.updateTaskProgress('legend', legendProgress);
+    }
+
     addBattlePassExp(amount) {
         this.userData.battlePassExp += amount;
         const expNeeded = this.userData.battlePassLevel * 50;
@@ -302,10 +562,15 @@ class UserDatabase {
             this.userData.battlePassLevel++;
             this.userData.battlePassExp = 0;
             
-            const reward = 5;
+            const reward = this.globalDB.globalData.settings.battlePassRewardPerLevel;
             this.userData.balance += reward;
             
             this.saveUserData();
+            
+            if (window.showNotification) {
+                window.showNotification(`🎮 Батл пасс уровень ${this.userData.battlePassLevel}! +${reward} ⭐`, 'success');
+            }
+            
             return {
                 leveledUp: true,
                 newLevel: this.userData.battlePassLevel,
@@ -342,7 +607,7 @@ class UserDatabase {
             this.saveUserData();
             
             // Начисляем бонус рефереру
-            this.globalDB.processReferral(referrer.telegramId, this.telegramId);
+            this.globalDB.processReferralRegistration(code, this.telegramId);
             
             return { success: true, message: 'Реферальный код активирован! Вы получили 50 ⭐' };
         }
@@ -366,65 +631,8 @@ class UserDatabase {
     }
 
     getReferralLink() {
-        const botUsername = 'your_bot_username'; // Замените на username вашего бота
+        const botUsername = 'GiftLabRobot';
         return `https://t.me/${botUsername}?start=ref_${this.userData.referralCode}`;
-    }
-
-    tradeWithUser(targetUserId, giveItem, receiveItem) {
-        const allUsers = this.globalDB.getAllUsers();
-        const targetUser = allUsers.find(user => user.userId === parseInt(targetUserId));
-        
-        if (!targetUser) {
-            return { success: false, message: 'Пользователь не найден' };
-        }
-
-        if (!this.userData.inventory[giveItem] || this.userData.inventory[giveItem].quantity === 0) {
-            return { success: false, message: 'У вас нет этого предмета' };
-        }
-        
-        if (!targetUser.inventory[receiveItem] || targetUser.inventory[receiveItem].quantity === 0) {
-            return { success: false, message: 'У пользователя нет этого предмета' };
-        }
-
-        // Обмен предметами
-        this.removeFromInventory(giveItem);
-        this.addToInventory(receiveItem, targetUser.inventory[receiveItem].image, targetUser.inventory[receiveItem].sellPrice);
-        
-        // Обновляем инвентарь целевого пользователя
-        targetUser.inventory[receiveItem].quantity -= 1;
-        if (!targetUser.inventory[giveItem]) {
-            targetUser.inventory[giveItem] = {
-                quantity: 0,
-                image: this.userData.inventory[giveItem].image,
-                sellPrice: this.userData.inventory[giveItem].sellPrice
-            };
-        }
-        targetUser.inventory[giveItem].quantity += 1;
-        
-        // Сохраняем изменения целевого пользователя
-        this.globalDB.updateUser(targetUser.telegramId, {
-            inventory: targetUser.inventory
-        });
-        
-        const tradeRecord = {
-            date: Date.now(),
-            from: this.userData.userId,
-            to: targetUser.userId,
-            giveItem: giveItem,
-            receiveItem: receiveItem
-        };
-        
-        this.userData.tradeHistory.push(tradeRecord);
-        targetUser.tradeHistory = targetUser.tradeHistory || [];
-        targetUser.tradeHistory.push(tradeRecord);
-        
-        this.globalDB.updateUser(targetUser.telegramId, {
-            tradeHistory: targetUser.tradeHistory
-        });
-        
-        this.saveUserData();
-        
-        return { success: true, message: 'Обмен успешно завершен!' };
     }
 
     getStats() {
@@ -444,7 +652,6 @@ class UserDatabase {
             registrationDate: this.userData.registrationDate,
             battlePassLevel: this.userData.battlePassLevel,
             battlePassExp: this.userData.battlePassExp,
-            dailyBonusStreak: this.userData.dailyBonusStreak,
             referralEarnings: this.userData.referralEarnings
         };
     }
@@ -457,6 +664,11 @@ class UserDatabase {
         if (this.userData.tasks[taskId]) {
             this.userData.tasks[taskId].progress = Math.min(progress, 100);
             this.saveUserData();
+            
+            // Автоматическое обновление UI если на странице заданий
+            if (window.updateTasksProgress) {
+                window.updateTasksProgress();
+            }
         }
     }
 
@@ -496,36 +708,6 @@ class UserDatabase {
         return true;
     }
 
-    claimDailyBonus() {
-        const now = Date.now();
-        const lastBonus = this.userData.lastDailyBonus;
-        const twentyFourHours = 24 * 60 * 60 * 1000;
-        
-        if (lastBonus === 0 || (now - lastBonus) >= twentyFourHours) {
-            const bonusAmount = 1;
-            this.userData.balance += bonusAmount;
-            this.userData.lastDailyBonus = now;
-            
-            if (lastBonus > 0 && (now - lastBonus) < (twentyFourHours * 2)) {
-                this.userData.dailyBonusStreak++;
-            } else {
-                this.userData.dailyBonusStreak = 1;
-            }
-            
-            this.saveUserData();
-            return {
-                success: true,
-                amount: bonusAmount,
-                streak: this.userData.dailyBonusStreak
-            };
-        }
-        
-        return {
-            success: false,
-            timeRemaining: twentyFourHours - (now - lastBonus)
-        };
-    }
-
     banUser() {
         this.userData.isBanned = true;
         this.saveUserData();
@@ -547,7 +729,6 @@ class UserDatabase {
         this.userData.achievements = ['Новичок'];
         this.userData.battlePassLevel = 1;
         this.userData.battlePassExp = 0;
-        this.userData.dailyBonusStreak = 0;
         
         Object.keys(this.userData.tasks).forEach(taskId => {
             this.userData.tasks[taskId] = { completed: false, progress: 0 };
@@ -555,22 +736,132 @@ class UserDatabase {
         
         this.saveUserData();
     }
+
+    // Методы для работы с ключами
+    canAttemptKeyActivation() {
+        return this.globalDB.canAttemptKeyActivation(this.telegramId);
+    }
+
+    getKeyCooldownRemaining() {
+        return this.globalDB.getKeyCooldownRemaining(this.telegramId);
+    }
+
+    incrementKeyAttempts() {
+        this.globalDB.incrementKeyAttempts(this.telegramId);
+    }
+
+    activateKey(key) {
+        // Проверяем возможность активации
+        if (!this.canAttemptKeyActivation()) {
+            const timeRemaining = this.getKeyCooldownRemaining();
+            return {
+                success: false,
+                message: `Превышено количество попыток. Попробуйте через ${formatTime(timeRemaining)}`
+            };
+        }
+
+        // Валидация формата ключа
+        const cleanKey = key.replace(/\s/g, '').toUpperCase();
+        const keyPattern = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
+        
+        if (!keyPattern.test(cleanKey)) {
+            this.incrementKeyAttempts();
+            return {
+                success: false,
+                message: 'Неверный формат ключа. Используйте: ххххх-ххххх-ххххх-ххххх'
+            };
+        }
+
+        // Проверяем использован ли ключ
+        if (this.globalDB.isKeyUsed(cleanKey)) {
+            this.incrementKeyAttempts();
+            return {
+                success: false,
+                message: 'Этот ключ уже был использован'
+            };
+        }
+
+        // Проверяем валидность ключа и начисляем звезды
+        const keyData = validateKey(cleanKey);
+        if (keyData.valid) {
+            // Помечаем ключ как использованный
+            this.globalDB.markKeyAsUsed(cleanKey, this.telegramId, keyData.stars);
+            
+            // Начисляем звезды
+            this.updateBalance(keyData.stars);
+            
+            // Начисляем реферальную комиссию
+            this.addReferralEarnings(keyData.stars);
+            
+            // Сбрасываем счетчик попыток при успешной активации
+            this.globalDB.resetKeyAttempts(this.telegramId);
+            
+            return {
+                success: true,
+                message: `Ключ активирован! Вы получили ${keyData.stars} ⭐`,
+                stars: keyData.stars
+            };
+        } else {
+            this.incrementKeyAttempts();
+            return {
+                success: false,
+                message: 'Неверный ключ'
+            };
+        }
+    }
 }
 
 // Глобальная база данных для заявок на вывод
 class WithdrawDatabase {
     constructor() {
-        this.storageKey = 'withdraw_requests';
+        this.storageKey = 'withdraw_requests_v2';
+        this.backupKey = 'withdraw_requests_backup';
         this.loadData();
+        this.setupAutoBackup();
+    }
+
+    setupAutoBackup() {
+        setInterval(() => {
+            this.createBackup();
+        }, 5 * 60 * 1000);
+    }
+
+    createBackup() {
+        try {
+            localStorage.setItem(this.backupKey, JSON.stringify(this.requests));
+        } catch (error) {
+            console.error('Withdraw backup failed:', error);
+        }
+    }
+
+    restoreFromBackup() {
+        try {
+            const backup = localStorage.getItem(this.backupKey);
+            if (backup) {
+                this.requests = JSON.parse(backup);
+            }
+        } catch (error) {
+            console.error('Withdraw restore failed:', error);
+        }
     }
 
     loadData() {
-        const savedData = localStorage.getItem(this.storageKey);
-        this.requests = savedData ? JSON.parse(savedData) : [];
+        try {
+            const savedData = localStorage.getItem(this.storageKey);
+            this.requests = savedData ? JSON.parse(savedData) : [];
+        } catch (error) {
+            console.error('Error loading withdraw data:', error);
+            this.restoreFromBackup();
+        }
     }
 
     saveData() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.requests));
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.requests));
+            this.createBackup();
+        } catch (error) {
+            console.error('Save withdraw data failed:', error);
+        }
     }
 
     addRequest(userId, username, itemName, itemImage, itemPrice) {
@@ -582,11 +873,20 @@ class WithdrawDatabase {
             itemImage: itemImage,
             itemPrice: itemPrice,
             timestamp: Date.now(),
-            status: 'pending'
+            status: 'pending',
+            processed: false
         };
         this.requests.unshift(request);
         this.saveData();
+        
+        // Уведомление администратору
+        this.notifyAdmin(request);
         return request;
+    }
+
+    notifyAdmin(request) {
+        console.log(`Новая заявка на вывод от ${request.username}: ${request.itemName}`);
+        // В реальном приложении здесь можно отправить уведомление администратору
     }
 
     getRequests() {
@@ -599,9 +899,25 @@ class WithdrawDatabase {
 
     completeRequest(requestId) {
         const request = this.requests.find(r => r.id === requestId);
-        if (request) {
+        if (request && !request.processed) {
             request.status = 'completed';
+            request.processed = true;
+            request.processedAt = Date.now();
             this.saveData();
+            
+            // Удаляем предмет из инвентаря пользователя
+            const globalDB = new GlobalDatabase();
+            const user = this.getUserById(request.userId);
+            if (user && user.inventory && user.inventory[request.itemName]) {
+                const userDB = new UserDatabase();
+                userDB.removeFromInventory(request.itemName);
+                
+                // Обновляем UI если инвентарь открыт
+                if (window.updateInventoryUI) {
+                    window.updateInventoryUI();
+                }
+            }
+            
             return true;
         }
         return false;
@@ -617,106 +933,21 @@ class WithdrawDatabase {
         const globalDB = new GlobalDatabase();
         return globalDB.getAllUsers().sort((a, b) => a.userId - b.userId);
     }
+
+    validateUsername(username) {
+        if (!username.startsWith('@')) {
+            return { valid: false, message: 'Username должен начинаться с @' };
+        }
+        if (username.length < 5) {
+            return { valid: false, message: 'Username слишком короткий' };
+        }
+        if (username.length > 32) {
+            return { valid: false, message: 'Username слишком длинный' };
+        }
+        // Дополнительные проверки можно добавить здесь
+        return { valid: true, message: '' };
+    }
 }
-
-// Инициализируем приложение
-tg.ready();
-tg.expand();
-tg.enableClosingConfirmation();
-
-tg.setHeaderColor('#000000');
-tg.setBackgroundColor('#000000');
-
-// Инициализация баз данных
-const userDB = new UserDatabase();
-const withdrawDB = new WithdrawDatabase();
-
-// Текущая активная страница
-let currentPage = 'home';
-let isAnimating = false;
-let currentCaseModal = null;
-let freeCaseTimerInterval = null;
-let currentWithdrawItem = null;
-let selectedRewardIndex = null;
-let selectedStarsOption = null;
-
-// Кэшируем элементы для производительности
-const elements = {
-    homeContent: document.getElementById('home-content'),
-    rouletteContent: document.getElementById('roulette-content'),
-    tasksContent: document.getElementById('tasks-content'),
-    profileContent: document.getElementById('profile-content'),
-    newsModal1: document.getElementById('newsModal1'),
-    newsModal2: document.getElementById('newsModal2'),
-    caseModal: document.getElementById('caseModal'),
-    inventoryModal: document.getElementById('inventoryModal'),
-    resultModal: document.getElementById('resultModal'),
-    withdrawModal: document.getElementById('withdrawModal'),
-    consoleModal: document.getElementById('consoleModal'),
-    adminModal: document.getElementById('adminModal'),
-    withdrawRequestsModal: document.getElementById('withdrawRequestsModal'),
-    userSearchModal: document.getElementById('userSearchModal'),
-    allUsersModal: document.getElementById('allUsersModal'),
-    starsShopModal: document.getElementById('starsShopModal'),
-    starsBalance: document.getElementById('starsBalance'),
-    caseItemsTrack: document.getElementById('caseItemsTrack'),
-    caseModalTitle: document.getElementById('caseModalTitle'),
-    caseModalPrice: document.getElementById('caseModalPrice'),
-    caseModalActions: document.getElementById('caseModalActions'),
-    inventoryItems: document.getElementById('inventoryItems'),
-    resultItemImg: document.getElementById('resultItemImg'),
-    resultItemName: document.getElementById('resultItemName'),
-    resultItemPrice: document.getElementById('resultItemPrice'),
-    withdrawItemImage: document.getElementById('withdrawItemImage'),
-    withdrawItemName: document.getElementById('withdrawItemName'),
-    withdrawItemPrice: document.getElementById('withdrawItemPrice'),
-    usernameInput: document.getElementById('usernameInput'),
-    consoleInput: document.getElementById('consoleInput'),
-    consoleOutput: document.getElementById('consoleOutput'),
-    withdrawRequestsList: document.getElementById('withdrawRequestsList'),
-    userIdInput: document.getElementById('userIdInput'),
-    userInfo: document.getElementById('userInfo'),
-    allUsersList: document.getElementById('allUsersList'),
-    buttons: document.querySelectorAll('.nav-button'),
-    freeCaseBtn: document.getElementById('freeCaseBtn'),
-    freeCaseTimer: document.getElementById('freeCaseTimer'),
-    freeCaseTimerDisplay: document.getElementById('freeCaseTimerDisplay'),
-    promoCodeInput: document.getElementById('promoCodeInput'),
-    profileName: document.getElementById('profileName'),
-    profileLevel: document.getElementById('profileLevel'),
-    profileId: document.getElementById('profileId'),
-    profileAvatar: document.getElementById('profileAvatar'),
-    statBalance: document.getElementById('statBalance'),
-    statCases: document.getElementById('statCases'),
-    statExperience: document.getElementById('statExperience'),
-    statItems: document.getElementById('statItems'),
-    achievementsGrid: document.getElementById('achievementsGrid'),
-    firstStepsProgress: document.getElementById('firstStepsProgress'),
-    saverProgress: document.getElementById('saverProgress'),
-    collectorProgress: document.getElementById('collectorProgress'),
-    fastStartProgress: document.getElementById('fastStartProgress'),
-    rareHunterProgress: document.getElementById('rareHunterProgress'),
-    legendProgress: document.getElementById('legendProgress'),
-    firstStepsBtn: document.getElementById('firstStepsBtn'),
-    saverBtn: document.getElementById('saverBtn'),
-    collectorBtn: document.getElementById('collectorBtn'),
-    fastStartBtn: document.getElementById('fastStartBtn'),
-    rareHunterBtn: document.getElementById('rareHunterBtn'),
-    legendBtn: document.getElementById('legendBtn'),
-    battlePassLevel: document.getElementById('battlePassLevel'),
-    battlePassExp: document.getElementById('battlePassExp'),
-    battlePassProgress: document.getElementById('battlePassProgress'),
-    dailyBonusBtn: document.getElementById('dailyBonusBtn'),
-    dailyBonusStreak: document.getElementById('dailyBonusStreak'),
-    referralCode: document.getElementById('referralCode'),
-    referralInput: document.getElementById('referralInput'),
-    referralEarnings: document.getElementById('referralEarnings'),
-    tradeModal: document.getElementById('tradeModal'),
-    tradeUserId: document.getElementById('tradeUserId'),
-    tradeGiveItem: document.getElementById('tradeGiveItem'),
-    tradeReceiveItem: document.getElementById('tradeReceiveItem'),
-    starsBuyBtn: document.getElementById('starsBuyBtn')
-};
 
 // Данные кейсов с реальными призами
 const casesData = {
@@ -857,7 +1088,7 @@ const casesData = {
     },
     premium: {
         name: "Кейс Премиум",
-        price: 1000,
+        price: 1500,
         rewards: [
             { item: "Ice Cream", image: "nft/мороженное.png", sellPrice: 180, chance: 13.75 },
             { item: "Snoop Dogg", image: "nft/снуп дог.png", sellPrice: 300, chance: 10.44 },
@@ -888,6 +1119,184 @@ const achievementsData = [
     { name: "Опытный", icon: "⭐", description: "Достигните 5 уровня" },
     { name: "Легенда", icon: "👑", description: "Достигните 10 уровня" },
     { name: "Редкий охотник", icon: "💎", description: "Получите редкий предмет" }
+];
+
+// Функция для валидации ключей
+function validateKey(key) {
+    // Убираем пробелы и приводим к верхнему регистру
+    const cleanKey = key.replace(/\s/g, '').toUpperCase();
+    
+    // Проверяем формат ключа
+    const keyPattern = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
+    if (!keyPattern.test(cleanKey)) {
+        return { valid: false, stars: 0 };
+    }
+    
+    // Проверяем ключи для разных номиналов
+    const keyGroups = {
+        100: [
+            "K9JMQ-BV7C4-P2XH8-F3RTL", "D8FGN-4LK9W-Y7HXQ-Z3PMT", "R2T9N-6Y8LP-QX4BH-K7JFV",
+            "W4PZ7-M9K3L-X8QHN-B2FRT", "L3H8J-N9F4P-Q7XKM-V2RTC", "B4N7M-K8P3Q-X2JHF-V9TRL"
+        ],
+        200: [
+            "7ZQ2M-K9PL4-X8N3H-BVFRT", "J4HX9-P8L3Q-K2MFN-V7CRT", "T8N2B-4M7XK-P9LQH-V3FRJ",
+            "W3P9L-Q8X4M-K2JHN-B7FRV", "R2K9N-4L8XP-Q7MHJ-V3FBT", "F9J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        400: [
+            "8XQ2M-K9PL4-Z8N3H-BVFRT", "J5HX9-P8L3Q-K2MFN-V7CRT", "T9N2B-4M7XK-P9LQH-V3FRJ",
+            "W4P9L-Q8X4M-K2JHN-B7FRV", "R3K9N-4L8XP-Q7MHJ-V3FBT", "F0J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        600: [
+            "9YQ2M-K9PL4-Z8N3H-BVFRT", "J6HX9-P8L3Q-K2MFN-V7CRT", "T0N2B-4M7XK-P9LQH-V3FRJ",
+            "W5P9L-Q8X4M-K2JHN-B7FRV", "R4K9N-4L8XP-Q7MHJ-V3FBT", "F1J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        800: [
+            "0ZQ2M-K9PL4-Z8N3H-BVFRT", "J7HX9-P8L3Q-K2MFN-V7CRT", "T1N2B-4M7XK-P9LQH-V3FRJ",
+            "W6P9L-Q8X4M-K2JHN-B7FRV", "R5K9N-4L8XP-Q7MHJ-V3FBT", "F2J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        1000: [
+            "1AQ2M-K9PL4-Z8N3H-BVFRT", "J8HX9-P8L3Q-K2MFN-V7CRT", "T2N2B-4M7XK-P9LQH-V3FRJ",
+            "W7P9L-Q8X4M-K2JHN-B7FRV", "R6K9N-4L8XP-Q7MHJ-V3FBT", "F3J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        2000: [
+            "2BQ2M-K9PL4-Z8N3H-BVFRT", "J9HX9-P8L3Q-K2MFN-V7CRT", "T3N2B-4M7XK-P9LQH-V3FRJ",
+            "W8P9L-Q8X4M-K2JHN-B7FRV", "R7K9N-4L8XP-Q7MHJ-V3FBT", "F4J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        3000: [
+            "3CQ2M-K9PL4-Z8N3H-BVFRT", "J0HX9-P8L3Q-K2MFN-V7CRT", "T4N2B-4M7XK-P9LQH-V3FRJ",
+            "W9P9L-Q8X4M-K2JHN-B7FRV", "R8K9N-4L8XP-Q7MHJ-V3FBT", "F5J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        4000: [
+            "4DQ2M-K9PL4-Z8N3H-BVFRT", "J1HX9-P8L3Q-K2MFN-V7CRT", "T5N2B-4M7XK-P9LQH-V3FRJ",
+            "W0P9L-Q8X4M-K2JHN-B7FRV", "R9K9N-4L8XP-Q7MHJ-V3FBT", "F6J3P-L8K4M-Q2NHB-V7XRT"
+        ],
+        5500: [
+            "5EQ2M-K9PL4-Z8N3H-BVFRT", "J2HX9-P8L3Q-K2MFN-V7CRT", "T6N2B-4M7XK-P9LQH-V3FRJ",
+            "W1P9L-Q8X4M-K2JHN-B7FRV", "R0K9N-4L8XP-Q7MHJ-V3FBT", "F7J3P-L8K4M-Q2NHB-V7XRT"
+        ]
+    };
+    
+    // Проверяем принадлежность ключа к одной из групп
+    for (const [stars, keys] of Object.entries(keyGroups)) {
+        if (keys.includes(cleanKey)) {
+            return { valid: true, stars: parseInt(stars) };
+        }
+    }
+    
+    return { valid: false, stars: 0 };
+}
+
+// Инициализируем приложение
+tg.ready();
+tg.expand();
+tg.enableClosingConfirmation();
+
+tg.setHeaderColor('#000000');
+tg.setBackgroundColor('#000000');
+
+// Инициализация баз данных
+const userDB = new UserDatabase();
+const withdrawDB = new WithdrawDatabase();
+
+// Текущая активная страница
+let currentPage = 'home';
+let isAnimating = false;
+let currentCaseModal = null;
+let freeCaseTimerInterval = null;
+let currentWithdrawItem = null;
+let selectedRewardIndex = null;
+let imageCache = new Map();
+
+// Кэшируем элементы для производительности
+const elements = {
+    loadingScreen: document.getElementById('loadingScreen'),
+    mainContainer: document.getElementById('mainContainer'),
+    homeContent: document.getElementById('home-content'),
+    rouletteContent: document.getElementById('roulette-content'),
+    tasksContent: document.getElementById('tasks-content'),
+    profileContent: document.getElementById('profile-content'),
+    newsModal1: document.getElementById('newsModal1'),
+    newsModal2: document.getElementById('newsModal2'),
+    caseModal: document.getElementById('caseModal'),
+    inventoryModal: document.getElementById('inventoryModal'),
+    resultModal: document.getElementById('resultModal'),
+    withdrawModal: document.getElementById('withdrawModal'),
+    consoleModal: document.getElementById('consoleModal'),
+    adminModal: document.getElementById('adminModal'),
+    withdrawRequestsModal: document.getElementById('withdrawRequestsModal'),
+    userSearchModal: document.getElementById('userSearchModal'),
+    allUsersModal: document.getElementById('allUsersModal'),
+    keyActivationModal: document.getElementById('keyActivationModal'),
+    keyHelpModal: document.getElementById('keyHelpModal'),
+    starsBalance: document.getElementById('starsBalance'),
+    caseItemsTrack: document.getElementById('caseItemsTrack'),
+    caseModalTitle: document.getElementById('caseModalTitle'),
+    caseModalPrice: document.getElementById('caseModalPrice'),
+    caseModalActions: document.getElementById('caseModalActions'),
+    inventoryItems: document.getElementById('inventoryItems'),
+    resultItemImg: document.getElementById('resultItemImg'),
+    resultItemName: document.getElementById('resultItemName'),
+    resultItemPrice: document.getElementById('resultItemPrice'),
+    withdrawItemImage: document.getElementById('withdrawItemImage'),
+    withdrawItemName: document.getElementById('withdrawItemName'),
+    withdrawItemPrice: document.getElementById('withdrawItemPrice'),
+    usernameInput: document.getElementById('usernameInput'),
+    consoleInput: document.getElementById('consoleInput'),
+    consoleOutput: document.getElementById('consoleOutput'),
+    withdrawRequestsList: document.getElementById('withdrawRequestsList'),
+    userIdInput: document.getElementById('userIdInput'),
+    userInfo: document.getElementById('userInfo'),
+    allUsersList: document.getElementById('allUsersList'),
+    buttons: document.querySelectorAll('.nav-button'),
+    freeCaseBtn: document.getElementById('freeCaseBtn'),
+    freeCaseTimer: document.getElementById('freeCaseTimer'),
+    freeCaseTimerDisplay: document.getElementById('freeCaseTimerDisplay'),
+    promoCodeInput: document.getElementById('promoCodeInput'),
+    profileName: document.getElementById('profileName'),
+    profileLevel: document.getElementById('profileLevel'),
+    profileAvatar: document.getElementById('profileAvatar'),
+    statBalance: document.getElementById('statBalance'),
+    statCases: document.getElementById('statCases'),
+    statExperience: document.getElementById('statExperience'),
+    statItems: document.getElementById('statItems'),
+    achievementsGrid: document.getElementById('achievementsGrid'),
+    firstStepsProgress: document.getElementById('firstStepsProgress'),
+    saverProgress: document.getElementById('saverProgress'),
+    collectorProgress: document.getElementById('collectorProgress'),
+    fastStartProgress: document.getElementById('fastStartProgress'),
+    rareHunterProgress: document.getElementById('rareHunterProgress'),
+    legendProgress: document.getElementById('legendProgress'),
+    firstStepsBtn: document.getElementById('firstStepsBtn'),
+    saverBtn: document.getElementById('saverBtn'),
+    collectorBtn: document.getElementById('collectorBtn'),
+    fastStartBtn: document.getElementById('fastStartBtn'),
+    rareHunterBtn: document.getElementById('rareHunterBtn'),
+    legendBtn: document.getElementById('legendBtn'),
+    battlePassLevel: document.getElementById('battlePassLevel'),
+    battlePassExp: document.getElementById('battlePassExp'),
+    battlePassProgress: document.getElementById('battlePassProgress'),
+    referralCode: document.getElementById('referralCode'),
+    referralInput: document.getElementById('referralInput'),
+    referralEarnings: document.getElementById('referralEarnings'),
+    keyInput: document.getElementById('keyInput'),
+    keyActivationBtn: document.getElementById('keyActivationBtn'),
+    keyActivationInfo: document.getElementById('keyActivationInfo'),
+    loadingProgressFill: document.getElementById('loadingProgressFill'),
+    loadingQuote: document.getElementById('loadingQuote')
+};
+
+// Цитаты для экрана загрузки
+const loadingQuotes = [
+    "NFT — это тишина, проданная с молотка. — Евгений Немич",
+    "Коллекционер — это садовник в пустоте. — Евгений Немич",
+    "Мой вклад — это вопрос, вписанный в блокчейн. — Евгений Немич",
+    "Покупая токен, я выкупаю чужое одиночество. — Евгений Немич",
+    "Цифровая пустота — вот самый дорогой холст. — Евгений Немич",
+    "Мы собираем не арты, а оправдания для бытия. — Евгений Немич",
+    "В метавселенной валюта — не эфир, а внимание. — Евгений Немич",
+    "Хеш-сумма — это след от капли вечности. — Евгений Немич",
+    "Искусство теперь живет в сейфе, а не в храме. — Евгений Немич",
+    "Мой кошелек — это дневник исчезающих чувств. — Евгений Немич"
 ];
 
 // Функция для форматирования времени
@@ -928,23 +1337,60 @@ function startFreeCaseTimer() {
     }
 }
 
-// Функция смены страницы
+// Функция смены страницы с анимацией
 function changePage(page) {
     if (isAnimating || currentPage === page) return;
     
     isAnimating = true;
-    currentPage = page;
     
-    updateActiveButton(page);
-    switchContent(page);
+    // Виброотклик
+    vibrate(10);
     
-    if (navigator.vibrate) {
-        navigator.vibrate(5);
-    }
+    // Анимация перехода
+    const currentContent = document.getElementById(`${currentPage}-content`);
+    const newContent = document.getElementById(`${page}-content`);
     
-    setTimeout(() => {
+    if (currentContent && newContent) {
+        currentContent.style.opacity = '0';
+        currentContent.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            currentContent.style.display = 'none';
+            newContent.style.display = 'block';
+            
+            setTimeout(() => {
+                newContent.style.opacity = '1';
+                newContent.style.transform = 'translateY(0)';
+                currentPage = page;
+                updateActiveButton(page);
+                isAnimating = false;
+                
+                // Обновление контента страницы
+                updatePageContent(page);
+            }, 50);
+        }, 300);
+    } else {
+        currentPage = page;
+        updateActiveButton(page);
+        switchContent(page);
         isAnimating = false;
-    }, 300);
+    }
+}
+
+// Обновление контента страницы
+function updatePageContent(page) {
+    switch(page) {
+        case 'roulette':
+            updateBalanceDisplay();
+            startFreeCaseTimer();
+            break;
+        case 'tasks':
+            updateTasksProgress();
+            break;
+        case 'profile':
+            updateProfile();
+            break;
+    }
 }
 
 // Обновление активной кнопки
@@ -955,7 +1401,7 @@ function updateActiveButton(activePage) {
     });
 }
 
-// Смена контента
+// Смена контента (fallback)
 function switchContent(page) {
     elements.homeContent.style.display = 'none';
     elements.rouletteContent.style.display = 'none';
@@ -988,160 +1434,65 @@ function updateBalanceDisplay() {
     elements.starsBalance.textContent = balance.toLocaleString();
 }
 
-// Магазин Stars
-function openStarsShop() {
-    elements.starsShopModal.style.display = 'block';
-    selectedStarsOption = null;
-    
-    // Сбрасываем выделение всех опций
-    document.querySelectorAll('.stars-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    elements.starsBuyBtn.disabled = true;
-}
-
-function closeStarsShop() {
-    elements.starsShopModal.style.display = 'none';
-}
-
-function selectStarsOption(stars, price) {
-    selectedStarsOption = { stars, price };
-    
-    // Снимаем выделение со всех опций
-    document.querySelectorAll('.stars-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Выделяем выбранную опцию
-    event.currentTarget.classList.add('selected');
-    elements.starsBuyBtn.disabled = false;
-}
-
-function buyStars() {
-    if (!selectedStarsOption) return;
-    
-    if (selectedStarsOption.price === 0) {
-        // Бесплатное пополнение
-        userDB.updateBalance(selectedStarsOption.stars);
-        updateBalanceDisplay();
-        updateProfile();
-        
-        tg.showPopup({
-            title: '⭐ Баланс пополнен!',
-            message: `Вы получили ${selectedStarsOption.stars} ⭐ бесплатно!`,
-            buttons: [{ type: 'ok' }]
-        });
-        
-        closeStarsShop();
-    } else {
-        // Покупка через Telegram Stars
-        tg.showPopup({
-            title: '💰 Покупка Stars',
-            message: `Купить ${selectedStarsOption.stars} ⭐ за ${selectedStarsOption.price} Telegram Stars?`,
-            buttons: [
-                { type: 'ok', text: 'Купить' },
-                { type: 'cancel', text: 'Отмена' }
-            ]
-        }).then((result) => {
-            if (result === 'ok') {
-                // Здесь должна быть интеграция с Telegram Stars API
-                // Временно эмулируем успешную покупку
-                userDB.updateBalance(selectedStarsOption.stars);
-                userDB.addReferralEarnings(selectedStarsOption.stars);
-                updateBalanceDisplay();
-                updateProfile();
-                
-                tg.showPopup({
-                    title: '✅ Успешно!',
-                    message: `Вы купили ${selectedStarsOption.stars} ⭐`,
-                    buttons: [{ type: 'ok' }]
-                });
-                
-                closeStarsShop();
-            }
-        });
-    }
-    
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-    }
-}
-
 // Обновление прогресса заданий
 function updateTasksProgress() {
     const userData = userDB.userData;
     const tasks = userDB.getTasks();
-    const inventory = userDB.getInventory();
     
-    const firstStepsProgress = Math.min(userData.paidCasesOpened * 100, 100);
-    userDB.updateTaskProgress('first_steps', firstStepsProgress);
-    elements.firstStepsProgress.style.width = `${firstStepsProgress}%`;
-    elements.firstStepsBtn.disabled = tasks.first_steps.completed || firstStepsProgress < 100;
+    // Прогресс обновляется автоматически через UserDatabase
+    elements.firstStepsProgress.style.width = `${tasks.first_steps.progress}%`;
+    elements.saverProgress.style.width = `${tasks.saver.progress}%`;
+    elements.collectorProgress.style.width = `${tasks.collector.progress}%`;
+    elements.fastStartProgress.style.width = `${tasks.fast_start.progress}%`;
+    elements.rareHunterProgress.style.width = `${tasks.rare_hunter.progress}%`;
+    elements.legendProgress.style.width = `${tasks.legend.progress}%`;
+    
+    // Обновление кнопок
+    elements.firstStepsBtn.disabled = tasks.first_steps.completed || tasks.first_steps.progress < 100;
     elements.firstStepsBtn.textContent = tasks.first_steps.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.first_steps.completed) elements.firstStepsBtn.classList.add('completed');
     
-    const saverProgress = Math.min((userData.balance / 300) * 100, 100);
-    userDB.updateTaskProgress('saver', saverProgress);
-    elements.saverProgress.style.width = `${saverProgress}%`;
-    elements.saverBtn.disabled = tasks.saver.completed || saverProgress < 100;
+    elements.saverBtn.disabled = tasks.saver.completed || tasks.saver.progress < 100;
     elements.saverBtn.textContent = tasks.saver.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.saver.completed) elements.saverBtn.classList.add('completed');
     
-    const collectorProgress = Math.min((userData.uniqueItemsCollected / 3) * 100, 100);
-    userDB.updateTaskProgress('collector', collectorProgress);
-    elements.collectorProgress.style.width = `${collectorProgress}%`;
-    elements.collectorBtn.disabled = tasks.collector.completed || collectorProgress < 100;
+    elements.collectorBtn.disabled = tasks.collector.completed || tasks.collector.progress < 100;
     elements.collectorBtn.textContent = tasks.collector.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.collector.completed) elements.collectorBtn.classList.add('completed');
     
-    const fastStartProgress = Math.min((userData.dailyCasesOpened / 2) * 100, 100);
-    userDB.updateTaskProgress('fast_start', fastStartProgress);
-    elements.fastStartProgress.style.width = `${fastStartProgress}%`;
-    elements.fastStartBtn.disabled = tasks.fast_start.completed || fastStartProgress < 100;
+    elements.fastStartBtn.disabled = tasks.fast_start.completed || tasks.fast_start.progress < 100;
     elements.fastStartBtn.textContent = tasks.fast_start.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.fast_start.completed) elements.fastStartBtn.classList.add('completed');
     
-    const hasRareItem = Object.values(inventory).some(item => item.sellPrice > 500);
-    const rareHunterProgress = hasRareItem ? 100 : 0;
-    userDB.updateTaskProgress('rare_hunter', rareHunterProgress);
-    elements.rareHunterProgress.style.width = `${rareHunterProgress}%`;
-    elements.rareHunterBtn.disabled = tasks.rare_hunter.completed || rareHunterProgress < 100;
+    elements.rareHunterBtn.disabled = tasks.rare_hunter.completed || tasks.rare_hunter.progress < 100;
     elements.rareHunterBtn.textContent = tasks.rare_hunter.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.rare_hunter.completed) elements.rareHunterBtn.classList.add('completed');
     
-    const legendProgress = Math.min((userData.level / 2) * 100, 100);
-    userDB.updateTaskProgress('legend', legendProgress);
-    elements.legendProgress.style.width = `${legendProgress}%`;
-    elements.legendBtn.disabled = tasks.legend.completed || legendProgress < 100;
+    elements.legendBtn.disabled = tasks.legend.completed || tasks.legend.progress < 100;
     elements.legendBtn.textContent = tasks.legend.completed ? 'Выполнено' : 'Выполнить';
     if (tasks.legend.completed) elements.legendBtn.classList.add('completed');
 }
 
 // Выполнение задания
 function completeTask(taskId, reward) {
-    if (userDB.completeTask(taskId)) {
-        userDB.updateBalance(reward);
-        updateBalanceDisplay();
-        updateProfile();
-        updateTasksProgress();
-        
-        tg.showPopup({
-            title: '🎉 Задание выполнено!',
-            message: `Вы получили ${reward} ⭐`,
-            buttons: [{ type: 'ok' }]
-        });
-        
-        if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
+    showLoading('Проверка задания...');
+    
+    setTimeout(() => {
+        if (userDB.completeTask(taskId)) {
+            userDB.updateBalance(reward);
+            updateBalanceDisplay();
+            updateProfile();
+            updateTasksProgress();
+            hideLoading();
+            
+            showNotification('🎉 Задание выполнено!', `Вы получили ${reward} ⭐`, 'success');
+            vibrate([100, 50, 100]);
+        } else {
+            hideLoading();
+            showNotification('❌ Задание не выполнено', 'Выполните условия задания', 'error');
+            vibrate(100);
         }
-    } else {
-        tg.showPopup({
-            title: '❌ Задание не выполнено',
-            message: 'Выполните условия задания',
-            buttons: [{ type: 'ok' }]
-        });
-    }
+    }, 1000);
 }
 
 // Обновление профиля
@@ -1154,7 +1505,6 @@ function updateProfile() {
     
     elements.profileName.textContent = stats.firstName;
     elements.profileLevel.textContent = stats.level;
-    elements.profileId.textContent = stats.userId;
     elements.statBalance.textContent = userData.balance.toLocaleString();
     elements.statCases.textContent = stats.casesOpened;
     elements.statExperience.textContent = userData.experience;
@@ -1163,8 +1513,6 @@ function updateProfile() {
     elements.battlePassLevel.textContent = battlePassInfo.level;
     elements.battlePassExp.textContent = `${battlePassInfo.exp}/${battlePassInfo.neededExp}`;
     elements.battlePassProgress.style.width = `${battlePassInfo.progress}%`;
-    
-    elements.dailyBonusStreak.textContent = stats.dailyBonusStreak;
     
     elements.referralCode.textContent = referralInfo.code;
     elements.referralEarnings.textContent = referralInfo.earnings;
@@ -1175,13 +1523,17 @@ function updateProfile() {
 
 // Обновление аватара профиля
 function updateProfileAvatar(level) {
-    const avatars = ['👤', '🦊', '🐯', '🐉', '🦄', '👑'];
+    const avatars = ['🐱', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
     let avatarIndex = 0;
     
-    if (level >= 10) avatarIndex = 5;
-    else if (level >= 8) avatarIndex = 4;
-    else if (level >= 6) avatarIndex = 3;
-    else if (level >= 4) avatarIndex = 2;
+    if (level >= 10) avatarIndex = 9;
+    else if (level >= 9) avatarIndex = 8;
+    else if (level >= 8) avatarIndex = 7;
+    else if (level >= 7) avatarIndex = 6;
+    else if (level >= 6) avatarIndex = 5;
+    else if (level >= 5) avatarIndex = 4;
+    else if (level >= 4) avatarIndex = 3;
+    else if (level >= 3) avatarIndex = 2;
     else if (level >= 2) avatarIndex = 1;
     
     elements.profileAvatar.textContent = avatars[avatarIndex];
@@ -1208,11 +1560,8 @@ function loadAchievements(userAchievements) {
 
 // Показ уведомления о достижении
 window.showAchievementNotification = function(achievementName) {
-    tg.showPopup({
-        title: '🏆 Новое достижение!',
-        message: `Вы получили достижение: ${achievementName}`,
-        buttons: [{ type: 'ok' }]
-    });
+    showNotification('🏆 Новое достижение!', `Вы получили достижение: ${achievementName}`, 'success');
+    vibrate([100, 50, 100, 50, 100]);
 };
 
 // Активация промокода
@@ -1220,67 +1569,38 @@ function activatePromoCode() {
     const code = elements.promoCodeInput.value.trim().toUpperCase();
     
     if (!code) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Введите промокод',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Ошибка', 'Введите промокод', 'error');
         return;
     }
     
-    if (code === 'FREE2025') {
-        if (userDB.usePromoCode(code)) {
-            userDB.updateBalance(10);
-            updateBalanceDisplay();
-            updateProfile();
-            elements.promoCodeInput.value = '';
-            
-            tg.showPopup({
-                title: '🎉 Промокод активирован!',
-                message: 'Вы получили 10 ⭐',
-                buttons: [{ type: 'ok' }]
-            });
-            
-            if (userDB.getBalance() >= 500) {
-                userDB.addAchievement('Богач');
+    showLoading('Активация промокода...');
+    
+    setTimeout(() => {
+        if (code === 'FREE2025') {
+            if (userDB.usePromoCode(code)) {
+                userDB.updateBalance(10);
+                updateBalanceDisplay();
+                updateProfile();
+                elements.promoCodeInput.value = '';
+                hideLoading();
+                
+                showNotification('🎉 Промокод активирован!', 'Вы получили 10 ⭐', 'success');
+                vibrate([100, 50, 100]);
+                
+                if (userDB.getBalance() >= 500) {
+                    userDB.addAchievement('Богач');
+                }
+            } else {
+                hideLoading();
+                showNotification('❌ Ошибка', 'Промокод уже использован', 'error');
+                vibrate(100);
             }
         } else {
-            tg.showPopup({
-                title: '❌ Ошибка',
-                message: 'Промокод уже использован',
-                buttons: [{ type: 'ok' }]
-            });
+            hideLoading();
+            showNotification('❌ Ошибка', 'Неверный промокод', 'error');
+            vibrate(100);
         }
-    } else {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Неверный промокод',
-            buttons: [{ type: 'ok' }]
-        });
-    }
-}
-
-// Получение ежедневного бонуса
-function claimDailyBonus() {
-    const result = userDB.claimDailyBonus();
-    
-    if (result.success) {
-        updateBalanceDisplay();
-        updateProfile();
-        
-        tg.showPopup({
-            title: '🎁 Ежедневный бонус!',
-            message: `Вы получили ${result.amount} ⭐\nСтрик: ${result.streak} дней`,
-            buttons: [{ type: 'ok' }]
-        });
-    } else {
-        const timeRemaining = formatTime(result.timeRemaining);
-        tg.showPopup({
-            title: '⏰ Бонус недоступен',
-            message: `Следующий бонус через: ${timeRemaining}`,
-            buttons: [{ type: 'ok' }]
-        });
-    }
+    }, 1000);
 }
 
 // Реферальная система
@@ -1288,172 +1608,93 @@ function useReferralCode() {
     const code = elements.referralInput.value.trim().toUpperCase();
     
     if (!code) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Введите реферальный код',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Ошибка', 'Введите реферальный код', 'error');
         return;
     }
     
-    const result = userDB.useReferralCode(code);
+    showLoading('Активация реферального кода...');
     
-    if (result.success) {
-        elements.referralInput.value = '';
-        updateProfile();
+    setTimeout(() => {
+        const result = userDB.useReferralCode(code);
         
-        tg.showPopup({
-            title: '🎉 Код активирован!',
-            message: result.message,
-            buttons: [{ type: 'ok' }]
-        });
-    } else {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: result.message,
-            buttons: [{ type: 'ok' }]
-        });
-    }
+        if (result.success) {
+            elements.referralInput.value = '';
+            updateProfile();
+            hideLoading();
+            
+            showNotification('🎉 Код активирован!', result.message, 'success');
+            vibrate([100, 50, 100]);
+        } else {
+            hideLoading();
+            showNotification('❌ Ошибка', result.message, 'error');
+            vibrate(100);
+        }
+    }, 1000);
 }
 
 function copyReferralCode() {
     const referralLink = userDB.getReferralLink();
     navigator.clipboard.writeText(referralLink).then(() => {
-        tg.showPopup({
-            title: '✅ Скопировано',
-            message: 'Реферальная ссылка скопирована в буфер обмена',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('✅ Скопировано', 'Реферальная ссылка скопирована в буфер обмена', 'success');
+        vibrate(50);
+    }).catch(() => {
+        showNotification('❌ Ошибка', 'Не удалось скопировать ссылку', 'error');
     });
-}
-
-// Трейдинг система
-function openTradeModal() {
-    elements.tradeModal.style.display = 'block';
-    loadTradeItems();
-}
-
-function closeTradeModal() {
-    elements.tradeModal.style.display = 'none';
-}
-
-function loadTradeItems() {
-    const inventory = userDB.getInventory();
-    
-    elements.tradeGiveItem.innerHTML = '<option value="">Выберите предмет</option>';
-    elements.tradeReceiveItem.innerHTML = '<option value="">Выберите предмет</option>';
-    
-    Object.keys(inventory).forEach(item => {
-        if (inventory[item].quantity > 0) {
-            const option1 = document.createElement('option');
-            option1.value = item;
-            option1.textContent = `${item} (${inventory[item].quantity} шт.)`;
-            elements.tradeGiveItem.appendChild(option1);
-            
-            const option2 = document.createElement('option');
-            option2.value = item;
-            option2.textContent = `${item} (${inventory[item].quantity} шт.)`;
-            elements.tradeReceiveItem.appendChild(option2);
-        }
-    });
-}
-
-function confirmTrade() {
-    const targetUserId = elements.tradeUserId.value.trim();
-    const giveItem = elements.tradeGiveItem.value;
-    const receiveItem = elements.tradeReceiveItem.value;
-    
-    if (!targetUserId) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Введите ID пользователя',
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
-    
-    if (!giveItem || !receiveItem) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Выберите предметы для обмена',
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
-    
-    if (giveItem === receiveItem) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Нельзя обменять одинаковые предметы',
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
-    
-    const result = userDB.tradeWithUser(targetUserId, giveItem, receiveItem);
-    
-    if (result.success) {
-        closeTradeModal();
-        updateProfile();
-        
-        tg.showPopup({
-            title: '✅ Обмен завершен!',
-            message: result.message,
-            buttons: [{ type: 'ok' }]
-        });
-    } else {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: result.message,
-            buttons: [{ type: 'ok' }]
-        });
-    }
 }
 
 // Открытие инвентаря
 function openInventory() {
-    const inventory = userDB.getInventory();
-    elements.inventoryItems.innerHTML = '';
+    vibrate(10);
+    showLoading('Загрузка инвентаря...');
     
-    if (Object.keys(inventory).length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.className = 'empty-inventory';
-        emptyMessage.innerHTML = `
-            <div style="text-align: center; color: #888; padding: 40px 20px;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">📦</div>
-                <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
-                <div style="font-size: 0.9rem; opacity: 0.7;">Открывайте кейсы чтобы получить предметы!</div>
-            </div>
-        `;
-        elements.inventoryItems.appendChild(emptyMessage);
-    } else {
-        Object.entries(inventory).forEach(([itemName, itemData]) => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'inventory-item-card';
-            itemElement.innerHTML = `
-                <div class="inventory-item-image">
-                    <img src="${itemData.image}" alt="${itemName}" onerror="this.src='nft/placeholder.png'">
-                </div>
-                <div class="inventory-item-info">
-                    <div class="inventory-item-name">${itemName}</div>
-                    <div class="inventory-item-price">Цена: ${itemData.sellPrice} ⭐</div>
-                    <div class="inventory-item-quantity">Количество: ${itemData.quantity} шт.</div>
-                </div>
-                <div class="inventory-item-actions">
-                    <button class="inventory-action-btn withdraw-action-btn" onclick="openWithdrawModal('${itemName}')">Вывести</button>
-                    <button class="inventory-action-btn sell-action-btn" onclick="sellItem('${itemName}')">Продать</button>
+    setTimeout(() => {
+        const inventory = userDB.getInventory();
+        elements.inventoryItems.innerHTML = '';
+        
+        if (Object.keys(inventory).length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-inventory';
+            emptyMessage.innerHTML = `
+                <div style="text-align: center; color: #888; padding: 40px 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📦</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 10px;">Инвентарь пуст</div>
+                    <div style="font-size: 0.9rem; opacity: 0.7;">Открывайте кейсы чтобы получить предметы!</div>
                 </div>
             `;
-            elements.inventoryItems.appendChild(itemElement);
-        });
-    }
-    
-    elements.inventoryModal.style.display = 'block';
-    
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
+            elements.inventoryItems.appendChild(emptyMessage);
+        } else {
+            Object.entries(inventory).forEach(([itemName, itemData]) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item-card';
+                itemElement.innerHTML = `
+                    <div class="inventory-item-image">
+                        <img src="${itemData.image}" alt="${itemName}" loading="lazy" onerror="this.src='nft/placeholder.png'">
+                    </div>
+                    <div class="inventory-item-info">
+                        <div class="inventory-item-name">${itemName}</div>
+                        <div class="inventory-item-price">Цена: ${itemData.sellPrice} ⭐</div>
+                        <div class="inventory-item-quantity">Количество: ${itemData.quantity} шт.</div>
+                    </div>
+                    <div class="inventory-item-actions">
+                        <button class="inventory-action-btn withdraw-action-btn" onclick="openWithdrawModal('${itemName}')">Вывести</button>
+                        <button class="inventory-action-btn sell-action-btn" onclick="sellItem('${itemName}')">Продать</button>
+                    </div>
+                `;
+                elements.inventoryItems.appendChild(itemElement);
+            });
+        }
+        
+        hideLoading();
+        elements.inventoryModal.style.display = 'block';
+    }, 500);
 }
+
+// Обновление UI инвентаря
+window.updateInventoryUI = function() {
+    if (elements.inventoryModal.style.display === 'block') {
+        openInventory();
+    }
+};
 
 // Продажа предмета
 function sellItem(itemName) {
@@ -1463,35 +1704,38 @@ function sellItem(itemName) {
     if (itemData && itemData.quantity > 0) {
         const sellPrice = itemData.sellPrice;
         
-        tg.showPopup({
-            title: '💰 Продажа предмета',
-            message: `Вы уверены, что хотите продать "${itemName}" за ${sellPrice} ⭐?`,
-            buttons: [
-                { type: 'ok', text: 'Продать' },
-                { type: 'cancel', text: 'Отмена' }
-            ]
-        }).then((result) => {
-            if (result === 'ok') {
-                if (userDB.removeFromInventory(itemName)) {
-                    userDB.updateBalance(sellPrice);
-                    updateBalanceDisplay();
-                    updateProfile();
-                    updateTasksProgress();
-                    
-                    tg.showPopup({
-                        title: '✅ Предмет продан!',
-                        message: `Вы получили ${sellPrice} ⭐`,
-                        buttons: [{ type: 'ok' }]
-                    });
-                    
-                    if (elements.inventoryModal.style.display === 'block') {
-                        openInventory();
+        showConfirmation(
+            '💰 Продажа предмета',
+            `Вы уверены, что хотите продать "${itemName}" за ${sellPrice} ⭐?`,
+            'Продать',
+            'Отмена'
+        ).then((result) => {
+            if (result) {
+                showLoading('Продажа предмета...');
+                
+                setTimeout(() => {
+                    if (userDB.removeFromInventory(itemName)) {
+                        userDB.updateBalance(sellPrice);
+                        updateBalanceDisplay();
+                        updateProfile();
+                        updateTasksProgress();
+                        hideLoading();
+                        
+                        showNotification('✅ Предмет продан!', `Вы получили ${sellPrice} ⭐`, 'success');
+                        vibrate([100, 50, 100]);
+                        
+                        if (elements.inventoryModal.style.display === 'block') {
+                            openInventory();
+                        }
+                        
+                        if (userDB.getBalance() >= 500) {
+                            userDB.addAchievement('Богач');
+                        }
+                    } else {
+                        hideLoading();
+                        showNotification('❌ Ошибка', 'Не удалось продать предмет', 'error');
                     }
-                    
-                    if (userDB.getBalance() >= 500) {
-                        userDB.addAchievement('Богач');
-                    }
-                }
+                }, 1000);
             }
         });
     }
@@ -1499,6 +1743,8 @@ function sellItem(itemName) {
 
 // Открытие модального окна вывода
 function openWithdrawModal(itemName) {
+    vibrate(10);
+    
     const inventory = userDB.getInventory();
     const itemData = inventory[itemName];
     
@@ -1522,43 +1768,35 @@ function closeWithdrawModal() {
 function confirmWithdraw() {
     const username = elements.usernameInput.value.trim();
     
-    if (!username) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Введите ваш @username',
-            buttons: [{ type: 'ok' }]
-        });
+    // Валидация username
+    const validation = withdrawDB.validateUsername(username);
+    if (!validation.valid) {
+        showNotification('❌ Ошибка', validation.message, 'error');
         return;
     }
     
-    if (!username.startsWith('@')) {
-        tg.showPopup({
-            title: '❌ Ошибка',
-            message: 'Username должен начинаться с @',
-            buttons: [{ type: 'ok' }]
-        });
-        return;
-    }
+    showLoading('Отправка заявки...');
     
-    const inventory = userDB.getInventory();
-    const itemData = inventory[currentWithdrawItem];
-    
-    if (itemData && itemData.quantity > 0) {
-        withdrawDB.addRequest(
-            userDB.userData.userId,
-            username,
-            currentWithdrawItem,
-            itemData.image,
-            itemData.sellPrice
-        );
+    setTimeout(() => {
+        const inventory = userDB.getInventory();
+        const itemData = inventory[currentWithdrawItem];
         
-        userDB.removeFromInventory(currentWithdrawItem);
-        
-        tg.showPopup({
-            title: '📤 Запрос на вывод отправлен',
-            message: `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`,
-            buttons: [{ type: 'ok' }]
-        }).then(() => {
+        if (itemData && itemData.quantity > 0) {
+            withdrawDB.addRequest(
+                userDB.userData.userId,
+                username,
+                currentWithdrawItem,
+                itemData.image,
+                itemData.sellPrice
+            );
+            
+            // Предмет удаляется сразу при создании заявки
+            userDB.removeFromInventory(currentWithdrawItem);
+            hideLoading();
+            
+            showNotification('📤 Запрос на вывод отправлен', `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`, 'success');
+            vibrate([100, 50, 100]);
+            
             closeWithdrawModal();
             
             if (elements.inventoryModal.style.display === 'block') {
@@ -1566,31 +1804,29 @@ function confirmWithdraw() {
             }
             
             updateProfile();
-        });
-    }
+        } else {
+            hideLoading();
+            showNotification('❌ Ошибка', 'Предмет не найден в инвентаре', 'error');
+        }
+    }, 1000);
 }
 
 // Закрытие инвентаря
 function closeInventory() {
     elements.inventoryModal.style.display = 'none';
-    
-    if (navigator.vibrate) {
-        navigator.vibrate(5);
-    }
+    vibrate(5);
 }
 
 // Открытие модального окна кейса
 function openCaseModal(price, caseType) {
+    vibrate(10);
+    
     const caseData = casesData[caseType];
     
     if (!caseData) return;
     
     if (price === 0 && !userDB.canOpenFreeCase()) {
-        tg.showPopup({
-            title: '⏰ Бесплатный кейс недоступен',
-            message: 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('⏰ Бесплатный кейс недоступен', 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!', 'error');
         return;
     }
     
@@ -1601,6 +1837,7 @@ function openCaseModal(price, caseType) {
     
     elements.caseItemsTrack.innerHTML = '';
     
+    // Создаем 10 копий предметов для плавной анимации
     for (let i = 0; i < 10; i++) {
         caseData.rewards.forEach((reward, index) => {
             const itemElement = document.createElement('div');
@@ -1608,7 +1845,7 @@ function openCaseModal(price, caseType) {
             itemElement.setAttribute('data-reward-index', index);
             itemElement.innerHTML = `
                 <div class="case-item-image">
-                    <img src="${reward.image}" alt="${reward.item}" onerror="this.src='nft/placeholder.png'">
+                    <img src="${reward.image}" alt="${reward.item}" loading="lazy" onerror="this.src='nft/placeholder.png'">
                 </div>
                 <div class="case-item-name">${reward.item}</div>
                 <div class="case-item-price">${reward.sellPrice} ⭐</div>
@@ -1656,54 +1893,58 @@ function openCase(price, caseType) {
     const balance = userDB.getBalance();
     
     if (price > 0 && balance < price) {
-        tg.showPopup({
-            title: '❌ Недостаточно звёзд',
-            message: `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`,
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Недостаточно звёзд', `На вашем счету недостаточно звёзд. Нужно ещё ${price - balance} ⭐`, 'error');
         return;
     }
     
     if (price === 0 && !userDB.canOpenFreeCase()) {
-        tg.showPopup({
-            title: '⏰ Бесплатный кейс недоступен',
-            message: 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('⏰ Бесплатный кейс недоступен', 'Вы уже открыли бесплатный кейс сегодня. Приходите через 24 часа!', 'error');
         return;
     }
     
-    if (price > 0) {
-        userDB.updateBalance(-price);
-        updateBalanceDisplay();
-        userDB.openPaidCase();
-        userDB.addReferralEarnings(price);
-    } else {
-        userDB.openFreeCase();
-        startFreeCaseTimer();
-    }
-    
+    // Блокируем кнопки
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
+    // Спин анимация
+    elements.caseItemsTrack.classList.add('spinning');
+    
+    // Выбираем награду
     const reward = getRandomReward(caseData.rewards);
     selectedRewardIndex = caseData.rewards.findIndex(r => r.item === reward.item);
     
-    elements.caseItemsTrack.classList.add('spinning');
+    // Рассчитываем финальную позицию для правильной остановки
+    const itemWidth = 33.333; // 33.333% ширины для каждого предмета
+    const targetPosition = -(selectedRewardIndex * itemWidth) - (25 * itemWidth); // 25 полных циклов + позиция выигрыша
     
     setTimeout(() => {
+        // Останавливаем анимацию и устанавливаем финальную позицию
         elements.caseItemsTrack.classList.remove('spinning');
+        elements.caseItemsTrack.style.transform = `translateX(${targetPosition}%)`;
+        elements.caseItemsTrack.style.transition = 'transform 0.5s ease-out';
         
-        userDB.addToInventory(reward.item, reward.image, reward.sellPrice);
-        userDB.addExperience(10);
-        
-        userDB.saveUserData();
-        
-        closeCaseModal();
-        
-        showResultModal(reward);
-        
-        updateTasksProgress();
+        // Обработка оплаты и начислений
+        setTimeout(() => {
+            if (price > 0) {
+                userDB.updateBalance(-price);
+                updateBalanceDisplay();
+                userDB.openPaidCase();
+                userDB.addReferralEarnings(price);
+            } else {
+                userDB.openFreeCase();
+                startFreeCaseTimer();
+            }
+            
+            userDB.addToInventory(reward.item, reward.image, reward.sellPrice);
+            userDB.addExperience(10);
+            
+            userDB.saveUserData();
+            
+            closeCaseModal();
+            showResultModal(reward);
+            updateTasksProgress();
+            
+        }, 500);
         
     }, 8000);
 }
@@ -1723,10 +1964,7 @@ function showResultModal(reward) {
     });
     
     elements.resultModal.style.display = 'block';
-    
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100, 50, 100]);
-    }
+    vibrate([100, 50, 100, 50, 100]);
 }
 
 // Закрытие окна результата
@@ -1758,10 +1996,7 @@ function openNewsModal(newsId) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
-    
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
+    vibrate(10);
 }
 
 function closeNewsModal() {
@@ -1769,10 +2004,7 @@ function closeNewsModal() {
         modal.classList.remove('show');
     });
     document.body.style.overflow = '';
-    
-    if (navigator.vibrate) {
-        navigator.vibrate(5);
-    }
+    vibrate(5);
 }
 
 // Консоль администратора
@@ -1833,7 +2065,7 @@ function openWithdrawRequests() {
                     <div class="request-date">${new Date(request.timestamp).toLocaleString()}</div>
                 </div>
                 <div class="request-item">
-                    <img src="${request.itemImage}" alt="${request.itemName}" onerror="this.src='nft/placeholder.png'">
+                    <img src="${request.itemImage}" alt="${request.itemName}" loading="lazy" onerror="this.src='nft/placeholder.png'">
                     <div class="request-item-info">
                         <div class="request-item-name">${request.itemName}</div>
                         <div class="request-item-price">${request.itemPrice} ⭐</div>
@@ -1858,14 +2090,19 @@ function closeWithdrawRequests() {
 }
 
 function confirmWithdrawRequest(requestId) {
-    if (withdrawDB.completeRequest(requestId)) {
-        tg.showPopup({
-            title: '✅ Вывод подтвержден',
-            message: 'Заявка на вывод успешно обработана',
-            buttons: [{ type: 'ok' }]
-        });
-        openWithdrawRequests();
-    }
+    showConfirmation(
+        'Подтверждение вывода',
+        'Вы уверены, что хотите подтвердить эту заявку на вывод?',
+        'Подтвердить',
+        'Отмена'
+    ).then((result) => {
+        if (result) {
+            if (withdrawDB.completeRequest(requestId)) {
+                showNotification('✅ Вывод подтвержден', 'Заявка на вывод успешно обработана', 'success');
+                openWithdrawRequests();
+            }
+        }
+    });
 }
 
 // Поиск пользователя
@@ -1958,17 +2195,9 @@ function addStarsToUser() {
         user.balance += parseInt(amount);
         globalDB.updateUser(user.telegramId, { balance: user.balance });
         
-        tg.showPopup({
-            title: '✅ Звезды добавлены',
-            message: `Пользователю ${userId} добавлено ${amount} ⭐`,
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('✅ Звезды добавлены', `Пользователю ${userId} добавлено ${amount} ⭐`, 'success');
     } else {
-        tg.showPopup({
-            title: '❌ Пользователь не найден',
-            message: 'Пользователь с таким ID не найден',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Пользователь не найден', 'Пользователь с таким ID не найден', 'error');
     }
 }
 
@@ -1988,17 +2217,9 @@ function removeStarsFromUser() {
         user.balance = Math.max(0, user.balance - parseInt(amount));
         globalDB.updateUser(user.telegramId, { balance: user.balance });
         
-        tg.showPopup({
-            title: '✅ Звезды списаны',
-            message: `У пользователя ${userId} списано ${amount} ⭐`,
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('✅ Звезды списаны', `У пользователя ${userId} списано ${amount} ⭐`, 'success');
     } else {
-        tg.showPopup({
-            title: '❌ Пользователь не найден',
-            message: 'Пользователь с таким ID не найден',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Пользователь не найден', 'Пользователь с таким ID не найден', 'error');
     }
 }
 
@@ -2015,17 +2236,9 @@ function banUser() {
         user.isBanned = true;
         globalDB.updateUser(user.telegramId, { isBanned: true });
         
-        tg.showPopup({
-            title: '✅ Пользователь заблокирован',
-            message: `Пользователь ${userId} заблокирован`,
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('✅ Пользователь заблокирован', `Пользователь ${userId} заблокирован`, 'success');
     } else {
-        tg.showPopup({
-            title: '❌ Пользователь не найден',
-            message: 'Пользователь с таким ID не найден',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Пользователь не найден', 'Пользователь с таким ID не найден', 'error');
     }
 }
 
@@ -2042,26 +2255,224 @@ function unbanUser() {
         user.isBanned = false;
         globalDB.updateUser(user.telegramId, { isBanned: false });
         
-        tg.showPopup({
-            title: '✅ Пользователь разблокирован',
-            message: `Пользователь ${userId} разблокирован`,
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('✅ Пользователь разблокирован', `Пользователь ${userId} разблокирован`, 'success');
     } else {
-        tg.showPopup({
-            title: '❌ Пользователь не найден',
-            message: 'Пользователь с таким ID не найден',
-            buttons: [{ type: 'ok' }]
-        });
+        showNotification('❌ Пользователь не найден', 'Пользователь с таким ID не найден', 'error');
     }
 }
 
 // Сброс всех данных
 function resetAllData() {
-    if (confirm("Вы уверены, что хотите сбросить ВСЕ данные? Это действие нельзя отменить!")) {
-        localStorage.clear();
-        location.reload();
+    showConfirmation(
+        'Сброс всех данных',
+        'Вы уверены, что хотите сбросить ВСЕ данные? Это действие нельзя отменить!',
+        'Сбросить',
+        'Отмена'
+    ).then((result) => {
+        if (result) {
+            localStorage.clear();
+            location.reload();
+        }
+    });
+}
+
+// Система активации ключей
+function openKeyActivationModal() {
+    elements.keyActivationModal.style.display = 'block';
+    elements.keyInput.value = '';
+    elements.keyActivationInfo.innerHTML = '';
+}
+
+function closeKeyActivationModal() {
+    elements.keyActivationModal.style.display = 'none';
+}
+
+function activateKey() {
+    const key = elements.keyInput.value.trim();
+    
+    if (!key) {
+        elements.keyActivationInfo.innerHTML = '<div style="color: #ff6b6b; text-align: center;">Введите ключ</div>';
+        return;
     }
+    
+    showLoading('Активация ключа...');
+    
+    setTimeout(() => {
+        const result = userDB.activateKey(key);
+        
+        if (result.success) {
+            elements.keyActivationInfo.innerHTML = `<div style="color: #34C759; text-align: center;">${result.message}</div>`;
+            updateBalanceDisplay();
+            updateProfile();
+            hideLoading();
+            
+            setTimeout(() => {
+                closeKeyActivationModal();
+            }, 2000);
+        } else {
+            elements.keyActivationInfo.innerHTML = `<div style="color: #ff6b6b; text-align: center;">${result.message}</div>`;
+            hideLoading();
+        }
+    }, 1000);
+}
+
+function showKeyHelp() {
+    elements.keyHelpModal.style.display = 'block';
+}
+
+function closeKeyHelpModal() {
+    elements.keyHelpModal.style.display = 'none';
+}
+
+// Функция для кнопки Soon
+function showSoonMessage() {
+    showNotification('🚀 Скоро', 'Эта функция находится в разработке и появится в ближайшем обновлении!', 'info');
+}
+
+// Утилитные функции
+function vibrate(pattern) {
+    if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+    }
+}
+
+function showLoading(message = 'Загрузка...') {
+    let loadingEl = document.getElementById('loadingState');
+    if (!loadingEl) {
+        loadingEl = document.createElement('div');
+        loadingEl.id = 'loadingState';
+        loadingEl.className = 'loading-state';
+        loadingEl.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${message}</div>
+        `;
+        document.body.appendChild(loadingEl);
+    }
+    loadingEl.style.display = 'flex';
+}
+
+function hideLoading() {
+    const loadingEl = document.getElementById('loadingState');
+    if (loadingEl) {
+        loadingEl.style.display = 'none';
+    }
+}
+
+function showNotification(title, message, type = 'info') {
+    tg.showPopup({
+        title: title,
+        message: message,
+        buttons: [{ type: 'ok' }]
+    });
+}
+
+window.showNotification = showNotification;
+
+function showConfirmation(title, message, confirmText, cancelText) {
+    return new Promise((resolve) => {
+        tg.showPopup({
+            title: title,
+            message: message,
+            buttons: [
+                { type: 'ok', text: confirmText },
+                { type: 'cancel', text: cancelText }
+            ]
+        }).then((result) => {
+            resolve(result === 'ok');
+        });
+    });
+}
+
+// Кэширование изображений
+function preloadImages() {
+    const images = [];
+    
+    // Собираем все изображения из кейсов
+    Object.values(casesData).forEach(caseData => {
+        caseData.rewards.forEach(reward => {
+            if (reward.image && !imageCache.has(reward.image)) {
+                images.push(reward.image);
+            }
+        });
+    });
+    
+    // Предзагрузка изображений
+    images.forEach(src => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => imageCache.set(src, true);
+        img.onerror = () => console.warn('Failed to load image:', src);
+    });
+}
+
+// Обработка ошибок сети
+function setupErrorHandling() {
+    window.addEventListener('error', (event) => {
+        console.error('Global error:', event.error);
+        showNotification('❌ Ошибка', 'Произошла непредвиденная ошибка', 'error');
+    });
+    
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+        showNotification('❌ Ошибка', 'Произошла ошибка при выполнении операции', 'error');
+    });
+}
+
+// Экран загрузки
+function showLoadingScreen() {
+    let progress = 0;
+    const duration = 7000;
+    const interval = 50;
+    const steps = duration / interval;
+    const progressIncrement = 100 / steps;
+    
+    let currentQuoteIndex = 0;
+    const quoteChangeInterval = 1500;
+    
+    elements.loadingQuote.textContent = loadingQuotes[currentQuoteIndex];
+    
+    const progressInterval = setInterval(() => {
+        progress += progressIncrement;
+        elements.loadingProgressFill.style.width = `${Math.min(progress, 100)}%`;
+        
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            clearInterval(quoteInterval);
+            
+            setTimeout(() => {
+                elements.loadingScreen.style.display = 'none';
+                elements.mainContainer.style.display = 'block';
+                initializeApp();
+            }, 500);
+        }
+    }, interval);
+    
+    const quoteInterval = setInterval(() => {
+        currentQuoteIndex = (currentQuoteIndex + 1) % loadingQuotes.length;
+        elements.loadingQuote.textContent = loadingQuotes[currentQuoteIndex];
+    }, quoteChangeInterval);
+}
+
+// Инициализация приложения после загрузки
+function initializeApp() {
+    console.log('🚀 Мини-приложение полностью загружено и готово!');
+    
+    // Предзагрузка изображений
+    preloadImages();
+    
+    // Настройка обработки ошибок
+    setupErrorHandling();
+    
+    // Инициализация UI
+    updateBalanceDisplay();
+    updateProfile();
+    updateTasksProgress();
+    startFreeCaseTimer();
+    
+    // Показ уведомления о бэкапе
+    setTimeout(() => {
+        showNotification('✅ Данные сохранены', 'Ваш прогресс автоматически сохраняется', 'success');
+    }, 2000);
 }
 
 // Закрытие модальных окон по клику на фон
@@ -2073,110 +2484,37 @@ document.querySelectorAll('.news-modal').forEach(modal => {
     });
 });
 
-elements.caseModal.addEventListener('click', function(e) {
-    if (e.target === elements.caseModal) {
-        closeCaseModal();
-    }
-});
+// Добавляем обработчики для всех модальных окон
+const modals = [
+    'caseModal', 'inventoryModal', 'resultModal', 'withdrawModal', 
+    'consoleModal', 'adminModal', 'withdrawRequestsModal', 
+    'userSearchModal', 'allUsersModal', 'keyActivationModal', 'keyHelpModal'
+];
 
-elements.inventoryModal.addEventListener('click', function(e) {
-    if (e.target === elements.inventoryModal) {
-        closeInventory();
-    }
-});
-
-elements.resultModal.addEventListener('click', function(e) {
-    if (e.target === elements.resultModal) {
-        closeResultModal();
-    }
-});
-
-elements.withdrawModal.addEventListener('click', function(e) {
-    if (e.target === elements.withdrawModal) {
-        closeWithdrawModal();
-    }
-});
-
-elements.consoleModal.addEventListener('click', function(e) {
-    if (e.target === elements.consoleModal) {
-        closeConsole();
-    }
-});
-
-elements.adminModal.addEventListener('click', function(e) {
-    if (e.target === elements.adminModal) {
-        closeAdminPanel();
-    }
-});
-
-elements.withdrawRequestsModal.addEventListener('click', function(e) {
-    if (e.target === elements.withdrawRequestsModal) {
-        closeWithdrawRequests();
-    }
-});
-
-elements.userSearchModal.addEventListener('click', function(e) {
-    if (e.target === elements.userSearchModal) {
-        closeUserSearch();
-    }
-});
-
-elements.allUsersModal.addEventListener('click', function(e) {
-    if (e.target === elements.allUsersModal) {
-        closeAllUsers();
-    }
-});
-
-elements.starsShopModal.addEventListener('click', function(e) {
-    if (e.target === elements.starsShopModal) {
-        closeStarsShop();
-    }
-});
-
-elements.tradeModal.addEventListener('click', function(e) {
-    if (e.target === elements.tradeModal) {
-        closeTradeModal();
+modals.forEach(modalId => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                const closeFunction = window[`close${modalId.charAt(0).toUpperCase() + modalId.slice(1).replace('Modal', '')}`];
+                if (closeFunction) closeFunction();
+            }
+        });
     }
 });
 
 // Закрытие модальных окон по ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        if (document.querySelector('.news-modal.show')) {
+        const openModals = modals.filter(id => 
+            document.getElementById(id)?.style.display === 'block'
+        );
+        if (openModals.length > 0) {
+            const lastModal = openModals[openModals.length - 1];
+            const closeFunction = window[`close${lastModal.charAt(0).toUpperCase() + lastModal.slice(1).replace('Modal', '')}`];
+            if (closeFunction) closeFunction();
+        } else if (document.querySelector('.news-modal.show')) {
             closeNewsModal();
-        }
-        if (elements.caseModal.style.display === 'block') {
-            closeCaseModal();
-        }
-        if (elements.inventoryModal.style.display === 'block') {
-            closeInventory();
-        }
-        if (elements.resultModal.style.display === 'block') {
-            closeResultModal();
-        }
-        if (elements.withdrawModal.style.display === 'block') {
-            closeWithdrawModal();
-        }
-        if (elements.consoleModal.style.display === 'block') {
-            closeConsole();
-        }
-        if (elements.adminModal.style.display === 'block') {
-            closeAdminPanel();
-        }
-        if (elements.withdrawRequestsModal.style.display === 'block') {
-            closeWithdrawRequests();
-        }
-        if (elements.userSearchModal.style.display === 'block') {
-            closeUserSearch();
-        }
-        if (elements.allUsersModal.style.display === 'block') {
-            closeAllUsers();
-        }
-        if (elements.starsShopModal.style.display === 'block') {
-            closeStarsShop();
-        }
-        if (elements.tradeModal.style.display === 'block') {
-            closeTradeModal();
         }
     }
 });
@@ -2190,14 +2528,9 @@ if (tg.initDataUnsafe.user) {
     }
 }
 
-// Инициализация при загрузке
+// Запуск экрана загрузки при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Мини-приложение полностью загружено и готово!');
-    
-    updateBalanceDisplay();
-    updateProfile();
-    updateTasksProgress();
-    startFreeCaseTimer();
+    showLoadingScreen();
 });
 
 console.log('✅ Игровое мини-приложение запущено!');
