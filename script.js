@@ -1867,7 +1867,7 @@ function closeCaseModal() {
     selectedRewardIndex = null;
 }
 
-// Открытие кейса - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// ОСНОВНАЯ ИСПРАВЛЕННАЯ ФУНКЦИЯ - Открытие кейса
 function openCase(price, caseType) {
     const caseData = casesData[caseType];
     const balance = userDB.getBalance();
@@ -1886,16 +1886,33 @@ function openCase(price, caseType) {
     const buttons = elements.caseModalActions.querySelectorAll('button');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Выбираем награду заранее
+    // ВЫБИРАЕМ РАНДОМНУЮ НАГРАДУ ЗАРАНЕЕ
     const reward = getRandomReward(caseData.rewards);
-    selectedRewardIndex = caseData.rewards.findIndex(r => r.item === reward.item);
+    
+    // НАХОДИМ ИНДЕКС ВЫБРАННОЙ НАГРАДЫ В МАССИВЕ
+    selectedRewardIndex = caseData.rewards.findIndex(r => 
+        r.item === reward.item && 
+        r.image === reward.image && 
+        r.sellPrice === reward.sellPrice
+    );
+    
+    if (selectedRewardIndex === -1) {
+        selectedRewardIndex = 0; // fallback на первый элемент
+    }
     
     // Рассчитываем финальную позицию для правильной остановки на выбранном предмете
     const itemWidth = 33.333; // 33.333% ширины для каждого предмета
     const itemsCount = caseData.rewards.length;
     
-    // Вычисляем смещение так, чтобы выбранный предмет оказался по центру
-    const targetPosition = -(selectedRewardIndex * itemWidth) - (5 * itemsCount * itemWidth); // 5 полных циклов + позиция выигрыша
+    // ВЫЧИСЛЯЕМ ПРАВИЛЬНОЕ СМЕЩЕНИЕ:
+    // 1. Пройдем 5 полных циклов (10 * itemsCount предметов)
+    // 2. Добавим смещение до выбранного предмета
+    // 3. Учтем, что центральный предмет должен быть выбранным (индекс 1 в группе из 3)
+    const cycles = 5; // Количество полных циклов прокрутки
+    const targetOffset = (cycles * itemsCount * itemWidth) + (selectedRewardIndex * itemWidth);
+    
+    // Вычитаем половину ширины контейнера, чтобы выбранный предмет оказался по центру
+    const targetPosition = -targetOffset + (itemWidth / 2);
     
     // Устанавливаем начальную позицию
     elements.caseItemsTrack.style.transition = 'none';
@@ -1958,7 +1975,7 @@ function closeResultModal() {
     updateBalanceDisplay();
 }
 
-// Выбор случайной награды
+// Выбор случайной награды с учетом шансов
 function getRandomReward(rewards) {
     const totalChance = rewards.reduce((sum, reward) => sum + reward.chance, 0);
     let random = Math.random() * totalChance;
