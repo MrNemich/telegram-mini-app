@@ -1867,7 +1867,7 @@ function closeCaseModal() {
     selectedRewardIndex = null;
 }
 
-// Открытие кейса
+// Открытие кейса - ИСПРАВЛЕННАЯ ВЕРСИЯ
 function openCase(price, caseType) {
     const caseData = casesData[caseType];
     const balance = userDB.getBalance();
@@ -1892,18 +1892,22 @@ function openCase(price, caseType) {
     
     // Рассчитываем финальную позицию для правильной остановки на выбранном предмете
     const itemWidth = 33.333; // 33.333% ширины для каждого предмета
-    const targetPosition = -(selectedRewardIndex * itemWidth) - (25 * itemWidth); // 25 полных циклов + позиция выигрыша
+    const itemsCount = caseData.rewards.length;
     
-    // Спин анимация
-    elements.caseItemsTrack.classList.add('spinning');
-    elements.caseItemsTrack.style.transform = `translateX(${targetPosition}%)`;
+    // Вычисляем смещение так, чтобы выбранный предмет оказался по центру
+    const targetPosition = -(selectedRewardIndex * itemWidth) - (5 * itemsCount * itemWidth); // 5 полных циклов + позиция выигрыша
     
+    // Устанавливаем начальную позицию
+    elements.caseItemsTrack.style.transition = 'none';
+    elements.caseItemsTrack.style.transform = 'translateX(0)';
+    
+    // Даем время на отрисовку
     setTimeout(() => {
-        // Останавливаем анимацию и устанавливаем финальную позицию
-        elements.caseItemsTrack.classList.remove('spinning');
-        elements.caseItemsTrack.style.transition = 'transform 0.5s ease-out';
+        // Запускаем анимацию с плавным замедлением
+        elements.caseItemsTrack.style.transition = 'transform 8s cubic-bezier(0.1, 0.8, 0.2, 1)';
+        elements.caseItemsTrack.style.transform = `translateX(${targetPosition}%)`;
         
-        // Обработка оплаты и начислений
+        // Обработка оплаты и начислений после завершения анимации
         setTimeout(() => {
             if (price > 0) {
                 userDB.updateBalance(-price);
@@ -1924,9 +1928,9 @@ function openCase(price, caseType) {
             showResultModal(reward);
             updateTasksProgress();
             
-        }, 500);
+        }, 8000); // 8 секунд анимации
         
-    }, 3000); // Уменьшил время анимации до 3 секунд для лучшего UX
+    }, 50);
 }
 
 // Показ красивого окна результата
