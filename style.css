@@ -296,33 +296,9 @@
     color: #FFFFFF !important;
 }
 
-/* Исправление анимации вращения для правильного выпадения предметов */
-.case-items-track.spinning {
-    animation: spinAnimationRight 3s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes spinAnimationRight {
-    0% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(calc(-33.333% * 5));
-    }
-    40% {
-        transform: translateX(calc(-33.333% * 10));
-    }
-    60% {
-        transform: translateX(calc(-33.333% * 15));
-    }
-    80% {
-        transform: translateX(calc(-33.333% * 20));
-    }
-    95% {
-        transform: translateX(calc(-33.333% * 24));
-    }
-    100% {
-        transform: translateX(calc(-33.333% * 25));
-    }
+/* ИСПРАВЛЕННАЯ АНИМАЦИЯ ВРАЩЕНИЯ - плавная 8 секунд */
+.case-items-track {
+    transition: transform 8s cubic-bezier(0.1, 0.8, 0.2, 1);
 }
 
 /* Убираем аватар пользователя */
@@ -1500,7 +1476,7 @@ p {
 
 .case-items-track {
     display: flex;
-    transition: transform 0.1s linear;
+    transition: transform 8s cubic-bezier(0.1, 0.8, 0.2, 1);
     height: 100%;
 }
 
@@ -1839,8 +1815,8 @@ p {
         animation: none;
     }
     
-    .case-items-track.spinning {
-        animation: none;
+    .case-items-track {
+        transition: none !important;
     }
     
     .case-price-oval {
