@@ -67,6 +67,7 @@ class GlobalDatabase {
                 if (!user.referralEarnings) user.referralEarnings = 0;
                 if (!user.keyActivationAttempts) user.keyActivationAttempts = 0;
                 if (!user.lastKeyAttempt) user.lastKeyAttempt = 0;
+                if (!user.withdrawnItems) user.withdrawnItems = [];
             });
             
             this.saveGlobalData();
@@ -135,7 +136,7 @@ class GlobalDatabase {
         const newUser = {
             userId: userId,
             telegramId: telegramId,
-            balance: 100,
+            balance: 0, // ИЗМЕНЕНО: было 100, стало 0
             inventory: {},
             casesOpened: 0,
             paidCasesOpened: 0,
@@ -147,12 +148,12 @@ class GlobalDatabase {
             firstName: userData.first_name || 'Игрок',
             isBanned: false,
             tasks: {
-                'first_steps': { completed: false, progress: 0 },
-                'collector': { completed: false, progress: 0 },
-                'fast_start': { completed: false, progress: 0 },
-                'rare_hunter': { completed: false, progress: 0 },
-                'legend': { completed: false, progress: 0 },
-                'saver': { completed: false, progress: 0 }
+                'first_steps': { completed: false, progress: 0, reward: 10 },
+                'collector': { completed: false, progress: 0, reward: 10 },
+                'fast_start': { completed: false, progress: 0, reward: 10 },
+                'rare_hunter': { completed: false, progress: 0, reward: 15 },
+                'legend': { completed: false, progress: 0, reward: 15 },
+                'saver': { completed: false, progress: 0, reward: 15 }
             },
             usedPromoCodes: [],
             dailyCasesOpened: 0,
@@ -168,7 +169,8 @@ class GlobalDatabase {
             referralEarnings: 0,
             keyActivationAttempts: 0,
             lastKeyAttempt: 0,
-            lastActive: Date.now()
+            lastActive: Date.now(),
+            withdrawnItems: [] // Новое поле для отслеживания выведенных предметов
         };
 
         this.globalData.users[telegramId] = newUser;
@@ -673,8 +675,9 @@ class UserDatabase {
     }
 
     completeTask(taskId) {
-        if (this.userData.tasks[taskId] && this.userData.tasks[taskId].progress >= 100 && !this.userData.tasks[taskId].completed) {
-            this.userData.tasks[taskId].completed = true;
+        const task = this.userData.tasks[taskId];
+        if (task && task.progress >= 100 && !task.completed) {
+            task.completed = true;
             this.saveUserData();
             return true;
         }
@@ -731,7 +734,11 @@ class UserDatabase {
         this.userData.battlePassExp = 0;
         
         Object.keys(this.userData.tasks).forEach(taskId => {
-            this.userData.tasks[taskId] = { completed: false, progress: 0 };
+            this.userData.tasks[taskId] = { 
+                completed: false, 
+                progress: 0,
+                reward: this.userData.tasks[taskId]?.reward || 10
+            };
         });
         
         this.saveUserData();
@@ -874,7 +881,8 @@ class WithdrawDatabase {
             itemPrice: itemPrice,
             timestamp: Date.now(),
             status: 'pending',
-            processed: false
+            processed: false,
+            userTelegramId: this.getUserById(userId)?.telegramId
         };
         this.requests.unshift(request);
         this.saveData();
@@ -905,17 +913,17 @@ class WithdrawDatabase {
             request.processedAt = Date.now();
             this.saveData();
             
-            // Удаляем предмет из инвентаря пользователя
+            // Отмечаем предмет как выведенный у пользователя
             const globalDB = new GlobalDatabase();
             const user = this.getUserById(request.userId);
-            if (user && user.inventory && user.inventory[request.itemName]) {
-                const userDB = new UserDatabase();
-                userDB.removeFromInventory(request.itemName);
-                
-                // Обновляем UI если инвентарь открыт
-                if (window.updateInventoryUI) {
-                    window.updateInventoryUI();
-                }
+            if (user) {
+                if (!user.withdrawnItems) user.withdrawnItems = [];
+                user.withdrawnItems.push({
+                    itemName: request.itemName,
+                    timestamp: Date.now(),
+                    requestId: requestId
+                });
+                globalDB.updateUser(user.telegramId, { withdrawnItems: user.withdrawnItems });
             }
             
             return true;
@@ -955,10 +963,12 @@ const casesData = {
         name: "Бесплатный кейс",
         price: 0,
         rewards: [
-            { item: "Шампанское", image: "nft/шампанское.png", sellPrice: 50, chance: 25 },
-            { item: "Тортик", image: "nft/торт.png", sellPrice: 50, chance: 25 },
-            { item: "Сердце", image: "nft/сердечко.png", sellPrice: 15, chance: 25 },
-            { item: "Мишка", image: "nft/мишка.png", sellPrice: 15, chance: 25 }
+            // Фейковые проценты - всегда выпадает 1 звезда
+            { item: "1 ⭐", image: "nft/star.png", sellPrice: 1, chance: 99.99 },
+            { item: "5 ⭐", image: "nft/star.png", sellPrice: 5, chance: 0.01 },
+            { item: "10 ⭐", image: "nft/star.png", sellPrice: 10, chance: 0.005 },
+            { item: "50 ⭐", image: "nft/star.png", sellPrice: 50, chance: 0.003 },
+            { item: "100 ⭐", image: "nft/star.png", sellPrice: 100, chance: 0.002 }
         ]
     },
     bomj: {
@@ -1121,63 +1131,217 @@ const achievementsData = [
     { name: "Редкий охотник", icon: "💎", description: "Получите редкий предмет" }
 ];
 
+// Обновленные цитаты для экрана загрузки
+const loadingQuotes = [
+    "«Любовь к своему делу должна быть сильнее страха перед неудачами.» - Алекс Закерман",
+    "«Свобода важнее денег» - Павел Дуров",
+    "«Никогда не сдавайтесь раньше времени» - Павел Дуров",
+    "«Будьте готовы отказаться от всего, кроме своей мечты» - Павел Дуров",
+    "«Да да - нет нет» - Андрей Бурин",
+    "«цзаххйл ввдущ» - цжыжсх",
+    "«Я помылся» - Меллстрой"
+];
+
 // Функция для валидации ключей
 function validateKey(key) {
-    // Убираем пробелы и приводим к верхнему регистру
     const cleanKey = key.replace(/\s/g, '').toUpperCase();
-    
-    // Проверяем формат ключа
     const keyPattern = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
     if (!keyPattern.test(cleanKey)) {
         return { valid: false, stars: 0 };
     }
     
-    // Проверяем ключи для разных номиналов
-    const keyGroups = {
+    // Объединяем все ключи в один большой массив для проверки
+    const allKeys = {
         100: [
             "K9JMQ-BV7C4-P2XH8-F3RTL", "D8FGN-4LK9W-Y7HXQ-Z3PMT", "R2T9N-6Y8LP-QX4BH-K7JFV",
-            "W4PZ7-M9K3L-X8QHN-B2FRT", "L3H8J-N9F4P-Q7XKM-V2RTC", "B4N7M-K8P3Q-X2JHF-V9TRL"
+            "W4PZ7-M9K3L-X8QHN-B2FRT", "L3H8J-N9F4P-Q7XKM-V2RTC", "B4N7M-K8P3Q-X2JHF-V9TRL",
+            "P9JX3-L8K4M-Q2NHB-V7FRT", "V3F7H-N9K2J-X8PQM-B4TRL", "T8R4N-6Y9LP-QX2BH-K7FMV",
+            "Z3P7M-K9J4L-X8QHN-B2FRT", "M4K8J-N9F3P-Q7XHM-V2RTC", "H9JX3-L8K4M-Q2NHB-V7FPT",
+            "C4N7M-K8P3Q-X2JHF-V9TRB", "F8GXN-4LK9W-Y7HJQ-Z3PMT", "Q2T9N-6Y8LP-JX4BH-K7RFV",
+            "N4PZ7-M9K3L-W8QHX-B2FRT", "J3H8K-N9F4P-Q7XLM-V2RTC", "S4N7M-K8P3Q-X2JHF-V9TBL",
+            "A9JX3-L8K4M-Q2NHB-V7FRP", "E3F7H-N9K2J-X8PQM-B4TRZ", "U8R4N-6Y9LP-QX2BH-K7FMV",
+            "Y3P7M-K9J4L-X8QHN-B2FRW", "X4K8J-N9F3P-Q7XHM-V2RTC", "B9JX3-L8K4M-Q2NHB-V7FPT",
+            "D4N7M-K8P3Q-X2JHF-V9TRC", "G2T9N-6Y8LP-QX4BH-K7JFV", "H4PZ7-M9K3L-X8QHN-B2FRT",
+            "L3H8J-N9F4P-Q7XKM-V2RTC", "M4N7M-K8P3Q-X2JHF-V9TRL", "N9JX3-L8K4M-Q2NHB-V7FRT",
+            "P3F7H-N9K2J-X8PQM-B4TRL", "Q8R4N-6Y9LP-QX2BH-K7FMV", "R3P7M-K9J4L-X8QHN-B2FRT",
+            "S4K8J-N9F3P-Q7XHM-V2RTC", "T9JX3-L8K4M-Q2NHB-V7FPT", "V4N7M-K8P3Q-X2JHF-V9TRB",
+            "W2T9N-6Y8LP-QX4BH-K7JFV", "X4PZ7-M9K3L-X8QHN-B2FRT", "Z3H8J-N9F4P-Q7XKM-V2RTC"
         ],
         200: [
             "7ZQ2M-K9PL4-X8N3H-BVFRT", "J4HX9-P8L3Q-K2MFN-V7CRT", "T8N2B-4M7XK-P9LQH-V3FRJ",
-            "W3P9L-Q8X4M-K2JHN-B7FRV", "R2K9N-4L8XP-Q7MHJ-V3FBT", "F9J3P-L8K4M-Q2NHB-V7XRT"
+            "W3P9L-Q8X4M-K2JHN-B7FRV", "R2K9N-4L8XP-Q7MHJ-V3FBT", "F9J3P-L8K4M-Q2NHB-V7XRT",
+            "C4M7N-K8P3Q-X2JHF-V9BRL", "G3F7H-N9K2J-X8PQM-B4TZV", "V8R4N-6Y9LP-QX2BH-K7FMW",
+            "B3P7M-K9J4L-X8QHN-B2FRX", "N4K8J-N9F3P-Q7XHM-V2RTC", "M9JX3-L8K4M-Q2NHB-V7FPT",
+            "D4N7M-K8P3Q-X2JHF-V9TRC", "H2T9N-6Y8LP-QX4BH-K7JFV", "L4PZ7-M9K3L-X8QHN-B2FRT",
+            "P3H8J-N9F4P-Q7XKM-V2RTC", "Q4N7M-K8P3Q-X2JHF-V9TRL", "S9JX3-L8K4M-Q2NHB-V7FRT",
+            "X3F7H-N9K2J-X8PQM-B4TRL", "Z8R4N-6Y9LP-QX2BH-K7FMV", "A3P7M-K9J4L-X8QHN-B2FRT",
+            "C4K8J-N9F3P-Q7XHM-V2RTC", "E9JX3-L8K4M-Q2NHB-V7FPT", "G4N7M-K8P3Q-X2JHF-V9TRB",
+            "J2T9N-6Y8LP-QX4BH-K7JFV", "K4PZ7-M9K3L-X8QHN-B2FRT", "M3H8J-N9F4P-Q7XKM-V2RTC",
+            "N4N7M-K8P3Q-X2JHF-V9TRL", "P9JX3-L8K4M-Q2NHB-V7FRT", "Q3F7H-N9K2J-X8PQM-B4TRL",
+            "R8R4N-6Y9LP-QX2BH-K7FMV", "S3P7M-K9J4L-X8QHN-B2FRT", "T4K8J-N9F3P-Q7XHM-V2RTC",
+            "V9JX3-L8K4M-Q2NHB-V7FPT", "W4N7M-K8P3Q-X2JHF-V9TRB", "X2T9N-6Y8LP-QX4BH-K7JFV",
+            "Y4PZ7-M9K3L-X8QHN-B2FRT", "Z3H8J-N9F4P-Q7XKM-V2RTC", "B4N7M-K8P3Q-X2JHF-V9TRL",
+            "C9JX3-L8K4M-Q2NHB-V7FRT", "D3F7H-N9K2J-X8PQM-B4TRL", "F8R4N-6Y9LP-QX2BH-K7FMV",
+            "G3P7M-K9J4L-X8QHN-B2FRT", "H4K8J-N9F3P-Q7XHM-V2RTC", "J9JX3-L8K4M-Q2NHB-V7FPT",
+            "K4N7M-K8P3Q-X2JHF-V9TRB", "L2T9N-6Y8LP-QX4BH-K7JFV", "M4PZ7-M9K3L-X8QHN-B2FRT",
+            "N3H8J-N9F4P-Q7XKM-V2RTC", "P4N7M-K8P3Q-X2JHF-V9TRL"
         ],
         400: [
             "8XQ2M-K9PL4-Z8N3H-BVFRT", "J5HX9-P8L3Q-K2MFN-V7CRT", "T9N2B-4M7XK-P9LQH-V3FRJ",
-            "W4P9L-Q8X4M-K2JHN-B7FRV", "R3K9N-4L8XP-Q7MHJ-V3FBT", "F0J3P-L8K4M-Q2NHB-V7XRT"
+            "W4P9L-Q8X4M-K2JHN-B7FRV", "R3K9N-4L8XP-Q7MHJ-V3FBT", "F0J3P-L8K4M-Q2NHB-V7XRT",
+            "C5M7N-K8P3Q-X2JHF-V9BRL", "G4F7H-N9K2J-X8PQM-B4TZV", "V9R4N-6Y9LP-QX2BH-K7FMW",
+            "B4P7M-K9J4L-X8QHN-B2FRX", "N5K8J-N9F3P-Q7XHM-V2RTC", "M0JX3-L8K4M-Q2NHB-V7FPT",
+            "D5N7M-K8P3Q-X2JHF-V9TRC", "H3T9N-6Y8LP-QX4BH-K7JFV", "L5PZ7-M9K3L-X8QHN-B2FRT",
+            "P4H8J-N9F4P-Q7XKM-V2RTC", "Q5N7M-K8P3Q-X2JHF-V9TRL", "S0JX3-L8K4M-Q2NHB-V7FRT",
+            "X4F7H-N9K2J-X8PQM-B4TRL", "Z9R4N-6Y9LP-QX2BH-K7FMV", "A4P7M-K9J4L-X8QHN-B2FRT",
+            "C5K8J-N9F3P-Q7XHM-V2RTC", "E0JX3-L8K4M-Q2NHB-V7FPT", "G5N7M-K8P3Q-X2JHF-V9TRB",
+            "J3T9N-6Y8LP-QX4BH-K7JFV", "K5PZ7-M9K3L-X8QHN-B2FRT", "M4H8J-N9F4P-Q7XKM-V2RTC",
+            "N5N7M-K8P3Q-X2JHF-V9TRL", "P0JX3-L8K4M-Q2NHB-V7FRT", "Q4F7H-N9K2J-X8PQM-B4TRL",
+            "R9R4N-6Y9LP-QX2BH-K7FMV", "S4P7M-K9J4L-X8QHN-B2FRT", "T5K8J-N9F3P-Q7XHM-V2RTC",
+            "V0JX3-L8K4M-Q2NHB-V7FPT", "W5N7M-K8P3Q-X2JHF-V9TRB", "X3T9N-6Y8LP-QX4BH-K7JFV",
+            "Y5PZ7-M9K3L-X8QHN-B2FRT", "Z4H8J-N9F4P-Q7XKM-V2RTC", "B5N7M-K8P3Q-X2JHF-V9TRL",
+            "C0JX3-L8K4M-Q2NHB-V7FRT", "D4F7H-N9K2J-X8PQM-B4TRL", "F9R4N-6Y9LP-QX2BH-K7FMV",
+            "G4P7M-K9J4L-X8QHN-B2FRT", "H5K8J-N9F3P-Q7XHM-V2RTC", "J0JX3-L8K4M-Q2NHB-V7FPT",
+            "K5N7M-K8P3Q-X2JHF-V9TRB", "L3T9N-6Y8LP-QX4BH-K7JFV", "M5PZ7-M9K3L-X8QHN-B2FRT",
+            "N4H8J-N9F4P-Q7XKM-V2RTC", "P5N7M-K8P3Q-X2JHF-V9TRL"
         ],
         600: [
             "9YQ2M-K9PL4-Z8N3H-BVFRT", "J6HX9-P8L3Q-K2MFN-V7CRT", "T0N2B-4M7XK-P9LQH-V3FRJ",
-            "W5P9L-Q8X4M-K2JHN-B7FRV", "R4K9N-4L8XP-Q7MHJ-V3FBT", "F1J3P-L8K4M-Q2NHB-V7XRT"
+            "W5P9L-Q8X4M-K2JHN-B7FRV", "R4K9N-4L8XP-Q7MHJ-V3FBT", "F1J3P-L8K4M-Q2NHB-V7XRT",
+            "C6M7N-K8P3Q-X2JHF-V9BRL", "G5F7H-N9K2J-X8PQM-B4TZV", "V0R4N-6Y9LP-QX2BH-K7FMW",
+            "B5P7M-K9J4L-X8QHN-B2FRX", "N6K8J-N9F3P-Q7XHM-V2RTC", "M1JX3-L8K4M-Q2NHB-V7FPT",
+            "D6N7M-K8P3Q-X2JHF-V9TRC", "H4T9N-6Y8LP-QX4BH-K7JFV", "L6PZ7-M9K3L-X8QHN-B2FRT",
+            "P5H8J-N9F4P-Q7XKM-V2RTC", "Q6N7M-K8P3Q-X2JHF-V9TRL", "S1JX3-L8K4M-Q2NHB-V7FRT",
+            "X5F7H-N9K2J-X8PQM-B4TRL", "Z0R4N-6Y9LP-QX2BH-K7FMV", "A5P7M-K9J4L-X8QHN-B2FRT",
+            "C6K8J-N9F3P-Q7XHM-V2RTC", "E1JX3-L8K4M-Q2NHB-V7FPT", "G6N7M-K8P3Q-X2JHF-V9TRB",
+            "J4T9N-6Y8LP-QX4BH-K7JFV", "K6PZ7-M9K3L-X8QHN-B2FRT", "M5H8J-N9F4P-Q7XKM-V2RTC",
+            "N6N7M-K8P3Q-X2JHF-V9TRL", "P1JX3-L8K4M-Q2NHB-V7FRT", "Q5F7H-N9K2J-X8PQM-B4TRL",
+            "R0R4N-6Y9LP-QX2BH-K7FMV", "S5P7M-K9J4L-X8QHN-B2FRT", "T6K8J-N9F3P-Q7XHM-V2RTC",
+            "V1JX3-L8K4M-Q2NHB-V7FPT", "W6N7M-K8P3Q-X2JHF-V9TRB", "X4T9N-6Y8LP-QX4BH-K7JFV",
+            "Y6PZ7-M9K3L-X8QHN-B2FRT", "Z5H8J-N9F4P-Q7XKM-V2RTC", "B6N7M-K8P3Q-X2JHF-V9TRL",
+            "C1JX3-L8K4M-Q2NHB-V7FRT", "D5F7H-N9K2J-X8PQM-B4TRL", "F0R4N-6Y9LP-QX2BH-K7FMV",
+            "G5P7M-K9J4L-X8QHN-B2FRT", "H6K8J-N9F3P-Q7XHM-V2RTC", "J1JX3-L8K4M-Q2NHB-V7FPT",
+            "K6N7M-K8P3Q-X2JHF-V9TRB", "L4T9N-6Y8LP-QX4BH-K7JFV", "M6PZ7-M9K3L-X8QHN-B2FRT",
+            "N5H8J-N9F4P-Q7XKM-V2RTC", "P6N7M-K8P3Q-X2JHF-V9TRL"
         ],
         800: [
             "0ZQ2M-K9PL4-Z8N3H-BVFRT", "J7HX9-P8L3Q-K2MFN-V7CRT", "T1N2B-4M7XK-P9LQH-V3FRJ",
-            "W6P9L-Q8X4M-K2JHN-B7FRV", "R5K9N-4L8XP-Q7MHJ-V3FBT", "F2J3P-L8K4M-Q2NHB-V7XRT"
+            "W6P9L-Q8X4M-K2JHN-B7FRV", "R5K9N-4L8XP-Q7MHJ-V3FBT", "F2J3P-L8K4M-Q2NHB-V7XRT",
+            "C7M7N-K8P3Q-X2JHF-V9BRL", "G6F7H-N9K2J-X8PQM-B4TZV", "V1R4N-6Y9LP-QX2BH-K7FMW",
+            "B6P7M-K9J4L-X8QHN-B2FRX", "N7K8J-N9F3P-Q7XHM-V2RTC", "M2JX3-L8K4M-Q2NHB-V7FPT",
+            "D7N7M-K8P3Q-X2JHF-V9TRC", "H5T9N-6Y8LP-QX4BH-K7JFV", "L7PZ7-M9K3L-X8QHN-B2FRT",
+            "P6H8J-N9F4P-Q7XKM-V2RTC", "Q7N7M-K8P3Q-X2JHF-V9TRL", "S2JX3-L8K4M-Q2NHB-V7FRT",
+            "X6F7H-N9K2J-X8PQM-B4TRL", "Z1R4N-6Y9LP-QX2BH-K7FMV", "A6P7M-K9J4L-X8QHN-B2FRT",
+            "C7K8J-N9F3P-Q7XHM-V2RTC", "E2JX3-L8K4M-Q2NHB-V7FPT", "G7N7M-K8P3Q-X2JHF-V9TRB",
+            "J5T9N-6Y8LP-QX4BH-K7JFV", "K7PZ7-M9K3L-X8QHN-B2FRT", "M6H8J-N9F4P-Q7XKM-V2RTC",
+            "N7N7M-K8P3Q-X2JHF-V9TRL", "P2JX3-L8K4M-Q2NHB-V7FRT", "Q6F7H-N9K2J-X8PQM-B4TRL",
+            "R1R4N-6Y9LP-QX2BH-K7FMV", "S6P7M-K9J4L-X8QHN-B2FRT", "T7K8J-N9F3P-Q7XHM-V2RTC",
+            "V2JX3-L8K4M-Q2NHB-V7FPT", "W7N7M-K8P3Q-X2JHF-V9TRB", "X5T9N-6Y8LP-QX4BH-K7JFV",
+            "Y7PZ7-M9K3L-X8QHN-B2FRT", "Z6H8J-N9F4P-Q7XKM-V2RTC", "B7N7M-K8P3Q-X2JHF-V9TRL",
+            "C2JX3-L8K4M-Q2NHB-V7FRT", "D6F7H-N9K2J-X8PQM-B4TRL", "F1R4N-6Y9LP-QX2BH-K7FMV",
+            "G6P7M-K9J4L-X8QHN-B2FRT", "H7K8J-N9F3P-Q7XHM-V2RTC", "J2JX3-L8K4M-Q2NHB-V7FPT",
+            "K7N7M-K8P3Q-X2JHF-V9TRB", "L5T9N-6Y8LP-QX4BH-K7JFV", "M7PZ7-M9K3L-X8QHN-B2FRT",
+            "N6H8J-N9F4P-Q7XKM-V2RTC", "P7N7M-K8P3Q-X2JHF-V9TRL"
         ],
         1000: [
             "1AQ2M-K9PL4-Z8N3H-BVFRT", "J8HX9-P8L3Q-K2MFN-V7CRT", "T2N2B-4M7XK-P9LQH-V3FRJ",
-            "W7P9L-Q8X4M-K2JHN-B7FRV", "R6K9N-4L8XP-Q7MHJ-V3FBT", "F3J3P-L8K4M-Q2NHB-V7XRT"
+            "W7P9L-Q8X4M-K2JHN-B7FRV", "R6K9N-4L8XP-Q7MHJ-V3FBT", "F3J3P-L8K4M-Q2NHB-V7XRT",
+            "C8M7N-K8P3Q-X2JHF-V9BRL", "G7F7H-N9K2J-X8PQM-B4TZV", "V2R4N-6Y9LP-QX2BH-K7FMW",
+            "B7P7M-K9J4L-X8QHN-B2FRX", "N8K8J-N9F3P-Q7XHM-V2RTC", "M3JX3-L8K4M-Q2NHB-V7FPT",
+            "D8N7M-K8P3Q-X2JHF-V9TRC", "H6T9N-6Y8LP-QX4BH-K7JFV", "L8PZ7-M9K3L-X8QHN-B2FRT",
+            "P7H8J-N9F4P-Q7XKM-V2RTC", "Q8N7M-K8P3Q-X2JHF-V9TRL", "S3JX3-L8K4M-Q2NHB-V7FRT",
+            "X7F7H-N9K2J-X8PQM-B4TRL", "Z2R4N-6Y9LP-QX2BH-K7FMV", "A7P7M-K9J4L-X8QHN-B2FRT",
+            "C8K8J-N9F3P-Q7XHM-V2RTC", "E3JX3-L8K4M-Q2NHB-V7FPT", "G8N7M-K8P3Q-X2JHF-V9TRB",
+            "J6T9N-6Y8LP-QX4BH-K7JFV", "K8PZ7-M9K3L-X8QHN-B2FRT", "M7H8J-N9F4P-Q7XKM-V2RTC",
+            "N8N7M-K8P3Q-X2JHF-V9TRL", "P3JX3-L8K4M-Q2NHB-V7FRT", "Q7F7H-N9K2J-X8PQM-B4TRL",
+            "R2R4N-6Y9LP-QX2BH-K7FMV", "S7P7M-K9J4L-X8QHN-B2FRT", "T8K8J-N9F3P-Q7XHM-V2RTC",
+            "V3JX3-L8K4M-Q2NHB-V7FPT", "W8N7M-K8P3Q-X2JHF-V9TRB", "X6T9N-6Y8LP-QX4BH-K7JFV",
+            "Y8PZ7-M9K3L-X8QHN-B2FRT", "Z7H8J-N9F4P-Q7XKM-V2RTC", "B8N7M-K8P3Q-X2JHF-V9TRL",
+            "C3JX3-L8K4M-Q2NHB-V7FRT", "D7F7H-N9K2J-X8PQM-B4TRL", "F2R4N-6Y9LP-QX2BH-K7FMV",
+            "G7P7M-K9J4L-X8QHN-B2FRT", "H8K8J-N9F3P-Q7XHM-V2RTC", "J3JX3-L8K4M-Q2NHB-V7FPT",
+            "K8N7M-K8P3Q-X2JHF-V9TRB", "L6T9N-6Y8LP-QX4BH-K7JFV", "M8PZ7-M9K3L-X8QHN-B2FRT",
+            "N7H8J-N9F4P-Q7XKM-V2RTC", "P8N7M-K8P3Q-X2JHF-V9TRL"
         ],
         2000: [
             "2BQ2M-K9PL4-Z8N3H-BVFRT", "J9HX9-P8L3Q-K2MFN-V7CRT", "T3N2B-4M7XK-P9LQH-V3FRJ",
-            "W8P9L-Q8X4M-K2JHN-B7FRV", "R7K9N-4L8XP-Q7MHJ-V3FBT", "F4J3P-L8K4M-Q2NHB-V7XRT"
+            "W8P9L-Q8X4M-K2JHN-B7FRV", "R7K9N-4L8XP-Q7MHJ-V3FBT", "F4J3P-L8K4M-Q2NHB-V7XRT",
+            "C9M7N-K8P3Q-X2JHF-V9BRL", "G8F7H-N9K2J-X8PQM-B4TZV", "V3R4N-6Y9LP-QX2BH-K7FMW",
+            "B8P7M-K9J4L-X8QHN-B2FRX", "N9K8J-N9F3P-Q7XHM-V2RTC", "M4JX3-L8K4M-Q2NHB-V7FPT",
+            "D9N7M-K8P3Q-X2JHF-V9TRC", "H7T9N-6Y8LP-QX4BH-K7JFV", "L9PZ7-M9K3L-X8QHN-B2FRT",
+            "P8H8J-N9F4P-Q7XKM-V2RTC", "Q9N7M-K8P3Q-X2JHF-V9TRL", "S4JX3-L8K4M-Q2NHB-V7FRT",
+            "X8F7H-N9K2J-X8PQM-B4TRL", "Z3R4N-6Y9LP-QX2BH-K7FMV", "A8P7M-K9J4L-X8QHN-B2FRT",
+            "C9K8J-N9F3P-Q7XHM-V2RTC", "E4JX3-L8K4M-Q2NHB-V7FPT", "G9N7M-K8P3Q-X2JHF-V9TRB",
+            "J7T9N-6Y8LP-QX4BH-K7JFV", "K9PZ7-M9K3L-X8QHN-B2FRT", "M8H8J-N9F4P-Q7XKM-V2RTC",
+            "N9N7M-K8P3Q-X2JHF-V9TRL", "P4JX3-L8K4M-Q2NHB-V7FRT", "Q8F7H-N9K2J-X8PQM-B4TRL",
+            "R3R4N-6Y9LP-QX2BH-K7FMV", "S8P7M-K9J4L-X8QHN-B2FRT", "T9K8J-N9F3P-Q7XHM-V2RTC",
+            "V4JX3-L8K4M-Q2NHB-V7FPT", "W9N7M-K8P3Q-X2JHF-V9TRB", "X7T9N-6Y8LP-QX4BH-K7JFV",
+            "Y9PZ7-M9K3L-X8QHN-B2FRT", "Z8H8J-N9F4P-Q7XKM-V2RTC", "B9N7M-K8P3Q-X2JHF-V9TRL",
+            "C4JX3-L8K4M-Q2NHB-V7FRT", "D8F7H-N9K2J-X8PQM-B4TRL", "F3R4N-6Y9LP-QX2BH-K7FMV",
+            "G8P7M-K9J4L-X8QHN-B2FRT", "H9K8J-N9F3P-Q7XHM-V2RTC", "J4JX3-L8K4M-Q2NHB-V7FPT",
+            "K9N7M-K8P3Q-X2JHF-V9TRB", "L7T9N-6Y8LP-QX4BH-K7JFV", "M9PZ7-M9K3L-X8QHN-B2FRT",
+            "N8H8J-N9F4P-Q7XKM-V2RTC", "P9N7M-K8P3Q-X2JHF-V9TRL"
         ],
         3000: [
             "3CQ2M-K9PL4-Z8N3H-BVFRT", "J0HX9-P8L3Q-K2MFN-V7CRT", "T4N2B-4M7XK-P9LQH-V3FRJ",
-            "W9P9L-Q8X4M-K2JHN-B7FRV", "R8K9N-4L8XP-Q7MHJ-V3FBT", "F5J3P-L8K4M-Q2NHB-V7XRT"
+            "W9P9L-Q8X4M-K2JHN-B7FRV", "R8K9N-4L8XP-Q7MHJ-V3FBT", "F5J3P-L8K4M-Q2NHB-V7XRT",
+            "C0M7N-K8P3Q-X2JHF-V9BRL", "G9F7H-N9K2J-X8PQM-B4TZV", "V4R4N-6Y9LP-QX2BH-K7FMW",
+            "B9P7M-K9J4L-X8QHN-B2FRX", "N0K8J-N9F3P-Q7XHM-V2RTC", "M5JX3-L8K4M-Q2NHB-V7FPT",
+            "D0N7M-K8P3Q-X2JHF-V9TRC", "H8T9N-6Y8LP-QX4BH-K7JFV", "L0PZ7-M9K3L-X8QHN-B2FRT",
+            "P9H8J-N9F4P-Q7XKM-V2RTC", "Q0N7M-K8P3Q-X2JHF-V9TRL", "S5JX3-L8K4M-Q2NHB-V7FRT",
+            "X9F7H-N9K2J-X8PQM-B4TRL", "Z4R4N-6Y9LP-QX2BH-K7FMV", "A9P7M-K9J4L-X8QHN-B2FRT",
+            "C0K8J-N9F3P-Q7XHM-V2RTC", "E5JX3-L8K4M-Q2NHB-V7FPT", "G0N7M-K8P3Q-X2JHF-V9TRB",
+            "J8T9N-6Y8LP-QX4BH-K7JFV", "K0PZ7-M9K3L-X8QHN-B2FRT", "M9H8J-N9F4P-Q7XKM-V2RTC",
+            "N0N7M-K8P3Q-X2JHF-V9TRL", "P5JX3-L8K4M-Q2NHB-V7FRT", "Q9F7H-N9K2J-X8PQM-B4TRL",
+            "R4R4N-6Y9LP-QX2BH-K7FMV", "S9P7M-K9J4L-X8QHN-B2FRT", "T0K8J-N9F3P-Q7XHM-V2RTC",
+            "V5JX3-L8K4M-Q2NHB-V7FPT", "W0N7M-K8P3Q-X2JHF-V9TRB", "X8T9N-6Y8LP-QX4BH-K7JFV",
+            "Y0PZ7-M9K3L-X8QHN-B2FRT", "Z9H8J-N9F4P-Q7XKM-V2RTC", "B0N7M-K8P3Q-X2JHF-V9TRL",
+            "C5JX3-L8K4M-Q2NHB-V7FRT", "D9F7H-N9K2J-X8PQM-B4TRL", "F4R4N-6Y9LP-QX2BH-K7FMV",
+            "G9P7M-K9J4L-X8QHN-B2FRT", "H0K8J-N9F3P-Q7XHM-V2RTC", "J5JX3-L8K4M-Q2NHB-V7FPT",
+            "K0N7M-K8P3Q-X2JHF-V9TRB", "L8T9N-6Y8LP-QX4BH-K7JFV", "M0PZ7-M9K3L-X8QHN-B2FRT",
+            "N9H8J-N9F4P-Q7XKM-V2RTC", "P0N7M-K8P3Q-X2JHF-V9TRL"
         ],
         4000: [
             "4DQ2M-K9PL4-Z8N3H-BVFRT", "J1HX9-P8L3Q-K2MFN-V7CRT", "T5N2B-4M7XK-P9LQH-V3FRJ",
-            "W0P9L-Q8X4M-K2JHN-B7FRV", "R9K9N-4L8XP-Q7MHJ-V3FBT", "F6J3P-L8K4M-Q2NHB-V7XRT"
+            "W0P9L-Q8X4M-K2JHN-B7FRV", "R9K9N-4L8XP-Q7MHJ-V3FBT", "F6J3P-L8K4M-Q2NHB-V7XRT",
+            "C1M7N-K8P3Q-X2JHF-V9BRL", "G0F7H-N9K2J-X8PQM-B4TZV", "V5R4N-6Y9LP-QX2BH-K7FMW",
+            "B0P7M-K9J4L-X8QHN-B2FRX", "N1K8J-N9F3P-Q7XHM-V2RTC", "M6JX3-L8K4M-Q2NHB-V7FPT",
+            "D1N7M-K8P3Q-X2JHF-V9TRC", "H9T9N-6Y8LP-QX4BH-K7JFV", "L1PZ7-M9K3L-X8QHN-B2FRT",
+            "P0H8J-N9F4P-Q7XKM-V2RTC", "Q1N7M-K8P3Q-X2JHF-V9TRL", "S6JX3-L8K4M-Q2NHB-V7FRT",
+            "X0F7H-N9K2J-X8PQM-B4TRL", "Z5R4N-6Y9LP-QX2BH-K7FMV", "A0P7M-K9J4L-X8QHN-B2FRT",
+            "C1K8J-N9F3P-Q7XHM-V2RTC", "E6JX3-L8K4M-Q2NHB-V7FPT", "G1N7M-K8P3Q-X2JHF-V9TRB",
+            "J9T9N-6Y8LP-QX4BH-K7JFV", "K1PZ7-M9K3L-X8QHN-B2FRT", "M0H8J-N9F4P-Q7XKM-V2RTC",
+            "N1N7M-K8P3Q-X2JHF-V9TRL", "P6JX3-L8K4M-Q2NHB-V7FRT", "Q0F7H-N9K2J-X8PQM-B4TRL",
+            "R5R4N-6Y9LP-QX2BH-K7FMV", "S0P7M-K9J4L-X8QHN-B2FRT", "T1K8J-N9F3P-Q7XHM-V2RTC",
+            "V6JX3-L8K4M-Q2NHB-V7FPT", "W1N7M-K8P3Q-X2JHF-V9TRB", "X9T9N-6Y8LP-QX4BH-K7JFV",
+            "Y1PZ7-M9K3L-X8QHN-B2FRT", "Z0H8J-N9F4P-Q7XKM-V2RTC", "B1N7M-K8P3Q-X2JHF-V9TRL",
+            "C6JX3-L8K4M-Q2NHB-V7FRT", "D0F7H-N9K2J-X8PQM-B4TRL", "F5R4N-6Y9LP-QX2BH-K7FMV",
+            "G0P7M-K9J4L-X8QHN-B2FRT", "H1K8J-N9F3P-Q7XHM-V2RTC", "J6JX3-L8K4M-Q2NHB-V7FPT",
+            "K1N7M-K8P3Q-X2JHF-V9TRB", "L9T9N-6Y8LP-QX4BH-K7JFV", "M1PZ7-M9K3L-X8QHN-B2FRT",
+            "N0H8J-N9F4P-Q7XKM-V2RTC", "P1N7M-K8P3Q-X2JHF-V9TRL"
         ],
         5500: [
             "5EQ2M-K9PL4-Z8N3H-BVFRT", "J2HX9-P8L3Q-K2MFN-V7CRT", "T6N2B-4M7XK-P9LQH-V3FRJ",
-            "W1P9L-Q8X4M-K2JHN-B7FRV", "R0K9N-4L8XP-Q7MHJ-V3FBT", "F7J3P-L8K4M-Q2NHB-V7XRT"
+            "W1P9L-Q8X4M-K2JHN-B7FRV", "R0K9N-4L8XP-Q7MHJ-V3FBT", "F7J3P-L8K4M-Q2NHB-V7XRT",
+            "C2M7N-K8P3Q-X2JHF-V9BRL", "G1F7H-N9K2J-X8PQM-B4TZV", "V6R4N-6Y9LP-QX2BH-K7FMW",
+            "B1P7M-K9J4L-X8QHN-B2FRX", "N2K8J-N9F3P-Q7XHM-V2RTC", "M7JX3-L8K4M-Q2NHB-V7FPT",
+            "D2N7M-K8P3Q-X2JHF-V9TRC", "H0T9N-6Y8LP-QX4BH-K7JFV", "L2PZ7-M9K3L-X8QHN-B2FRT",
+            "P1H8J-N9F4P-Q7XKM-V2RTC", "Q2N7M-K8P3Q-X2JHF-V9TRL", "S7JX3-L8K4M-Q2NHB-V7FRT",
+            "X1F7H-N9K2J-X8PQM-B4TRL", "Z6R4N-6Y9LP-QX2BH-K7FMV", "A1P7M-K9J4L-X8QHN-B2FRT",
+            "C2K8J-N9F3P-Q7XHM-V2RTC", "E7JX3-L8K4M-Q2NHB-V7FPT", "G2N7M-K8P3Q-X2JHF-V9TRB",
+            "J0T9N-6Y8LP-QX4BH-K7JFV", "K2PZ7-M9K3L-X8QHN-B2FRT", "M1H8J-N9F4P-Q7XKM-V2RTC",
+            "N2N7M-K8P3Q-X2JHF-V9TRL", "P7JX3-L8K4M-Q2NHB-V7FRT", "Q1F7H-N9K2J-X8PQM-B4TRL",
+            "R6R4N-6Y9LP-QX2BH-K7FMV", "S1P7M-K9J4L-X8QHN-B2FRT", "T2K8J-N9F3P-Q7XHM-V2RTC",
+            "V7JX3-L8K4M-Q2NHB-V7FPT", "W2N7M-K8P3Q-X2JHF-V9TRB", "X0T9N-6Y8LP-QX4BH-K7JFV",
+            "Y2PZ7-M9K3L-X8QHN-B2FRT", "Z1H8J-N9F4P-Q7XKM-V2RTC", "B2N7M-K8P3Q-X2JHF-V9TRL",
+            "C7JX3-L8K4M-Q2NHB-V7FRT", "D1F7H-N9K2J-X8PQM-B4TRL", "F6R4N-6Y9LP-QX2BH-K7FMV",
+            "G1P7M-K9J4L-X8QHN-B2FRT", "H2K8J-N9F3P-Q7XHM-V2RTC", "J7JX3-L8K4M-Q2NHB-V7FPT",
+            "K2N7M-K8P3Q-X2JHF-V9TRB", "L0T9N-6Y8LP-QX4BH-K7JFV", "M2PZ7-M9K3L-X8QHN-B2FRT",
+            "N1H8J-N9F4P-Q7XKM-V2RTC", "P2N7M-K8P3Q-X2JHF-V9TRL"
         ]
     };
     
-    // Проверяем принадлежность ключа к одной из групп
-    for (const [stars, keys] of Object.entries(keyGroups)) {
+    // Проверяем все группы ключей
+    for (const [stars, keys] of Object.entries(allKeys)) {
         if (keys.includes(cleanKey)) {
             return { valid: true, stars: parseInt(stars) };
         }
@@ -1283,20 +1447,6 @@ const elements = {
     loadingProgressFill: document.getElementById('loadingProgressFill'),
     loadingQuote: document.getElementById('loadingQuote')
 };
-
-// Цитаты для экрана загрузки
-const loadingQuotes = [
-    "NFT — это тишина, проданная с молотка. — Евгений Немич",
-    "Коллекционер — это садовник в пустоте. — Евгений Немич",
-    "Мой вклад — это вопрос, вписанный в блокчейн. — Евгений Немич",
-    "Покупая токен, я выкупаю чужое одиночество. — Евгений Немич",
-    "Цифровая пустота — вот самый дорогой холст. — Евгений Немич",
-    "Мы собираем не арты, а оправдания для бытия. — Евгений Немич",
-    "В метавселенной валюта — не эфир, а внимание. — Евгений Немич",
-    "Хеш-сумма — это след от капли вечности. — Евгений Немич",
-    "Искусство теперь живет в сейфе, а не в храме. — Евгений Немич",
-    "Мой кошелек — это дневник исчезающих чувств. — Евгений Немич"
-];
 
 // Функция для форматирования времени
 function formatTime(ms) {
@@ -1473,10 +1623,13 @@ function updateTasksProgress() {
 }
 
 // Выполнение задания
-function completeTask(taskId, reward) {
+function completeTask(taskId) {
     showLoading('Проверка задания...');
     
     setTimeout(() => {
+        const task = userDB.userData.tasks[taskId];
+        const reward = task.reward || 10; // По умолчанию 10 звезд
+        
         if (userDB.completeTask(taskId)) {
             userDB.updateBalance(reward);
             updateBalanceDisplay();
@@ -1695,8 +1848,9 @@ function sellItem(itemName) {
                 
                 setTimeout(() => {
                     if (userDB.removeFromInventory(itemName)) {
-                        userDB.updateBalance(sellPrice);
-                        updateBalanceDisplay();
+                        // ИСПРАВЛЕНО: Правильное начисление звезд
+                        const newBalance = userDB.updateBalance(sellPrice);
+                        elements.starsBalance.textContent = newBalance.toLocaleString();
                         updateProfile();
                         updateTasksProgress();
                         hideLoading();
@@ -1762,6 +1916,18 @@ function confirmWithdraw() {
         const itemData = inventory[currentWithdrawItem];
         
         if (itemData && itemData.quantity > 0) {
+            // Проверяем, не выводил ли пользователь уже этот предмет
+            const userData = userDB.userData;
+            const hasWithdrawn = userData.withdrawnItems && 
+                userData.withdrawnItems.some(item => item.itemName === currentWithdrawItem);
+            
+            if (hasWithdrawn) {
+                hideLoading();
+                showNotification('❌ Ошибка', 'Вы уже выводили этот предмет ранее', 'error');
+                return;
+            }
+            
+            // Создаем заявку
             withdrawDB.addRequest(
                 userDB.userData.userId,
                 username,
@@ -1770,8 +1936,19 @@ function confirmWithdraw() {
                 itemData.sellPrice
             );
             
-            // Предмет удаляется сразу при создании заявки
+            // Удаляем предмет из инвентаря
             userDB.removeFromInventory(currentWithdrawItem);
+            
+            // Добавляем в список выведенных предметов
+            if (!userDB.userData.withdrawnItems) {
+                userDB.userData.withdrawnItems = [];
+            }
+            userDB.userData.withdrawnItems.push({
+                itemName: currentWithdrawItem,
+                timestamp: Date.now()
+            });
+            userDB.saveUserData();
+            
             hideLoading();
             
             showNotification('📤 Запрос на вывод отправлен', `Запрос на вывод "${currentWithdrawItem}" для ${username} отправлен администратору. Ожидайте подтверждения.`, 'success');
@@ -2419,16 +2596,29 @@ function setupErrorHandling() {
     });
 }
 
+// Добавляем парящие частицы на экран загрузки
+function addParticles() {
+    const loadingScreen = elements.loadingScreen;
+    for (let i = 0; i < 6; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        loadingScreen.appendChild(particle);
+    }
+}
+
 // Экран загрузки
 function showLoadingScreen() {
+    // Добавляем частицы
+    addParticles();
+    
     let progress = 0;
-    const duration = 7000;
+    const duration = 5000;
     const interval = 50;
     const steps = duration / interval;
     const progressIncrement = 100 / steps;
     
     let currentQuoteIndex = 0;
-    const quoteChangeInterval = 1500;
+    const quoteChangeInterval = 2000;
     
     elements.loadingQuote.textContent = loadingQuotes[currentQuoteIndex];
     
@@ -2444,13 +2634,17 @@ function showLoadingScreen() {
                 elements.loadingScreen.style.display = 'none';
                 elements.mainContainer.style.display = 'block';
                 initializeApp();
-            }, 500);
+            }, 800);
         }
     }, interval);
     
     const quoteInterval = setInterval(() => {
         currentQuoteIndex = (currentQuoteIndex + 1) % loadingQuotes.length;
         elements.loadingQuote.textContent = loadingQuotes[currentQuoteIndex];
+        elements.loadingQuote.style.animation = 'none';
+        setTimeout(() => {
+            elements.loadingQuote.style.animation = 'quoteFade 1.5s ease-out';
+        }, 10);
     }, quoteChangeInterval);
 }
 
