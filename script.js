@@ -2,7 +2,7 @@
 const tg = window.Telegram.WebApp;
 
 // Базовый URL для API (замени на свой домен Vercel)
-const API_BASE_URL = 'https://your-project.vercel.app/api'; // ЗАМЕНИ НА СВОЙ URL!
+const API_BASE_URL = 'https://telegram-mini-app-snowy-five.vercel.app/api';
 
 // Глобальная онлайн база данных
 class OnlineDatabase {
@@ -2281,3 +2281,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Онлайн версия игрового мини-приложения запущена!');
+
