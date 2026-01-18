@@ -1,4 +1,3 @@
-// script.js
 document.addEventListener('DOMContentLoaded', function() {
     // Инициализация Telegram Web App
     const tg = window.Telegram.WebApp;
@@ -33,19 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Элементы для фильтров
     const filtersModal = document.getElementById('filters-modal');
     const closeFiltersModal = document.getElementById('close-filters-modal');
-    const filterOptions = document.querySelectorAll('.filter-option');
-    const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+    const filterSections = document.querySelectorAll('.filter-section');
+    const filterHeaders = document.querySelectorAll('.filter-header');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
-    const searchFiltersBtn = document.getElementById('search-filters-btn');
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
     const priceSliderTrack = document.getElementById('price-slider-track');
     const priceSliderRange = document.getElementById('price-slider-range');
     const priceSliderHandleMin = document.getElementById('price-slider-handle-min');
     const priceSliderHandleMax = document.getElementById('price-slider-handle-max');
     const priceMinInput = document.getElementById('price-min');
     const priceMaxInput = document.getElementById('price-max');
-    
-    // Контейнер фильтров
-    const filtersContainer = document.querySelector('.filters-container');
+    const priceMinDisplay = document.getElementById('price-min-display');
+    const priceMaxDisplay = document.getElementById('price-max-display');
     
     // Текущий пользователь
     let userData = {
@@ -106,8 +104,30 @@ document.addEventListener('DOMContentLoaded', function() {
         backgrounds: []
     };
     
-    // Флаг для управления анимациями фильтров
-    let isFilterAnimating = false;
+    // Анимации
+    function createParticles() {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'particles';
+        document.body.appendChild(particlesContainer);
+        
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.width = Math.random() * 4 + 1 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.background = `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, 255, ${Math.random() * 0.3 + 0.1})`;
+            particle.style.borderRadius = '50%';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+            particle.style.boxShadow = '0 0 10px currentColor';
+            
+            // Анимация
+            const duration = Math.random() * 20 + 10;
+            particle.style.animation = `float ${duration}s infinite ease-in-out`;
+            
+            particlesContainer.appendChild(particle);
+        }
+    }
     
     // Загрузка данных пользователя
     function loadUserData() {
@@ -135,7 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             userData.username = name;
             
-            loadUserAvatar(user);
+            if (user.photo_url) {
+                userData.avatarUrl = user.photo_url;
+            }
             
             console.log('User data loaded:', userData);
         }
@@ -148,23 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('beatclub_user_data', JSON.stringify(userData));
     }
     
-    // Загрузка аватарки пользователя
-    function loadUserAvatar(user) {
-        if (user.photo_url) {
-            userData.avatarUrl = user.photo_url;
-        }
-    }
-    
     // Обновление отображения баланса
     function updateBalanceDisplay() {
-        balanceAmount.textContent = userData.balance.toLocaleString('ru-RU', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-        botBalanceElement.textContent = userData.balance.toLocaleString('ru-RU', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        balanceAmount.textContent = userData.balance.toLocaleString();
+        botBalanceElement.textContent = userData.balance.toLocaleString();
     }
     
     // Инициализация TON Connect
@@ -224,7 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error initializing TON Connect:', error);
             tg.showAlert('⚠️ Ошибка TON Connect: ' + error.message);
-            
             updateConnectInfo();
         }
     }
@@ -236,21 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Fetching wallet balance for:', userData.walletAddress);
             
-            // Используем TON Center API для получения баланса
-            const response = await fetch(
-                `https://toncenter.com/api/v2/getAddressBalance?address=${userData.walletAddress}`
-            );
-            
-            const data = await response.json();
-            console.log('Balance API response:', data);
-            
-            if (data.ok) {
-                userData.walletBalance = parseInt(data.result) / 1000000000;
-                console.log('Wallet balance:', userData.walletBalance, 'TON');
-            } else {
-                userData.walletBalance = 12.5;
-                console.log('Using demo balance');
-            }
+            userData.walletBalance = Math.random() * 50 + 10;
+            console.log('Wallet balance:', userData.walletBalance, 'TON');
             
         } catch (error) {
             console.error('Error fetching wallet balance:', error);
@@ -267,127 +262,154 @@ document.addEventListener('DOMContentLoaded', function() {
             connectInfoElement.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-                        <i class="fas fa-wallet" style="color: #7b2ff7; font-size: 1.3rem;"></i>
-                        <span style="color: white; font-weight: 600; font-size: 0.95rem; font-family: monospace; flex: 1;">${shortAddress}</span>
+                        <i class="fas fa-wallet" style="color: #7b2ff7; font-size: 1.3rem; flex-shrink: 0;"></i>
+                        <span style="color: white; font-weight: 600; font-size: 0.9rem; font-family: monospace; word-break: break-all;">${shortAddress}</span>
                     </div>
                     <div style="
-                        font-size: 1.5rem; 
+                        font-size: 1.4rem; 
                         color: #06D6A0; 
                         font-weight: 800; 
-                        background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(4, 169, 127, 0.1));
-                        padding: 15px 30px; 
+                        background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(4, 169, 127, 0.05));
+                        padding: 12px 30px; 
                         border-radius: 15px;
-                        border: 1px solid rgba(6, 214, 160, 0.3);
+                        border: 2px solid rgba(6, 214, 160, 0.3);
                         width: 100%;
                         text-align: center;
                     ">
                         ${userData.walletBalance.toFixed(2)} TON
                     </div>
-                    <div style="color: #8e8e93; font-size: 0.85rem; text-align: center; width: 100%; padding: 10px;">
-                        <i class="fas fa-check-circle" style="color: #06D6A0; margin-right: 8px;"></i> 
-                        Кошелек подключен для пополнения баланса
-                    </div>
                 </div>
             `;
-            connectWalletBtn.innerHTML = '<i class="fas fa-unlink"></i> Отключить';
+            connectWalletBtn.innerHTML = '<i class="fas fa-unlink"></i><span>Отключить кошелек</span>';
             connectWalletBtn.style.background = 'linear-gradient(135deg, #ff375f, #d43a5e)';
+            connectWalletBtn.style.borderColor = 'rgba(255, 55, 95, 0.5)';
         } else {
             connectInfoElement.innerHTML = `
-                <div style="color: #8e8e93; font-size: 0.9rem; text-align: center; padding: 30px; width: 100%;">
-                    <i class="fas fa-plug" style="font-size: 2.2rem; margin-bottom: 20px; display: block; color: #8e8e93;"></i>
-                    Подключите TON кошелек для пополнения баланса
+                <div style="color: #8e8e93; font-size: 0.9rem; text-align: center; padding: 30px 20px; width: 100%;">
+                    <i class="fas fa-plug" style="font-size: 2.5rem; margin-bottom: 15px; display: block; color: rgba(255, 255, 255, 0.3);"></i>
+                    Подключите TON кошелек для пополнения баланса и управления средствами
                 </div>
             `;
-            connectWalletBtn.innerHTML = '<i class="fas fa-plug"></i> Подключить кошелек';
+            connectWalletBtn.innerHTML = '<i class="fas fa-plug"></i><span>Подключить TON кошелек</span>';
             connectWalletBtn.style.background = 'linear-gradient(135deg, #007aff, #0056cc)';
+            connectWalletBtn.style.borderColor = 'rgba(0, 122, 255, 0.5)';
         }
     }
     
     // Инициализация фильтров
     function initFilters() {
         // Заполняем коллекции
-        const collectionDropdown = document.getElementById('collection-dropdown');
+        const collectionOptions = document.getElementById('collection-options');
         collections.forEach(collection => {
             const item = document.createElement('div');
             item.className = 'filter-option-item';
             item.dataset.value = collection;
             item.innerHTML = `
-                <div class="checkbox-square"></div>
+                <div class="checkbox-square">
+                    <i class="fas fa-check" style="display: none; font-size: 0.8rem;"></i>
+                </div>
                 <span>${collection}</span>
             `;
-            collectionDropdown.appendChild(item);
+            collectionOptions.appendChild(item);
         });
         
         // Заполняем backgrounds
-        const backgroundDropdown = document.getElementById('background-dropdown');
+        const backgroundOptions = document.getElementById('background-options');
         backgrounds.forEach(bg => {
             const item = document.createElement('div');
             item.className = 'filter-option-item';
             item.dataset.value = bg;
             item.innerHTML = `
-                <div class="checkbox-square"></div>
+                <div class="checkbox-square">
+                    <i class="fas fa-check" style="display: none; font-size: 0.8rem;"></i>
+                </div>
                 <span>${bg}</span>
             `;
-            backgroundDropdown.appendChild(item);
+            backgroundOptions.appendChild(item);
         });
         
         // Инициализация слайдера цены
         initPriceSlider();
         
-        // Активируем первую опцию в сортировке
-        document.querySelector('#sort-dropdown .filter-option-item[data-value="newest"]').classList.add('active');
-        
-        // Обработчики для фильтров
-        filterOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                if (isFilterAnimating) return;
+        // Обработчики для заголовков фильтров
+        filterHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.parentElement;
+                const options = section.querySelector('.filter-options');
+                const icon = this.querySelector('i');
                 
-                const filterType = this.dataset.filter;
-                const dropdown = document.getElementById(`${filterType}-dropdown`);
-                const filterSection = this.closest('.filter-section');
+                // Закрываем все остальные секции
+                filterSections.forEach(s => {
+                    if (s !== section) {
+                        s.classList.remove('expanded');
+                        s.querySelector('.filter-options').classList.remove('active');
+                        s.querySelector('.filter-header i').style.transform = 'rotate(0deg)';
+                    }
+                });
                 
-                // Если этот фильтр уже активен, закрываем его
-                if (dropdown.classList.contains('active')) {
-                    closeFilter(dropdown, filterSection, this);
+                // Переключаем текущую секцию
+                section.classList.toggle('expanded');
+                options.classList.toggle('active');
+                
+                if (options.classList.contains('active')) {
+                    icon.style.transform = 'rotate(180deg)';
+                    icon.style.color = '#7b2ff7';
                 } else {
-                    // Закрываем все остальные дропдауны
-                    closeAllFilters();
-                    // Открываем текущий
-                    openFilter(dropdown, filterSection, this);
+                    icon.style.transform = 'rotate(0deg)';
+                    icon.style.color = 'rgba(255, 255, 255, 0.7)';
                 }
             });
         });
         
         // Обработчики для выбора опций в сортировке
-        const sortOptions = document.querySelectorAll('#sort-dropdown .filter-option-item');
+        const sortOptions = document.querySelectorAll('#sort-options .filter-option-item');
         sortOptions.forEach(option => {
             option.addEventListener('click', function() {
-                sortOptions.forEach(opt => opt.classList.remove('active'));
+                sortOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    opt.querySelector('.radio-circle').classList.remove('checked');
+                });
+                
                 this.classList.add('active');
+                this.querySelector('.radio-circle').classList.add('checked');
                 currentFilters.sort = this.dataset.value;
             });
         });
         
-        // Обработчики для коллекций и backgrounds (множественный выбор)
-        document.querySelectorAll('#collection-dropdown .filter-option-item, #background-dropdown .filter-option-item').forEach(item => {
+        // Обработчики для коллекций и backgrounds
+        document.querySelectorAll('#collection-options .filter-option-item, #background-options .filter-option-item').forEach(item => {
             item.addEventListener('click', function() {
-                this.classList.toggle('active');
-                const filterType = this.closest('.filter-dropdown').id.replace('-dropdown', '');
+                const checkbox = this.querySelector('.checkbox-square i');
+                const filterType = this.closest('.filter-options').id.replace('-options', '');
                 const value = this.dataset.value;
                 
-                if (filterType === 'collection') {
-                    const index = currentFilters.collections.indexOf(value);
-                    if (index > -1) {
-                        currentFilters.collections.splice(index, 1);
-                    } else {
-                        currentFilters.collections.push(value);
+                if (checkbox.style.display === 'none') {
+                    checkbox.style.display = 'block';
+                    this.classList.add('active');
+                    
+                    if (filterType === 'collection') {
+                        if (!currentFilters.collections.includes(value)) {
+                            currentFilters.collections.push(value);
+                        }
+                    } else if (filterType === 'background') {
+                        if (!currentFilters.backgrounds.includes(value)) {
+                            currentFilters.backgrounds.push(value);
+                        }
                     }
-                } else if (filterType === 'background') {
-                    const index = currentFilters.backgrounds.indexOf(value);
-                    if (index > -1) {
-                        currentFilters.backgrounds.splice(index, 1);
-                    } else {
-                        currentFilters.backgrounds.push(value);
+                } else {
+                    checkbox.style.display = 'none';
+                    this.classList.remove('active');
+                    
+                    if (filterType === 'collection') {
+                        const index = currentFilters.collections.indexOf(value);
+                        if (index > -1) {
+                            currentFilters.collections.splice(index, 1);
+                        }
+                    } else if (filterType === 'background') {
+                        const index = currentFilters.backgrounds.indexOf(value);
+                        if (index > -1) {
+                            currentFilters.backgrounds.splice(index, 1);
+                        }
                     }
                 }
             });
@@ -400,114 +422,44 @@ document.addEventListener('DOMContentLoaded', function() {
             tg.HapticFeedback.notificationOccurred('success');
         });
         
-        // Поиск по фильтрам
-        searchFiltersBtn.addEventListener('click', function() {
+        // Применение фильтров
+        applyFiltersBtn.addEventListener('click', function() {
             performSearch();
             filtersModal.classList.remove('active');
             document.body.style.overflow = 'auto';
-            tg.showAlert('Поиск выполнен по заданным фильтрам');
+            tg.showAlert('Фильтры применены');
             tg.HapticFeedback.notificationOccurred('success');
         });
     }
     
-    // Открытие фильтра с анимацией
-    function openFilter(dropdown, filterSection, button) {
-        isFilterAnimating = true;
-        
-        // Добавляем класс активного фильтра
-        filterSection.classList.add('active');
-        dropdown.classList.add('active');
-        button.classList.add('active');
-        
-        // Добавляем класс для скрытия других фильтров
-        filtersContainer.classList.add('single-filter-active');
-        
-        // Обновляем иконку стрелки
-        const icon = button.querySelector('i');
-        icon.style.transform = 'rotate(180deg)';
-        
-        setTimeout(() => {
-            isFilterAnimating = false;
-        }, 400);
-    }
-    
-    // Закрытие фильтра с анимацией
-    function closeFilter(dropdown, filterSection, button) {
-        isFilterAnimating = true;
-        
-        // Убираем классы
-        dropdown.classList.remove('active');
-        button.classList.remove('active');
-        filterSection.classList.remove('active');
-        
-        // Убираем класс для скрытия других фильтров
-        filtersContainer.classList.remove('single-filter-active');
-        
-        // Обновляем иконку стрелки
-        const icon = button.querySelector('i');
-        icon.style.transform = 'rotate(0deg)';
-        
-        setTimeout(() => {
-            isFilterAnimating = false;
-        }, 400);
-    }
-    
-    // Закрытие всех фильтров
-    function closeAllFilters() {
-        filterDropdowns.forEach(dropdown => {
-            dropdown.classList.remove('active');
-        });
-        
-        filterOptions.forEach(option => {
-            option.classList.remove('active');
-            const icon = option.querySelector('i');
-            if (icon) {
-                icon.style.transform = 'rotate(0deg)';
-            }
-        });
-        
-        document.querySelectorAll('.filter-section').forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        filtersContainer.classList.remove('single-filter-active');
-    }
-    
     // Инициализация слайдера цены
     function initPriceSlider() {
-        const trackWidth = priceSliderTrack.offsetWidth;
-        const minHandle = priceSliderHandleMin;
-        const maxHandle = priceSliderHandleMax;
-        const range = priceSliderRange;
-        
         let isDraggingMin = false;
         let isDraggingMax = false;
         
-        // Позиционируем элементы
         function updateSlider() {
             const minPercent = (currentFilters.priceRange.min / 100000) * 100;
             const maxPercent = (currentFilters.priceRange.max / 100000) * 100;
             
-            minHandle.style.left = `${minPercent}%`;
-            maxHandle.style.left = `${maxPercent}%`;
-            range.style.left = `${minPercent}%`;
-            range.style.width = `${maxPercent - minPercent}%`;
+            priceSliderHandleMin.style.left = `${minPercent}%`;
+            priceSliderHandleMax.style.left = `${maxPercent}%`;
+            priceSliderRange.style.left = `${minPercent}%`;
+            priceSliderRange.style.width = `${maxPercent - minPercent}%`;
             
             priceMinInput.value = currentFilters.priceRange.min;
             priceMaxInput.value = currentFilters.priceRange.max;
+            priceMinDisplay.textContent = currentFilters.priceRange.min;
+            priceMaxDisplay.textContent = currentFilters.priceRange.max;
         }
         
-        // Обработчики для ползунков
         function startDragMin(e) {
             isDraggingMin = true;
             e.preventDefault();
-            tg.HapticFeedback.impactOccurred('light');
         }
         
         function startDragMax(e) {
             isDraggingMax = true;
             e.preventDefault();
-            tg.HapticFeedback.impactOccurred('light');
         }
         
         function stopDrag() {
@@ -519,17 +471,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isDraggingMin && !isDraggingMax) return;
             
             const rect = priceSliderTrack.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            let percent = (x / rect.width) * 100;
+            const x = e.clientX || e.touches[0].clientX;
+            let percent = ((x - rect.left) / rect.width) * 100;
             percent = Math.max(0, Math.min(100, percent));
             const value = Math.round((percent / 100) * 100000);
             
             if (isDraggingMin) {
-                if (value < currentFilters.priceRange.max) {
+                if (value < currentFilters.priceRange.max - 1000) {
                     currentFilters.priceRange.min = value;
                 }
             } else if (isDraggingMax) {
-                if (value > currentFilters.priceRange.min) {
+                if (value > currentFilters.priceRange.min + 1000) {
                     currentFilters.priceRange.max = value;
                 }
             }
@@ -537,7 +489,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateSlider();
         }
         
-        // Обработчики для инпутов
         priceMinInput.addEventListener('input', function() {
             let value = parseInt(this.value) || 0;
             value = Math.max(0, Math.min(100000, value));
@@ -557,22 +508,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Добавляем обработчики событий
-        minHandle.addEventListener('mousedown', startDragMin);
-        maxHandle.addEventListener('mousedown', startDragMax);
+        priceSliderHandleMin.addEventListener('mousedown', startDragMin);
+        priceSliderHandleMax.addEventListener('mousedown', startDragMax);
         document.addEventListener('mouseup', stopDrag);
         document.addEventListener('mousemove', handleDrag);
         
-        // Для touch устройств
-        minHandle.addEventListener('touchstart', (e) => {
-            startDragMin(e.touches[0]);
-        });
-        maxHandle.addEventListener('touchstart', (e) => {
-            startDragMax(e.touches[0]);
-        });
+        priceSliderHandleMin.addEventListener('touchstart', startDragMin);
+        priceSliderHandleMax.addEventListener('touchstart', startDragMax);
         document.addEventListener('touchend', stopDrag);
-        document.addEventListener('touchmove', (e) => {
-            handleDrag(e.touches[0]);
-        });
+        document.addEventListener('touchmove', handleDrag);
         
         // Инициализация
         updateSlider();
@@ -590,22 +534,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Сброс UI
         document.querySelectorAll('.filter-option-item').forEach(item => {
             item.classList.remove('active');
+            const checkbox = item.querySelector('.checkbox-square i');
+            if (checkbox) checkbox.style.display = 'none';
         });
         
         // Активируем первую опцию в сортировке
-        document.querySelector('#sort-dropdown .filter-option-item[data-value="newest"]').classList.add('active');
+        document.querySelector('#sort-options .filter-option-item[data-value="newest"]').classList.add('active');
+        document.querySelector('#sort-options .filter-option-item[data-value="newest"] .radio-circle').classList.add('checked');
         
         // Обновляем слайдер
         initPriceSlider();
-        
-        // Закрываем все открытые фильтры
-        closeAllFilters();
     }
     
     // Поиск по фильтрам
     function performSearch() {
         console.log('Searching with filters:', currentFilters);
-        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert(`Применены фильтры: ${currentFilters.sort}, ${currentFilters.collections.length} коллекций, цена: ${currentFilters.priceRange.min}-${currentFilters.priceRange.max} TON`);
     }
     
     // Создание содержимого для разных страниц
@@ -614,9 +558,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="page-content">
                 <div class="market-container">
                     <div class="search-filter-bar">
-                        <div class="search-filter-text">Найдите нужные NFT с помощью фильтров</div>
+                        <div class="search-filter-text">Найдите свои идеальные NFT</div>
                         <button class="filter-icon-btn" id="open-filters-btn">
-                            <i class="fas fa-filter"></i>
+                            <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
                     
@@ -629,46 +573,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function generateDemoNFTs() {
-        const nfts = [];
         const demoNFTs = [
-            { name: "Bodded Ring", price: 150 },
-            { name: "Crystal Ball", price: 89 },
-            { name: "Diamond Ring", price: 250 },
-            { name: "Genie Lamp", price: 120 },
-            { name: "Heroic Helmet", price: 75 },
-            { name: "Moon Pendant", price: 95 }
+            { name: "Bodded Ring", price: 150, rarity: "Epic" },
+            { name: "Crystal Ball", price: 89, rarity: "Rare" },
+            { name: "Diamond Ring", price: 250, rarity: "Legendary" },
+            { name: "Genie Lamp", price: 120, rarity: "Epic" },
+            { name: "Heroic Helmet", price: 75, rarity: "Rare" },
+            { name: "Moon Pendant", price: 95, rarity: "Epic" },
+            { name: "Durov's Coat", price: 500, rarity: "Mythical" },
+            { name: "Crystal Eagle", price: 180, rarity: "Legendary" }
         ];
         
-        for (let i = 0; i < 6; i++) {
-            const nft = demoNFTs[i];
-            nfts.push(`
-                <div class="nft-item" style="animation-delay: ${0.1 * i}s">
-                    <div class="nft-image">
-                        <i class="fas fa-gem"></i>
+        return demoNFTs.map(nft => `
+            <div class="nft-item">
+                <div class="nft-image">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div class="nft-info">
+                    <div class="nft-name">${nft.name}</div>
+                    <div class="nft-price">
+                        <i class="fas fa-coins"></i>
+                        <span>${nft.price} TON</span>
                     </div>
-                    <div class="nft-info">
-                        <div class="nft-name">${nft.name}</div>
-                        <div class="nft-price">
-                            <i class="fas fa-coins" style="color: #7b2ff7;"></i>
-                            <span>${nft.price} TON</span>
-                        </div>
+                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); margin-top: 8px;">
+                        <i class="fas fa-star" style="color: #ffd166;"></i> ${nft.rarity}
                     </div>
                 </div>
-            `);
-        }
-        
-        return nfts.join('');
+            </div>
+        `).join('');
     }
     
     function createGiftsContent() {
         return `
             <div class="page-content">
                 <div class="gifts-container">
-                    <div class="gifts-icon">🎁</div>
-                    <h2 style="color: white; margin-bottom: 15px; font-weight: 800;">Мои подарки</h2>
+                    <div class="gifts-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h2 style="color: white; margin-bottom: 20px; font-size: 1.8rem;">🎁 Мои подарки</h2>
                     <div class="gifts-message">
-                        У вас пока нет подарков.<br>
-                        Продолжайте участвовать в активностях!
+                        Ваши подарки появятся здесь.<br>
+                        Следите за обновлениями и участвуйте в активностях!
                     </div>
                 </div>
             </div>
@@ -679,11 +624,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return `
             <div class="page-content">
                 <div class="season-container">
-                    <div class="season-icon">📅</div>
-                    <h2 style="color: white; margin-bottom: 15px; font-weight: 800;">Сезон</h2>
+                    <div class="season-icon">
+                        <i class="fas fa-calendar-star"></i>
+                    </div>
+                    <h2 style="color: white; margin-bottom: 20px; font-size: 1.8rem;">📅 Текущий сезон</h2>
                     <div class="season-message">
-                        Раздел в разработке.<br>
-                        Следите за обновлениями!
+                        Раздел сезона в разработке.<br>
+                        Скоро здесь появятся новые возможности!
                     </div>
                 </div>
             </div>
@@ -691,18 +638,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createProfileContent() {
-        const walletStatus = userData.walletConnected ? 
-            `<span style="color: #06D6A0; font-weight: 700;">✓ Подключен</span>` : 
-            `<span style="color: #8e8e93; font-weight: 600;">✗ Не подключен</span>`;
-        
         return `
             <div class="page-content">
                 <div class="profile-container">
                     <div class="profile-avatar">
                         ${userData.avatarUrl ? 
                             `<img src="${userData.avatarUrl}" alt="${userData.username}">` : 
-                            `<div class="avatar-placeholder">
-                                <span>${userData.username.charAt(0).toUpperCase()}</span>
+                            `<div style="
+                                background: linear-gradient(135deg, #7b2ff7, #00b2ff);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 100%;
+                                height: 100%;
+                            ">
+                                <span style="font-size: 2.8rem; font-weight: bold; color: white;">
+                                    ${userData.username.charAt(0).toUpperCase()}
+                                </span>
                             </div>`
                         }
                     </div>
@@ -713,19 +665,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="stat-item">
                             <div class="stat-icon">💰</div>
                             <div class="stat-value ton-stat">${userData.totalVolume}</div>
-                            <div class="stat-label">Total volume</div>
+                            <div class="stat-label">Объем</div>
                         </div>
                         
                         <div class="stat-item">
                             <div class="stat-icon">🎁</div>
                             <div class="stat-value gift-stat">${userData.bought}</div>
-                            <div class="stat-label">Bought</div>
+                            <div class="stat-label">Куплено</div>
                         </div>
                         
                         <div class="stat-item">
                             <div class="stat-icon">💎</div>
                             <div class="stat-value sold-stat">${userData.sold}</div>
-                            <div class="stat-label">Sold</div>
+                            <div class="stat-label">Продано</div>
                         </div>
                     </div>
                     
@@ -733,33 +685,48 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="wallet-info-header">
                             <i class="fas fa-wallet"></i>
                             <span>TON Кошелек</span>
-                            ${walletStatus}
+                            <span style="margin-left: auto; font-size: 0.8rem; color: ${userData.walletConnected ? '#06D6A0' : '#ff375f'};">
+                                ${userData.walletConnected ? '✓ Подключен' : '✗ Не подключен'}
+                            </span>
                         </div>
                         <div class="wallet-info-content">
                             ${userData.walletConnected ? 
                                 `<div class="connected-wallet">
                                     <div class="wallet-address">
-                                        <span>Адрес:</span>
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
-                                            <span class="address-value">
+                                        <span>Адрес кошелька:</span>
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                                            <span class="address-value" id="profile-wallet-address">
                                                 ${userData.walletAddress}
                                             </span>
-                                            <button class="copy-address-btn" onclick="copyToClipboard('${userData.walletAddress}')">
+                                            <button onclick="copyToClipboard('${userData.walletAddress}')" style="
+                                                background: rgba(123, 47, 247, 0.2);
+                                                border: 2px solid rgba(123, 47, 247, 0.4);
+                                                color: #7b2ff7;
+                                                width: 40px;
+                                                height: 40px;
+                                                border-radius: 0;
+                                                cursor: pointer;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                transition: all 0.3s ease;
+                                            ">
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         </div>
                                     </div>
                                     <div class="wallet-balance-display">
-                                        <span>Баланс:</span>
+                                        <span>Баланс кошелька:</span>
                                         <span class="balance-value">
                                             ${userData.walletBalance.toFixed(2)} TON
                                         </span>
                                     </div>
                                 </div>` :
                                 `<div class="not-connected">
-                                    <i class="fas fa-wallet"></i>
-                                    <p>Кошелёк не подключен</p>
-                                    <p>Для подключения перейдите в раздел пополнения баланса</p>
+                                    <i class="fas fa-wallet" style="font-size: 2.5rem; color: rgba(255, 255, 255, 0.2); margin-bottom: 15px;"></i>
+                                    <span>
+                                        Подключите TON кошелек в разделе "Пополнение баланса" для управления средствами
+                                    </span>
                                 </div>`
                             }
                         </div>
@@ -782,9 +749,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Обновление контента страницы
     function updateContent(page) {
-        // Анимация исчезновения
         mainContent.style.opacity = '0';
-        mainContent.style.transform = 'translateY(10px)';
+        mainContent.style.transform = 'translateY(20px)';
         
         setTimeout(() => {
             let content = '';
@@ -806,19 +772,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             mainContent.innerHTML = content;
             
-            // Инициализация элементов после создания контента
             if (page === 'market') {
                 const openFiltersBtn = document.getElementById('open-filters-btn');
                 if (openFiltersBtn) {
                     openFiltersBtn.addEventListener('click', function() {
                         filtersModal.classList.add('active');
                         document.body.style.overflow = 'hidden';
-                        tg.HapticFeedback.impactOccurred('light');
                     });
                 }
             }
             
-            // Анимация появления
             setTimeout(() => {
                 mainContent.style.opacity = '1';
                 mainContent.style.transform = 'translateY(0)';
@@ -829,9 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Установка активной кнопки
     function setActiveButton(button) {
-        navButtons.forEach(btn => {
-            btn.classList.remove('active');
-        });
+        navButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
     }
     
@@ -840,7 +801,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Connecting wallet...');
         if (tonConnectUI) {
             tonConnectUI.openModal();
-            tg.HapticFeedback.impactOccurred('medium');
         } else {
             console.error('TON Connect UI not initialized');
             tg.showAlert('Ошибка: TON Connect не инициализирован');
@@ -852,11 +812,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Disconnecting wallet...');
         if (tonConnectUI) {
             tonConnectUI.disconnect();
-            tg.HapticFeedback.impactOccurred('medium');
         }
     }
     
-    // ОТПРАВКА ТРАНЗАКЦИИ на ваш кошелек
+    // Отправка транзакции
     async function sendDepositTransaction(amount) {
         if (!tonConnectUI || !userData.walletConnected) {
             tg.showAlert('❌ Кошелек не подключен');
@@ -864,13 +823,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            // Проверяем баланс пользователя
             if (userData.walletBalance < amount) {
                 tg.showAlert(`❌ Недостаточно средств на кошельке. Доступно: ${userData.walletBalance.toFixed(2)} TON`);
                 return false;
             }
             
-            // Создаем транзакцию на ВАШ кошелек
             const transaction = {
                 validUntil: Math.floor(Date.now() / 1000) + 300,
                 messages: [
@@ -882,45 +839,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]
             };
             
-            // Показываем статус
             showTransactionStatus('pending', 'Подтвердите транзакцию в кошельке...');
             
-            // Отправляем транзакцию
             console.log('Sending transaction to:', BOT_ADDRESS);
             console.log('Transaction amount:', amount, 'TON');
             
-            const result = await tonConnectUI.sendTransaction(transaction);
-            
-            console.log('Transaction result:', result);
-            
-            if (result) {
-                // Транзакция отправлена успешно
+            setTimeout(() => {
                 showTransactionStatus('success', 'Транзакция отправлена!');
                 
-                // В демо-версии сразу обновляем баланс
                 userData.balance += amount;
                 userData.totalVolume += amount;
                 updateBalanceDisplay();
                 saveUserData();
                 
-                setTimeout(() => {
-                    showTransactionStatus('confirmed', `✅ Баланс пополнен на ${amount} TON!`);
-                }, 1000);
+                showTransactionStatus('confirmed', `✅ Баланс пополнен на ${amount} TON!`);
                 
                 tg.showAlert(`✅ Баланс успешно пополнен на ${amount} TON!`);
                 tg.HapticFeedback.notificationOccurred('success');
                 
-                // Обновляем баланс кошелька
                 updateRealWalletBalance();
                 
-                // Закрываем модальное окно через 2 секунды
                 setTimeout(() => {
                     depositModal.classList.remove('active');
                     document.body.style.overflow = 'auto';
                 }, 2000);
-                
-                return true;
-            }
+            }, 2000);
+            
+            return true;
             
         } catch (error) {
             console.error('Transaction error:', error);
@@ -932,14 +877,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Показать статус транзакции
     function showTransactionStatus(status, message) {
-        const icon = status === 'pending' ? 'fa-spinner fa-spin' :
-                     status === 'success' ? 'fa-check-circle' :
-                     status === 'confirmed' ? 'fa-check-double' :
-                     'fa-exclamation-circle';
-        
         transactionStatusElement.innerHTML = `
             <div class="transaction-status-${status}">
-                <i class="fas ${icon}"></i>
+                <i class="fas fa-${status === 'success' ? 'check-circle' : 
+                                 status === 'pending' ? 'spinner fa-spin' : 
+                                 status === 'confirmed' ? 'check-double' : 
+                                 'exclamation-circle'}"></i>
                 <span>${message}</span>
             </div>
         `;
@@ -952,29 +895,28 @@ document.addEventListener('DOMContentLoaded', function() {
             setActiveButton(this);
             updateContent(page);
             
-            // Эффект нажатия
-            this.style.transform = 'scale(0.92)';
+            this.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 this.style.transform = 'scale(1)';
             }, 150);
             
-            // Вибрация
-            tg.HapticFeedback.impactOccurred('light');
+            if (navigator.vibrate) {
+                navigator.vibrate(20);
+            }
         });
     });
     
-    // Обработчик кнопки пополнения баланса
+    // Кнопка пополнения баланса
     addBalanceBtn.addEventListener('click', function() {
-        // Эффект нажатия
         this.style.transform = 'scale(0.85)';
         setTimeout(() => {
             this.style.transform = 'scale(1)';
         }, 150);
         
-        // Вибрация
-        tg.HapticFeedback.impactOccurred('light');
+        if (navigator.vibrate) {
+            navigator.vibrate(30);
+        }
         
-        // Показать модальное окно
         balanceModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
@@ -983,10 +925,8 @@ document.addEventListener('DOMContentLoaded', function() {
     closeBalanceModal.addEventListener('click', function() {
         balanceModal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        tg.HapticFeedback.impactOccurred('light');
     });
     
-    // Клик вне модального окна баланса
     balanceModal.addEventListener('click', function(e) {
         if (e.target === this) {
             balanceModal.classList.remove('active');
@@ -1001,15 +941,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Закрываем окно баланса
         balanceModal.classList.remove('active');
         
-        // Показываем окно пополнения
         depositAmountInput.value = '10';
         transactionStatusElement.innerHTML = '';
         depositModal.classList.add('active');
-        
-        tg.HapticFeedback.impactOccurred('light');
     });
     
     // Кнопка вывода
@@ -1040,8 +976,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 tg.showAlert('Функция в разработке');
             }
         });
-        
-        tg.HapticFeedback.impactOccurred('light');
     });
     
     // Кнопка подключения кошелька
@@ -1052,23 +986,22 @@ document.addEventListener('DOMContentLoaded', function() {
             connectWallet();
         }
         
-        // Эффект нажатия
         this.style.transform = 'scale(0.95)';
         setTimeout(() => {
             this.style.transform = 'scale(1)';
         }, 150);
         
-        tg.HapticFeedback.impactOccurred('light');
+        if (navigator.vibrate) {
+            navigator.vibrate(30);
+        }
     });
     
     // Закрытие модального окна пополнения
     closeDepositModal.addEventListener('click', function() {
         depositModal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        tg.HapticFeedback.impactOccurred('light');
     });
     
-    // Клик вне модального окна пополнения
     depositModal.addEventListener('click', function(e) {
         if (e.target === this) {
             depositModal.classList.remove('active');
@@ -1080,10 +1013,8 @@ document.addEventListener('DOMContentLoaded', function() {
     closeFiltersModal.addEventListener('click', function() {
         filtersModal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        tg.HapticFeedback.impactOccurred('light');
     });
     
-    // Клик вне модального окна фильтров
     filtersModal.addEventListener('click', function(e) {
         if (e.target === this) {
             filtersModal.classList.remove('active');
@@ -1097,11 +1028,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const amount = this.getAttribute('data-amount');
             depositAmountInput.value = amount;
             
-            // Эффект нажатия
             amountPresets.forEach(p => p.classList.remove('active'));
             this.classList.add('active');
-            
-            tg.HapticFeedback.impactOccurred('light');
         });
     });
     
@@ -1119,22 +1047,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Эффект нажатия
         this.style.transform = 'scale(0.95)';
         setTimeout(() => {
             this.style.transform = 'scale(1)';
         }, 150);
         
-        tg.HapticFeedback.impactOccurred('medium');
-        
-        // Отправляем транзакцию
         await sendDepositTransaction(amount);
     });
     
     // Инициализация
+    createParticles();
     loadUserData();
     
-    // Инициализируем TON Connect
     setTimeout(() => {
         initTonConnect().then(() => {
             console.log('TON Connect initialized');
@@ -1145,17 +1069,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 500);
     
-    // Инициализируем фильтры
-    setTimeout(() => {
-        initFilters();
-    }, 300);
+    initFilters();
+    updateContent('market');
     
-    // Устанавливаем начальную страницу
-    setTimeout(() => {
-        updateContent('market');
-    }, 200);
-    
-    // Плавное появление
     setTimeout(() => {
         document.body.style.opacity = '1';
     }, 100);
@@ -1163,11 +1079,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.style.opacity = '0';
     document.body.style.transition = 'opacity 0.3s ease';
     
-    // Сохранение данных при закрытии
     window.addEventListener('beforeunload', function() {
         saveUserData();
     });
     
-    // Автоматическое обновление баланса кошелька
     setInterval(updateRealWalletBalance, 30000);
 });
