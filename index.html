@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Верхнее меню с балансом в полукруге -->
+        <!-- Верхнее меню с балансом -->
         <div class="top-menu">
             <div class="ton-balance-circle">
                 <div class="ton-circle-bg"></div>
@@ -30,11 +30,12 @@
         <div class="modal-overlay" id="balance-modal">
             <div class="modal-content wallet-modal">
                 <div class="modal-header">
+                    <h3 class="modal-title">💰 Управление балансом</h3>
                     <button class="modal-close" id="close-balance-modal">&times;</button>
                 </div>
                 
                 <div class="wallet-top-circle">
-                    <div class="wallet-title">Баланс</div>
+                    <div class="wallet-title">Ваш баланс</div>
                     <div class="wallet-balance">
                         <span id="bot-balance">0</span>
                         <span class="ton-text">TON</span>
@@ -42,26 +43,27 @@
                 </div>
                 
                 <div class="wallet-buttons">
-                    <button class="wallet-btn deposit-btn" id="deposit-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>Пополнить</span>
+                    <button class="wallet-btn deposit-btn full-width-btn" id="deposit-btn">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Пополнить баланс</span>
                     </button>
-                    <button class="wallet-btn withdraw-btn" id="withdraw-btn">
+                    <button class="wallet-btn withdraw-btn full-width-btn" id="withdraw-btn">
                         <i class="fas fa-arrow-up"></i>
-                        <span>Вывести</span>
+                        <span>Вывести средства</span>
                     </button>
                 </div>
                 
-                <div class="wallet-connect">
+                <div class="wallet-connect-section">
                     <div class="connect-header">
-                        <span>👛 Кошелек</span>
-                        <button class="connect-btn" id="connect-wallet-btn">
-                            Подключить +
-                        </button>
+                        <span class="connect-title">📱 TON Кошелек</span>
                     </div>
                     <div class="connect-info" id="connect-info">
                         <!-- Информация о подключенном кошельке будет здесь -->
                     </div>
+                    <button class="connect-action-btn" id="connect-wallet-btn">
+                        <i class="fas fa-plug"></i>
+                        <span>Подключить TON кошелек</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -70,27 +72,35 @@
         <div class="modal-overlay" id="deposit-modal">
             <div class="modal-content deposit-modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">💰 Пополнение баланса</h3>
+                    <h3 class="modal-title">💎 Пополнение баланса</h3>
                     <button class="modal-close" id="close-deposit-modal">&times;</button>
                 </div>
                 
                 <div class="deposit-container">
-                    <div class="deposit-amount">
+                    <div class="deposit-amount-section">
                         <label for="deposit-amount-input">Сумма пополнения (TON):</label>
                         <div class="amount-input-group">
                             <input type="number" id="deposit-amount-input" min="1" max="1000" step="0.01" placeholder="10" value="10">
                             <span class="ton-symbol">TON</span>
                         </div>
-                        <div class="amount-presets">
+                        <div class="amount-presets-grid">
                             <button class="amount-preset" data-amount="10">10 TON</button>
                             <button class="amount-preset" data-amount="50">50 TON</button>
                             <button class="amount-preset" data-amount="100">100 TON</button>
+                            <button class="amount-preset" data-amount="250">250 TON</button>
                         </div>
                     </div>
                     
-                    <button class="confirm-deposit-btn" id="confirm-deposit-btn">
+                    <div class="transaction-info">
+                        <div class="info-item">
+                            <i class="fas fa-wallet"></i>
+                            <span>Будет отправлено на ваш адрес</span>
+                        </div>
+                    </div>
+                    
+                    <button class="confirm-deposit-btn pulse-animation" id="confirm-deposit-btn">
                         <i class="fas fa-paper-plane"></i>
-                        <span>Пополнить</span>
+                        <span>Отправить транзакцию</span>
                     </button>
                     
                     <div class="transaction-status" id="transaction-status">
@@ -104,19 +114,19 @@
         <div class="modal-overlay" id="filters-modal">
             <div class="modal-content filters-modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">Фильтры</h3>
+                    <h3 class="modal-title">🔍 Фильтры NFT</h3>
                     <button class="modal-close" id="close-filters-modal">&times;</button>
                 </div>
                 
                 <div class="filters-container">
-                    <div class="filter-section">
-                        <button class="filter-option" data-filter="sort">
-                            <span>Сортировать по</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="filter-dropdown" id="sort-dropdown">
-                            <div class="filter-option-item" data-value="newest">
-                                <div class="radio-circle"></div>
+                    <div class="filter-section expanded">
+                        <div class="filter-header">
+                            <span>Сортировка</span>
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                        <div class="filter-options active" id="sort-options">
+                            <div class="filter-option-item active" data-value="newest">
+                                <div class="radio-circle checked"></div>
                                 <span>Сначала новые</span>
                             </div>
                             <div class="filter-option-item" data-value="price-asc">
@@ -127,26 +137,36 @@
                                 <div class="radio-circle"></div>
                                 <span>Цена: по убыванию</span>
                             </div>
+                            <div class="filter-option-item" data-value="rarity">
+                                <div class="radio-circle"></div>
+                                <span>По редкости</span>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="filter-section">
-                        <button class="filter-option" data-filter="collection">
+                        <div class="filter-header">
                             <span>Коллекция</span>
                             <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="filter-dropdown" id="collection-dropdown">
+                        </div>
+                        <div class="filter-options" id="collection-options">
                             <!-- Коллекции будут заполнены через JS -->
                         </div>
                     </div>
                     
                     <div class="filter-section">
-                        <button class="filter-option" data-filter="price">
-                            <span>Цена</span>
+                        <div class="filter-header">
+                            <span>Ценовой диапазон</span>
                             <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="filter-dropdown" id="price-dropdown">
+                        </div>
+                        <div class="filter-options" id="price-options">
                             <div class="price-slider-container">
+                                <div class="price-range-display">
+                                    <span id="price-min-display">0</span>
+                                    <span> - </span>
+                                    <span id="price-max-display">100000</span>
+                                    <span> TON</span>
+                                </div>
                                 <div class="price-slider-track" id="price-slider-track">
                                     <div class="price-slider-range" id="price-slider-range"></div>
                                     <div class="price-slider-handle" id="price-slider-handle-min"></div>
@@ -161,18 +181,24 @@
                     </div>
                     
                     <div class="filter-section">
-                        <button class="filter-option" data-filter="background">
-                            <span>Background</span>
+                        <div class="filter-header">
+                            <span>Фон</span>
                             <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="filter-dropdown" id="background-dropdown">
+                        </div>
+                        <div class="filter-options" id="background-options">
                             <!-- Backgrounds будут заполнены через JS -->
                         </div>
                     </div>
                     
-                    <div class="filter-buttons">
-                        <button class="filter-btn reset-btn" id="reset-filters-btn">Сбросить</button>
-                        <button class="filter-btn search-btn" id="search-filters-btn">Поиск</button>
+                    <div class="filter-actions">
+                        <button class="filter-action-btn reset-btn" id="reset-filters-btn">
+                            <i class="fas fa-undo"></i>
+                            <span>Сбросить все</span>
+                        </button>
+                        <button class="filter-action-btn apply-btn" id="apply-filters-btn">
+                            <i class="fas fa-check"></i>
+                            <span>Применить фильтры</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -191,7 +217,7 @@
                     </div>
                 </button>
                 
-                <button class="nav-button gifts-btn" data-page="gifts">
+                <button class="nav-button" data-page="gifts">
                     <div class="button-content">
                         <div class="nav-emoji">🎁</div>
                         <span class="nav-text">Подарки</span>
