@@ -1345,3 +1345,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Автоматическое обновление баланса кошелька
     setInterval(updateRealWalletBalance, 30000);
 });
+
