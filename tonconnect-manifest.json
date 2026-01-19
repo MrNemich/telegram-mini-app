@@ -1,0 +1,33 @@
+{
+    "url": "https://telegram-mini-app-mauve.vercel.app",
+    "name": "BEAT CLUB",
+    "iconUrl": "https://telegram-mini-app-mauve.vercel.app/nft/ton.png",
+    "termsOfUseUrl": "https://telegram-mini-app-mauve.vercel.app/terms",
+    "privacyPolicyUrl": "https://telegram-mini-app-mauve.vercel.app/privacy",
+    "vendors": [
+        {
+            "name": "Tonkeeper",
+            "imageUrl": "https://tonkeeper.com/assets/tonconnect-icon.png",
+            "aboutUrl": "https://tonkeeper.com",
+            "universalUrl": "https://app.tonkeeper.com/ton-connect",
+            "bridgeUrl": "https://bridge.tonapi.io/bridge",
+            "jsBridgeKey": "tonkeeper"
+        },
+        {
+            "name": "Tonhub",
+            "imageUrl": "https://tonhub.com/tonconnect_logo.png",
+            "aboutUrl": "https://tonhub.com",
+            "universalUrl": "https://tonhub.com/ton-connect",
+            "bridgeUrl": "https://connect.tonhubapi.com/tonconnect",
+            "jsBridgeKey": "tonhub"
+        },
+        {
+            "name": "OpenMask",
+            "imageUrl": "https://openmask.app/logo.png",
+            "aboutUrl": "https://openmask.app",
+            "universalUrl": "https://openmask.app/ton-connect",
+            "bridgeUrl": "https://bridge.openmask.app/tonconnect",
+            "jsBridgeKey": "openmask"
+        }
+    ]
+}
